@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>EPI Tracker | Configurações</title>
+  <link rel="stylesheet" href="./config.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  </head>
+<body>
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <button id="toggleMenu" class="hamburger" aria-label="Abrir menu"><i class="fas fa-bars"></i></button>
+      <h1 class="logo">EPI Tracker</h1>
+    </div>
+
+    <nav>
+      <ul id="menuList">
+        <li><a href="../index.html"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+        <li><a href="../inv/inventario.html"><i class="fas fa-boxes"></i> Inventário</a></li>
+        <li><a href="../inspe/inspecoes.html"><i class="fas fa-clipboard-check"></i> Inspeções</a></li>
+        <li><a href="../relat/relatorio.html"><i class="fas fa-file-alt"></i> Relatórios</a></li>
+        <li><a href="./config.html" class="active"><i class="fas fa-cog"></i> Configurações</a></li>
+      </ul>
+    </nav>
+  </div>
+
+    <div class="main-content">
+      <header>
+        <h2>Configurações</h2>
+      </header>
+
+      <section class="section">
+        <h3>Informações da Empresa</h3>
+        <form>
+          <div class="form-group">
+            <label for="nomeEmpresa">Nome da Empresa</label>
+            <input
+              type="text"
+              id="nomeEmpresa"
+              name="nomeEmpresa"
+              placeholder="Digite o nome da empresa"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="emailContato">Email de Contato</label>
+            <input
+              type="email"
+              id="emailContato"
+              name="emailContato"
+              placeholder="email@empresa.com"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="telefoneContato">Telefone de Contato</label>
+            <input
+              type="text"
+              id="telefoneContato"
+              name="telefoneContato"
+              placeholder="(XX) XXXXX-XXXX"
+            />
+          </div>
+
+          <button type="submit" class="btn">Salvar</button>
+        </form>
+      </section>
+
+      <section class="section">
+        <h3>Tema do Sistema</h3>
+        <label for="toggleTema">Modo Escuro</label>
+        <label class="toggle-switch">
+          <input type="checkbox" id="toggleTema" />
+          <span class="slider"></span>
+        </label>
+      </section>
+
+      <section class="section">
+        <h3>Redefinir Senha</h3>
+        <form>
+          <div class="form-group">
+            <label for="senhaAtual">Senha Atual</label>
+            <input
+              type="password"
+              id="senhaAtual"
+              name="senhaAtual"
+              placeholder="Digite sua senha atual"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="novaSenha">Nova Senha</label>
+            <input
+              type="password"
+              id="novaSenha"
+              name="novaSenha"
+              placeholder="Digite a nova senha"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="confirmarSenha">Confirmar Nova Senha</label>
+            <input
+              type="password"
+              id="confirmarSenha"
+              name="confirmarSenha"
+              placeholder="Confirme a nova senha"
+            />
+          </div>
+
+          <button type="submit" class="btn">Alterar Senha</button>
+        </form>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const toggleTema = document.getElementById('toggleTema');
+
+function aplicarTema() {
+  const modoEscuroAtivo = localStorage.getItem('modoEscuro') === 'true';
+  if (modoEscuroAtivo) {
+    document.body.classList.add('dark-theme');
+    toggleTema.checked = true;
+  } else {
+    document.body.classList.remove('dark-theme');
+    toggleTema.checked = false;
+  }
+}
+
+aplicarTema();
+
+toggleTema.addEventListener('change', () => {
+  localStorage.setItem('modoEscuro', toggleTema.checked);
+  aplicarTema();
+});
+
+const toggleMenu = document.getElementById('toggleMenu');
+  const menuList = document.getElementById('menuList');
+  toggleMenu?.addEventListener('click', () => {
+    menuList.classList.toggle('active');
+  });
+  </script>
+</body>
+</html>

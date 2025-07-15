@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Apropriação</title>
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+    body {
+      display: flex;
+      min-height: 100vh;
+      background-color: #f5f7fa;
+    }
+    .sidebar {
+      width: 220px;
+      background: #2c3e50;
+      color: #fff;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+    }
+    .sidebar-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .hamburger {
+      display: none;
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 24px;
+      position: absolute;
+      left: 0;
+      cursor: pointer;
+    }
+    .logo {
+      font-size: 24px;
+      user-select: none;
+    }
+    nav ul {
+      list-style: none;
+      margin-top: 20px;
+    }
+    nav ul li {
+      margin: 15px 0;
+    }
+    nav ul li a {
+      text-decoration: none;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+    nav ul li a i {
+      margin-right: 10px;
+    }
+    nav ul li a.active,
+    nav ul li a:hover {
+      background: #34495e;
+    }
+    .main-content {
+      flex: 1;
+      padding: 30px;
+    }
+    header h2 {
+      margin-bottom: 20px;
+      color: #2c3e50;
+    }
+    .form-section {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      margin-bottom: 30px;
+    }
+    .form-section h3 {
+      margin-bottom: 15px;
+      color: #2c3e50;
+    }
+    .form-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 15px;
+      align-items: center;
+    }
+    .form-row label {
+      flex: 1 1 120px;
+      color: #333;
+    }
+    .form-row input,
+    .form-row select,
+    .form-row textarea {
+      flex: 2 1 200px;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    .form-row textarea {
+      resize: vertical;
+      min-height: 40px;
+    }
+    /* Radio buttons estilos e alinhamento lado a lado */
+    .radio-group {
+      display: flex;
+      gap: 30px;
+      align-items: center;
+    }
+    .radio-group label {
+      position: relative;
+      padding-left: 30px;
+      cursor: pointer;
+      font-size: 16px;
+      user-select: none;
+      color: #2c3e50;
+    }
+    .radio-group input[type="radio"] {
+      position: absolute;
+      opacity: 0;
+      cursor: pointer;
+    }
+    .radio-group label::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 20px;
+      height: 20px;
+      border: 2px solid #2c3e50;
+      border-radius: 50%;
+      background: white;
+      box-sizing: border-box;
+      transition: border-color 0.3s ease;
+    }
+    .radio-group input[type="radio"]:checked + label::before {
+      border-color: #2c3e50;
+      background: #2c3e50;
+    }
+    .radio-group label::after {
+      content: "";
+      position: absolute;
+      left: 6px;
+      top: 50%;
+      transform: translateY(-50%) scale(0);
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: white;
+      transition: transform 0.3s ease;
+    }
+    .radio-group input[type="radio"]:checked + label::after {
+      transform: translateY(-50%) scale(1);
+    }
+    .btn {
+      background: #2c3e50;
+      color: #fff;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn:hover {
+      background: #34495e;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th,
+    td {
+      padding: 12px;
+      border-bottom: 1px solid #ddd;
+      text-align: left;
+      font-size: 14px;
+    }
+    th {
+      background: #f0f0f0;
+      color: #333;
+    }
+@media (max-width: 768px) {
+  body {
+    flex-direction: column;
+  }
+  .sidebar {
+    width: 100%;
+    padding: 15px;
+    flex-direction: column; /* <--- mudou de row para column */
+    align-items: center;
+    justify-content: flex-start;
+  }
+
+  .sidebar-header {
+    width: 100%;
+    justify-content: center;
+    position: relative;
+  }
+
+  .hamburger {
+    display: block;
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .logo {
+    font-size: 20px;
+    text-align: center;
+    width: 100%;
+  }
+
+  nav ul {
+    width: 100%;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transform-origin: top center;
+    transform: translateY(-10px);
+    transition: max-height 0.4s ease, opacity 0.4s ease, transform 0.4s ease;
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  nav ul.active {
+    max-height: 500px;
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .main-content {
+    padding: 15px;
+  }
+
+  section.form-section:last-of-type {
+    margin-top: 30px;
+    padding: 20px;
+  }
+
+  #recordsTable th,
+  #recordsTable td {
+    padding: 10px;
+    font-size: 13px;
+  }
+
+  .table-wrapper {
+    overflow-x: auto;
+    margin-top: 15px;
+  }
+
+  .table-wrapper table {
+    min-width: 500px;
+  }
+}
+
+
+@media (max-width: 600px) {
+  .form-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .form-row label, 
+  .form-row input,
+  .form-row select,
+  .form-row textarea {
+    flex: 1 1 100%;
+  }
+  .radio-group {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  margin-top: 20px;
+}
+.table-wrapper table {
+  width: 100%;
+  min-width: 600px; /* garante que enrole antes de “quebrar” */
+}
+
+@media (max-width: 480px) {
+  header h2 {
+    font-size: 1.2rem;
+  }
+  .btn {
+    padding: 8px 12px;
+    font-size: 0.9rem;
+  }
+}
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <button id="toggleMenu" class="hamburger">
+        <i class="fas fa-bars"></i>
+      </button>
+      <h1 class="logo">Apropriação</h1>
+    </div>
+    <nav>
+      <ul id="menuList">
+        <li>
+          <a href="#" class="active"
+            ><i class="fas fa-users"></i> Apropriação</a
+          >
+        </li>
+      </ul>
+    </nav>
+  </div>
+  <div class="main-content">
+    <header>
+      <h2>Apropriação de Equipes</h2>
+    </header>
+    <!-- Formulário de Criação/Edição de Equipe -->
+    <section class="form-section" id="teamSection">
+      <h3>Gerenciar Equipe</h3>
+      <div class="form-row">
+        <label for="teamName">Nome da Equipe:</label>
+        <input
+          type="text"
+          id="teamName"
+          placeholder="Ex: Semana 1 - Plataforma X"
+          autocomplete="off"
+        />
+      </div>
+      <div class="form-row">
+        <label>Turno padrão da equipe:</label>
+        <div class="radio-group">
+          <input type="radio" id="shiftDiurno" name="teamShift" value="Diurno" checked />
+          <label for="shiftDiurno">Diurno</label>
+
+          <input type="radio" id="shiftNoturno" name="teamShift" value="Noturno" />
+          <label for="shiftNoturno">Noturno</label>
+        </div>
+      </div>
+      <div id="membersContainer">
+        <!-- Linhas de membro serão injetadas aqui -->
+      </div>
+      <button id="addMemberBtn" class="btn">Adicionar Membro</button>
+      <button id="saveTeamBtn" class="btn">Salvar Equipe</button>
+      <div style="margin-top: 10px; display: flex; gap: 10px;">
+  <button id="editSelectedTeamBtn" class="btn" style="background: #2980b9">
+  <i class="fas fa-pencil-alt" style="margin-right: 4px;"></i> | Editar Equipe Selecionada
+</button>
+  <button id="cancelEditBtn" class="btn" style="display: none; background: #c0392b">Cancelar Edição</button>
+</div>
+    </section>
+    <!-- Formulário de Apropriação -->
+    <section class="form-section" id="recordSection">
+      <h3>Enviar Apropriação</h3>
+      <div class="form-row">
+        <label for="dateInput">Data:</label>
+        <input type="date" id="dateInput" value="" />
+      </div>
+      <div class="form-row">
+        <label for="vesselInput">Embarcação:</label>
+        <input
+          type="text"
+          id="vesselInput"
+          placeholder="Código ou nome"
+          autocomplete="off"
+        />
+      </div>
+      <div class="form-row">
+        <label for="blockSelect">Bloco:</label>
+        <select id="blockSelect">
+          <option value="BB">BB</option>
+          <option value="BE">BE</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label for="teamSelect">Equipe:</label>
+        <select id="teamSelect"></select>
+      </div>
+      <div
+        id="shiftsContainer"
+        style="display: flex; flex-direction: column; gap: 10px"
+      >
+        <!-- Linhas dos membros para apropriação serão criadas aqui -->
+      </div>
+      <!-- Botão Adicionar Turno REMOVIDO -->
+      <button id="submitRecordBtn" class="btn">Enviar Apropriação</button>
+    </section>
+    <!-- Tabela de Registros -->
+    <section class="form-section">
+      <h3>Registros Recentes</h3>
+      <div class="table-wrapper">
+      <table id="recordsTable">
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Embarcação</th>
+            <th>Bloco</th>
+            <th>Equipe</th>
+            <th>Usuário</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      </div>
+    </section>
+  </div>
+
+  <script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+import {
+  getFirestore,
+  collection,
+  query,
+  where,
+  getDocs,
+  addDoc,
+  doc,
+  getDoc,
+  setDoc,
+  orderBy,
+  limit,
+  Timestamp
+} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+
+// Config Firebase
+const firebaseConfig = {
+  apiKey: "AIzaSyDtnzixicBYAQkuoeB5tgCGpDLt1lByMZo",
+  authDomain: "apropriacao-estrutura.firebaseapp.com",
+  projectId: "apropriacao-estrutura",
+  storageBucket: "apropriacao-estrutura.appspot.com",
+  messagingSenderId: "155266586257",
+  appId: "1:155266586257:web:6d70edc967cdbfc56e5130",
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let currentUser = null;
+let editingTeamId = null;
+
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    currentUser = user;
+    setDateToday();
+    loadTeams();
+    loadRecords();
+  } else {
+    window.location.href = "./auth.html";
+  }
+});
+
+function setDateToday() {
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, '0');
+  const dd = String(today.getDate()).padStart(2, '0');
+  document.getElementById("dateInput").value = `${yyyy}-${mm}-${dd}`;
+}
+
+async function loadTeams() {
+  const q = query(collection(db, "teams"), where("ownerUid", "==", currentUser.uid));
+  const snap = await getDocs(q);
+  const select = document.getElementById("teamSelect");
+  select.innerHTML = '<option value="">Selecione uma equipe</option>';
+  snap.forEach((doc) => {
+    const t = doc.data();
+    const opt = document.createElement("option");
+    opt.value = doc.id;
+    opt.textContent = t.name;
+    select.appendChild(opt);
+  });
+}
+
+document.getElementById("teamSelect").addEventListener("change", async function () {
+  const teamId = this.value;
+  const shiftsContainer = document.getElementById("shiftsContainer");
+  shiftsContainer.innerHTML = "";
+  if (!teamId) return;
+  const teamDoc = await getDoc(doc(db, "teams", teamId));
+  if (!teamDoc.exists()) return;
+  const teamData = teamDoc.data();
+  if (!teamData.members || teamData.members.length === 0) return;
+  const turnoPadrao = teamData.shift || "";
+  teamData.members.forEach((member) => {
+    shiftsContainer.appendChild(
+      createShiftRowForRecord({
+        name: member.name,
+        memberMatricula: member.matricula,
+        block: member.block || "",
+        vessel: member.vessel || "",
+        shift: turnoPadrao,
+        observations: "",
+      })
+    );
+  });
+});
+
+function createMemberRow(member = { name: "", matricula: "", block: "", vessel: "" }) {
+  const div = document.createElement("div");
+  div.className = "form-row";
+  div.innerHTML = `
+    <input type="text" class="memberName" placeholder="Nome" value="${member.name}" />
+    <input type="text" class="memberMatricula" placeholder="Matrícula" value="${member.matricula}" />
+    <input type="text" class="memberBlock" placeholder="Bloco" value="${member.block}" />
+    <input type="text" class="memberVessel" placeholder="Embarcação" value="${member.vessel}" />
+    <button class="btn removeMemberBtn"><i class="fas fa-trash"></i></button>
+  `;
+  div.querySelector(".removeMemberBtn").onclick = () => div.remove();
+  return div;
+}
+
+function createShiftRowForRecord(data) {
+  const div = document.createElement("div");
+  div.className = "form-row";
+  div.style.alignItems = "center";
+  div.innerHTML = `
+    <input type="text" class="shiftName" value="${data.name}" readonly style="flex: 2; background: #eee;" />
+    <input type="text" class="shiftMatricula" value="${data.memberMatricula}" readonly style="flex: 1; background: #eee;" />
+    <input type="text" class="shiftVessel" value="${data.vessel}" readonly style="flex: 2; background: #eee;" />
+    <input type="text" class="shiftBlock" value="${data.block}" readonly style="flex: 1; background: #eee;" />
+    <select class="shiftTurno" style="flex: 1;">
+      <option value="">Turno</option>
+      <option value="Diurno" ${data.shift === "Diurno" ? "selected" : ""}>Diurno</option>
+      <option value="Noturno" ${data.shift === "Noturno" ? "selected" : ""}>Noturno</option>
+    </select>
+    <input type="text" class="shiftObservations" placeholder="Observações" style="flex: 3;" value="${data.observations || ""}" />
+  `;
+  return div;
+}
+
+document.getElementById("addMemberBtn").onclick = () => {
+  document.getElementById("membersContainer").appendChild(createMemberRow());
+};
+
+document.getElementById("saveTeamBtn").onclick = async () => {
+  if (!currentUser) return alert("Usuário não autenticado.");
+  const name = document.getElementById("teamName").value.trim();
+  if (!name) return alert("Informe o nome da equipe.");
+  const turnoRadio = document.querySelector('input[name="teamShift"]:checked');
+  const turno = turnoRadio ? turnoRadio.value : "";
+  const members = Array.from(document.querySelectorAll("#membersContainer .form-row")).map((r) => ({
+    name: r.querySelector(".memberName").value.trim(),
+    matricula: r.querySelector(".memberMatricula").value.trim(),
+    block: r.querySelector(".memberBlock").value.trim(),
+    vessel: r.querySelector(".memberVessel").value.trim(),
+  }));
+  if (members.length === 0) return alert("Adicione ao menos um membro.");
+  for (const m of members) if (!m.name || !m.matricula) return alert("Nome e matrícula são obrigatórios.");
+  const data = { name, members, shift: turno, ownerUid: currentUser.uid };
+  try {
+    if (editingTeamId) {
+      await setDoc(doc(db, "teams", editingTeamId), data);
+      alert("Equipe atualizada!");
+    } else {
+      await addDoc(collection(db, "teams"), data);
+      alert("Equipe criada!");
+    }
+    editingTeamId = null;
+    document.getElementById("teamName").value = "";
+    document.getElementById("membersContainer").innerHTML = "";
+    document.querySelector('input[name="teamShift"][value="Diurno"]').checked = true;
+    document.getElementById("cancelEditBtn").style.display = "none";
+    await loadTeams();
+  } catch (err) {
+    console.error(err);
+    alert("Erro ao salvar equipe.");
+  }
+};
+
+async function loadRecords() {
+  const q = query(collection(db, "records"), orderBy("date", "desc"), limit(10));
+  const snap = await getDocs(q);
+  const tbody = document.querySelector("#recordsTable tbody");
+  tbody.innerHTML = "";
+  snap.forEach((doc) => {
+    const r = doc.data();
+    const tr = document.createElement("tr");
+    const dataHora = r.date.toDate();
+    const dataFormatada = `${dataHora.toLocaleDateString("pt-BR")} ${dataHora.toLocaleTimeString("pt-BR").slice(0,5)}`;
+    tr.innerHTML = `
+      <td>${dataFormatada}</td>
+      <td>${r.vessel}</td>
+      <td>${r.block}</td>
+      <td>${r.teamId}</td>
+      <td>${r.createdBy}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+document.getElementById("submitRecordBtn").onclick = async () => {
+  if (!currentUser) return alert("Usuário não autenticado.");
+  const teamId = document.getElementById("teamSelect").value;
+  if (!teamId) return alert("Selecione uma equipe.");
+  const dateStr = document.getElementById("dateInput").value;
+  if (!dateStr) return alert("Informe a data.");
+  const [year, month, day] = dateStr.split("-").map(Number);
+  const dateLocal = new Date(year, month - 1, day);
+  const now = new Date();
+  dateLocal.setHours(now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds());
+  const vessel = document.getElementById("vesselInput").value.trim();
+  const block = document.getElementById("blockSelect").value;
+  const shifts = Array.from(document.querySelectorAll("#shiftsContainer .form-row")).map((row) => ({
+    name: row.querySelector(".shiftName").value,
+    memberMatricula: row.querySelector(".shiftMatricula").value,
+    vessel: row.querySelector(".shiftVessel").value,
+    block: row.querySelector(".shiftBlock").value,
+    shift: row.querySelector(".shiftTurno").value,
+    observations: row.querySelector(".shiftObservations").value.trim(),
+  }));
+  for (const s of shifts) if (!s.shift) return alert(`Informe o turno para o colaborador ${s.name}.`);
+  const record = { date: Timestamp.fromDate(dateLocal), vessel, block, teamId, createdBy: currentUser.uid, shifts };
+  try {
+    await addDoc(collection(db, "records"), record);
+    alert("Apropriação enviada!");
+    document.getElementById("vesselInput").value = "";
+    document.getElementById("blockSelect").value = "BB";
+    document.getElementById("shiftsContainer").innerHTML = "";
+    document.getElementById("teamSelect").value = "";
+    loadRecords();
+  } catch (err) {
+    console.error(err);
+    alert("Erro ao enviar apropriação.");
+  }
+};
+
+document.getElementById("editSelectedTeamBtn").onclick = async () => {
+  const selectedTeamId = document.getElementById("teamSelect").value;
+  if (!selectedTeamId) return alert("Selecione uma equipe para editar.");
+  try {
+    const teamDoc = await getDoc(doc(db, "teams", selectedTeamId));
+    if (!teamDoc.exists()) return alert("Equipe não encontrada.");
+    const teamData = teamDoc.data();
+    document.getElementById("teamName").value = teamData.name;
+    document.querySelector(`input[name="teamShift"][value="${teamData.shift}"]`).checked = true;
+    const membersContainer = document.getElementById("membersContainer");
+    membersContainer.innerHTML = "";
+    teamData.members.forEach((member) => {
+      membersContainer.appendChild(createMemberRow(member));
+    });
+    editingTeamId = selectedTeamId;
+    document.getElementById("cancelEditBtn").style.display = "inline-block";
+    alert("Modo de edição ativado.");
+  } catch (err) {
+    console.error(err);
+    alert("Erro ao carregar equipe para edição.");
+  }
+};
+
+document.getElementById("cancelEditBtn").onclick = () => {
+  editingTeamId = null;
+  document.getElementById("teamName").value = "";
+  document.getElementById("membersContainer").innerHTML = "";
+  document.querySelector('input[name="teamShift"][value="Diurno"]').checked = true;
+  document.getElementById("cancelEditBtn").style.display = "none";
+  alert("Edição cancelada.");
+};
+
+document.getElementById("toggleMenu").onclick = () => {
+  document.getElementById("menuList").classList.toggle("active");
+};
+</script>
+
+</body>
+</html>

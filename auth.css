@@ -1,0 +1,146 @@
+* {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(to right, #2c3e50, #3498db);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    .container {
+      background: white;
+      padding: 60px 40px;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+      width: 100%;
+      max-width: 400px;
+      animation: fadeIn 0.4s ease-in-out;
+    }
+
+    .form-toggle {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 30px;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .form-toggle button {
+      flex: 1;
+      padding: 14px 0;
+      border: none;
+      cursor: pointer;
+      background: #ecf0f1;
+      transition: 0.3s;
+      font-weight: 600;
+      border-radius: 0;
+      font-size: 16px;
+    }
+
+    .form-toggle button:first-child {
+      border-top-left-radius: 12px;
+      border-bottom-left-radius: 12px;
+    }
+
+    .form-toggle button:last-child {
+      border-top-right-radius: 12px;
+      border-bottom-right-radius: 12px;
+    }
+
+    .form-toggle button.active {
+      background: #2c3e50;
+      color: white;
+    }
+
+    h2 {
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 20px;
+      font-size: 24px;
+    }
+
+    .auth-form {
+      display: none;
+      flex-direction: column;
+      gap: 20px;
+      border-radius: 12px;
+    }
+
+    .auth-form.active {
+      display: flex;
+    }
+
+    .input-group {
+      position: relative;
+      width: 100%;
+    }
+
+    .auth-form input {
+      padding: 14px 40px 14px 14px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      font-size: 16px;
+      width: 100%;
+    }
+
+    .toggle-password {
+      position: absolute;
+      top: 50%;
+      right: 14px;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 18px;
+      color: #999;
+      user-select: none;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .toggle-password:hover {
+      color: #2c3e50;
+    }
+
+    .auth-form button[type="submit"] {
+      padding: 14px;
+      border: none;
+      border-radius: 10px;
+      background: #2c3e50;
+      color: white;
+      font-weight: bold;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.2s ease;
+      width: 100%;
+    }
+
+    .auth-form button[type="submit"]:hover {
+      background: #34495e;
+    }
+
+    @keyframes fadeIn {
+      from {
+        transform: translateY(30px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    @media (max-width: 500px) {
+      .container {
+        margin: 0 20px;
+        padding: 40px 25px;
+        max-width: 95%;
+      }
+    }
