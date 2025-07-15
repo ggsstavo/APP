@@ -466,7 +466,7 @@ onAuthStateChanged(auth, (user) => {
     loadTeams();
     loadRecords();
   } else {
-    window.location.href = "./auth.html";
+    window.location.href = "./index.html";
   }
 });
 
@@ -544,143 +544,239 @@ function createShiftRowForRecord(data) {
       <option value="Diurno" ${data.shift === "Diurno" ? "selected" : ""}>Diurno</option>
       <option value="Noturno" ${data.shift === "Noturno" ? "selected" : ""}>Noturno</option>
     </select>
-    <input type="text" class="shiftObservations" placeholder="Observações" style="flex: 3;" value="${data.observations || ""}" />
+    <input type="text" class="shiftObservations" placeholder="Observações" value="${data.observations || ""}" style="flex: 2;" />
   `;
   return div;
 }
 
-document.getElementById("addMemberBtn").onclick = () => {
-  document.getElementById("membersContainer").appendChild(createMemberRow());
-};
+const membersContainer = document.getElementById("membersContainer");
+const addMemberBtn = document.getElementById("addMemberBtn");
 
-document.getElementById("saveTeamBtn").onclick = async () => {
-  if (!currentUser) return alert("Usuário não autenticado.");
+addMemberBtn.addEventListener("click", () => {
+  membersContainer.appendChild(createMemberRow());
+});
+
+const saveTeamBtn = document.getElementById("saveTeamBtn");
+saveTeamBtn.addEventListener("click", saveTeam);
+
+async function saveTeam() {
   const name = document.getElementById("teamName").value.trim();
-  if (!name) return alert("Informe o nome da equipe.");
-  const turnoRadio = document.querySelector('input[name="teamShift"]:checked');
-  const turno = turnoRadio ? turnoRadio.value : "";
-  const members = Array.from(document.querySelectorAll("#membersContainer .form-row")).map((r) => ({
-    name: r.querySelector(".memberName").value.trim(),
-    matricula: r.querySelector(".memberMatricula").value.trim(),
-    block: r.querySelector(".memberBlock").value.trim(),
-    vessel: r.querySelector(".memberVessel").value.trim(),
-  }));
-  if (members.length === 0) return alert("Adicione ao menos um membro.");
-  for (const m of members) if (!m.name || !m.matricula) return alert("Nome e matrícula são obrigatórios.");
-  const data = { name, members, shift: turno, ownerUid: currentUser.uid };
+  if (!name) {
+    alert("Por favor, preencha o nome da equipe.");
+    return;
+  }
+
+  const shiftRadio = document.querySelector('input[name="teamShift"]:checked');
+  const shift = shiftRadio ? shiftRadio.value : "Diurno";
+
+  // coleta membros
+  const members = [];
+  const memberRows = membersContainer.querySelectorAll(".form-row");
+  for (const row of memberRows) {
+    const nameInput = row.querySelector(".memberName");
+    const matriculaInput = row.querySelector(".memberMatricula");
+    const blockInput = row.querySelector(".memberBlock");
+    const vesselInput = row.querySelector(".memberVessel");
+    if (!nameInput.value.trim() || !matriculaInput.value.trim()) {
+      alert("Todos os membros devem ter nome e matrícula preenchidos.");
+      return;
+    }
+    members.push({
+      name: nameInput.value.trim(),
+      matricula: matriculaInput.value.trim(),
+      block: blockInput.value.trim(),
+      vessel: vesselInput.value.trim(),
+    });
+  }
+  if (members.length === 0) {
+    alert("Adicione pelo menos um membro na equipe.");
+    return;
+  }
+
+  const teamData = {
+    name,
+    shift,
+    members,
+    ownerUid: currentUser.uid,
+  };
+
   try {
     if (editingTeamId) {
-      await setDoc(doc(db, "teams", editingTeamId), data);
-      alert("Equipe atualizada!");
+      // Atualiza equipe existente
+      await setDoc(doc(db, "teams", editingTeamId), teamData);
+      editingTeamId = null;
+      document.getElementById("cancelEditBtn").style.display = "none";
+      saveTeamBtn.textContent = "Salvar Equipe";
     } else {
-      await addDoc(collection(db, "teams"), data);
-      alert("Equipe criada!");
+      // Cria nova equipe
+      await addDoc(collection(db, "teams"), teamData);
     }
-    editingTeamId = null;
-    document.getElementById("teamName").value = "";
-    document.getElementById("membersContainer").innerHTML = "";
-    document.querySelector('input[name="teamShift"][value="Diurno"]').checked = true;
-    document.getElementById("cancelEditBtn").style.display = "none";
-    await loadTeams();
-  } catch (err) {
-    console.error(err);
+    alert("Equipe salva com sucesso!");
+    clearTeamForm();
+    loadTeams();
+  } catch (e) {
+    console.error(e);
     alert("Erro ao salvar equipe.");
   }
-};
+}
+
+function clearTeamForm() {
+  document.getElementById("teamName").value = "";
+  document.querySelector('input[name="teamShift"][value="Diurno"]').checked = true;
+  membersContainer.innerHTML = "";
+}
+
+// Edição
+const editSelectedTeamBtn = document.getElementById("editSelectedTeamBtn");
+const cancelEditBtn = document.getElementById("cancelEditBtn");
+
+editSelectedTeamBtn.addEventListener("click", async () => {
+  const teamSelect = document.getElementById("teamSelect");
+  const teamId = teamSelect.value;
+  if (!teamId) {
+    alert("Selecione uma equipe para editar.");
+    return;
+  }
+  try {
+    const teamDoc = await getDoc(doc(db, "teams", teamId));
+    if (!teamDoc.exists()) {
+      alert("Equipe não encontrada.");
+      return;
+    }
+    const data = teamDoc.data();
+    editingTeamId = teamId;
+    document.getElementById("teamName").value = data.name;
+    if (data.shift) {
+      document.querySelector(`input[name="teamShift"][value="${data.shift}"]`).checked = true;
+    }
+    membersContainer.innerHTML = "";
+    if (data.members && Array.isArray(data.members)) {
+      data.members.forEach((m) => {
+        membersContainer.appendChild(createMemberRow(m));
+      });
+    }
+    cancelEditBtn.style.display = "inline-block";
+    saveTeamBtn.textContent = "Atualizar Equipe";
+  } catch (e) {
+    console.error(e);
+    alert("Erro ao carregar equipe para edição.");
+  }
+});
+
+cancelEditBtn.addEventListener("click", () => {
+  clearTeamForm();
+  editingTeamId = null;
+  cancelEditBtn.style.display = "none";
+  saveTeamBtn.textContent = "Salvar Equipe";
+});
+
+const submitRecordBtn = document.getElementById("submitRecordBtn");
+submitRecordBtn.addEventListener("click", sendRecord);
+
+async function sendRecord() {
+  const dateStr = document.getElementById("dateInput").value;
+  const vessel = document.getElementById("vesselInput").value.trim();
+  const block = document.getElementById("blockSelect").value;
+  const teamId = document.getElementById("teamSelect").value;
+  if (!dateStr || !vessel || !block || !teamId) {
+    alert("Preencha todos os campos para enviar a apropriação.");
+    return;
+  }
+  const shiftsContainer = document.getElementById("shiftsContainer");
+  const shiftRows = shiftsContainer.querySelectorAll(".form-row");
+  if (shiftRows.length === 0) {
+    alert("Selecione uma equipe com membros para apropriar.");
+    return;
+  }
+
+  const records = [];
+  for (const row of shiftRows) {
+    const name = row.querySelector(".shiftName").value.trim();
+    const memberMatricula = row.querySelector(".shiftMatricula").value.trim();
+    const vesselShift = row.querySelector(".shiftVessel").value.trim();
+    const blockShift = row.querySelector(".shiftBlock").value.trim();
+    const shift = row.querySelector(".shiftTurno").value;
+    const observations = row.querySelector(".shiftObservations").value.trim();
+
+    if (!shift) {
+      alert(`Preencha o turno do membro ${name}`);
+      return;
+    }
+    records.push({
+      date: Timestamp.now(),
+      vessel,
+      block,
+      teamId,
+      userId: currentUser.uid,
+      userName: currentUser.displayName || currentUser.email,
+      name,
+      memberMatricula,
+      vesselShift,
+      blockShift,
+      shift,
+      observations,
+      createdBy: currentUser.uid,
+    });
+  }
+
+  try {
+    // Salva cada registro individualmente
+    for (const rec of records) {
+      await addDoc(collection(db, "records"), rec);
+    }
+    alert("Apropriações enviadas com sucesso!");
+    // Limpa formulário apropriação
+    document.getElementById("vesselInput").value = "";
+    document.getElementById("blockSelect").selectedIndex = 0;
+    document.getElementById("teamSelect").selectedIndex = 0;
+    document.getElementById("shiftsContainer").innerHTML = "";
+    loadRecords();
+  } catch (e) {
+    console.error(e);
+    alert("Erro ao enviar apropriações.");
+  }
+}
 
 async function loadRecords() {
-  const q = query(collection(db, "records"), orderBy("date", "desc"), limit(10));
+  // Aqui foi adicionada a cláusula where para filtrar apenas os registros do usuário atual
+  const q = query(
+    collection(db, "records"),
+    where("createdBy", "==", currentUser.uid),
+    orderBy("date", "desc"),
+    limit(10)
+  );
   const snap = await getDocs(q);
   const tbody = document.querySelector("#recordsTable tbody");
   tbody.innerHTML = "";
   snap.forEach((doc) => {
     const r = doc.data();
     const tr = document.createElement("tr");
-    const dataHora = r.date.toDate();
-    const dataFormatada = `${dataHora.toLocaleDateString("pt-BR")} ${dataHora.toLocaleTimeString("pt-BR").slice(0,5)}`;
+    const date = r.date?.toDate?.() || new Date();
+    const dateStr = date.toLocaleString("pt-BR", {
+  day: '2-digit',
+  month: '2-digit',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit'
+});
     tr.innerHTML = `
-      <td>${dataFormatada}</td>
-      <td>${r.vessel}</td>
-      <td>${r.block}</td>
-      <td>${r.teamId}</td>
-      <td>${r.createdBy}</td>
+      <td>${dateStr}</td>
+      <td>${r.vessel || ""}</td>
+      <td>${r.block || ""}</td>
+      <td>${r.teamId || ""}</td>
+      <td>${r.userName || ""}</td>
     `;
     tbody.appendChild(tr);
   });
 }
 
-document.getElementById("submitRecordBtn").onclick = async () => {
-  if (!currentUser) return alert("Usuário não autenticado.");
-  const teamId = document.getElementById("teamSelect").value;
-  if (!teamId) return alert("Selecione uma equipe.");
-  const dateStr = document.getElementById("dateInput").value;
-  if (!dateStr) return alert("Informe a data.");
-  const [year, month, day] = dateStr.split("-").map(Number);
-  const dateLocal = new Date(year, month - 1, day);
-  const now = new Date();
-  dateLocal.setHours(now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds());
-  const vessel = document.getElementById("vesselInput").value.trim();
-  const block = document.getElementById("blockSelect").value;
-  const shifts = Array.from(document.querySelectorAll("#shiftsContainer .form-row")).map((row) => ({
-    name: row.querySelector(".shiftName").value,
-    memberMatricula: row.querySelector(".shiftMatricula").value,
-    vessel: row.querySelector(".shiftVessel").value,
-    block: row.querySelector(".shiftBlock").value,
-    shift: row.querySelector(".shiftTurno").value,
-    observations: row.querySelector(".shiftObservations").value.trim(),
-  }));
-  for (const s of shifts) if (!s.shift) return alert(`Informe o turno para o colaborador ${s.name}.`);
-  const record = { date: Timestamp.fromDate(dateLocal), vessel, block, teamId, createdBy: currentUser.uid, shifts };
-  try {
-    await addDoc(collection(db, "records"), record);
-    alert("Apropriação enviada!");
-    document.getElementById("vesselInput").value = "";
-    document.getElementById("blockSelect").value = "BB";
-    document.getElementById("shiftsContainer").innerHTML = "";
-    document.getElementById("teamSelect").value = "";
-    loadRecords();
-  } catch (err) {
-    console.error(err);
-    alert("Erro ao enviar apropriação.");
-  }
-};
+// Menu hamburger
+const toggleMenuBtn = document.getElementById("toggleMenu");
+const menuList = document.getElementById("menuList");
 
-document.getElementById("editSelectedTeamBtn").onclick = async () => {
-  const selectedTeamId = document.getElementById("teamSelect").value;
-  if (!selectedTeamId) return alert("Selecione uma equipe para editar.");
-  try {
-    const teamDoc = await getDoc(doc(db, "teams", selectedTeamId));
-    if (!teamDoc.exists()) return alert("Equipe não encontrada.");
-    const teamData = teamDoc.data();
-    document.getElementById("teamName").value = teamData.name;
-    document.querySelector(`input[name="teamShift"][value="${teamData.shift}"]`).checked = true;
-    const membersContainer = document.getElementById("membersContainer");
-    membersContainer.innerHTML = "";
-    teamData.members.forEach((member) => {
-      membersContainer.appendChild(createMemberRow(member));
-    });
-    editingTeamId = selectedTeamId;
-    document.getElementById("cancelEditBtn").style.display = "inline-block";
-    alert("Modo de edição ativado.");
-  } catch (err) {
-    console.error(err);
-    alert("Erro ao carregar equipe para edição.");
-  }
-};
-
-document.getElementById("cancelEditBtn").onclick = () => {
-  editingTeamId = null;
-  document.getElementById("teamName").value = "";
-  document.getElementById("membersContainer").innerHTML = "";
-  document.querySelector('input[name="teamShift"][value="Diurno"]').checked = true;
-  document.getElementById("cancelEditBtn").style.display = "none";
-  alert("Edição cancelada.");
-};
-
-document.getElementById("toggleMenu").onclick = () => {
-  document.getElementById("menuList").classList.toggle("active");
-};
-</script>
-
+toggleMenuBtn.addEventListener("click", () => {
+  menuList.classList.toggle("active");
+});
+  </script>
 </body>
 </html>
