@@ -350,16 +350,46 @@
       <button id="toggleMenu" class="hamburger">
         <i class="fas fa-bars"></i>
       </button>
-      <h1 class="logo">Apropriação</h1>
+      <h1 class="logo">Estrutura</h1>
     </div>
     <nav>
       <ul id="menuList">
-        <li>
-          <a href="#" class="active"
-            ><i class="fas fa-users"></i> Apropriação</a
-          >
-        </li>
-      </ul>
+  <li>
+    <a href="#" class="active">
+      <i class="fas fa-file-signature"></i> Apropriações
+    </a>
+  </li>
+  <li>
+    <a href="#">
+      <i class="fas fa-users-cog"></i> Equipes
+    </a>
+  </li>
+  <li>
+    <a href="#">
+      <i class="fas fa-clipboard-list"></i> Apontamentos
+    </a>
+  </li>
+  <li>
+    <a href="#">
+      <i class="fas fa-book"></i> Diário de obra
+    </a>
+  </li>
+  <li>
+    <a href="#">
+      <i class="fas fa-user-friends"></i> Efetivo
+    </a>
+  </li>
+  <li>
+    <a href="#">
+      <i class="fas fa-calendar-check"></i> Abono DSR
+    </a>
+  </li>
+  <li>
+    <a href="#">
+      <i class="fas fa-cog"></i> Configurações
+    </a>
+  </li>
+</ul>
     </nav>
   </div>
   <div class="main-content">
@@ -809,8 +839,13 @@ const local = (memberOriginal?.local === "Outros")
 
   try {
     for (const rec of records) {
-      await addDoc(collection(db, "records"), rec);
-    }
+  const now = new Date();
+  const dateStr = `${String(now.getDate()).padStart(2, '0')}-${String(now.getMonth() + 1).padStart(2, '0')}-${now.getFullYear()}`;
+  const safeName = rec.name.replace(/[/\\#.%$[\]]/g, "-"); // remove caracteres inválidos
+  const docId = `${safeName}, ${rec.memberMatricula} - ${dateStr}`;
+
+  await setDoc(doc(db, "records", docId), rec);
+}
     alert("Apropriações enviadas com sucesso!");
     document.getElementById("vesselInput").value = "";
     document.getElementById("blockSelect").selectedIndex = 0;
