@@ -310,6 +310,38 @@
     font-size: 0.9rem;
   }
 }
+
+.memberLocalSelect {
+  flex: 1 1 150px;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.memberCustomLocalInput {
+  flex: 2 1 250px;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+  margin-left: 8px;
+  display: none; /* fica oculto até seleção "Outros" */
+  transition: opacity 0.3s ease;
+}
+
+@media (max-width: 600px) {
+  .form-row {
+    flex-wrap: wrap;
+  }
+  .memberLocalSelect,
+  .memberCustomLocalInput {
+    flex: 1 1 100%;
+    margin-left: 0;
+    margin-top: 8px;
+  }
+}
+
   </style>
 </head>
 <body>
@@ -442,7 +474,33 @@ import {
   Timestamp
 } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 
-// Config Firebase
+// --- FUNÇÃO QUE ESTAVA FALTANDO ---
+function createShiftRowForRecord({
+  name,
+  memberMatricula,
+  block = "",
+  vessel = "",
+  shift = "",
+  observations = ""
+}) {
+  const div = document.createElement("div");
+  div.className = "form-row";
+  div.style.position = "relative";
+  div.innerHTML = `
+    <input type="text" class="shiftName" value="${name}" readonly />
+    <input type="text" class="shiftMatricula" value="${memberMatricula}" readonly />
+    <input type="text" class="shiftBlock" value="${block}" placeholder="Bloco" />
+    <input type="text" class="shiftVessel" value="${vessel}" placeholder="Embarcação" />
+    <select class="shiftTurno">
+      <option value="">Selecione Turno</option>
+      <option value="Diurno" ${shift === "Diurno" ? "selected" : ""}>Diurno</option>
+      <option value="Noturno" ${shift === "Noturno" ? "selected" : ""}>Noturno</option>
+    </select>
+    <input type="text" class="shiftObservations" placeholder="Observações" value="${observations}" />
+  `;
+  return div;
+}
+
 const firebaseConfig = {
   apiKey: "AIzaSyDtnzixicBYAQkuoeB5tgCGpDLt1lByMZo",
   authDomain: "apropriacao-estrutura.firebaseapp.com",
@@ -516,36 +574,41 @@ document.getElementById("teamSelect").addEventListener("change", async function 
   });
 });
 
-function createMemberRow(member = { name: "", matricula: "", block: "", vessel: "" }) {
+function createMemberRow(member = { name: "", matricula: "", block: "", vessel: "", local: "", customLocal: "" }) {
   const div = document.createElement("div");
   div.className = "form-row";
+  div.style.position = "relative";
   div.innerHTML = `
     <input type="text" class="memberName" placeholder="Nome" value="${member.name}" />
     <input type="text" class="memberMatricula" placeholder="Matrícula" value="${member.matricula}" />
     <input type="text" class="memberBlock" placeholder="Bloco" value="${member.block}" />
     <input type="text" class="memberVessel" placeholder="Embarcação" value="${member.vessel}" />
-    <button class="btn removeMemberBtn"><i class="fas fa-trash"></i></button>
-  `;
-  div.querySelector(".removeMemberBtn").onclick = () => div.remove();
-  return div;
-}
-
-function createShiftRowForRecord(data) {
-  const div = document.createElement("div");
-  div.className = "form-row";
-  div.style.alignItems = "center";
-  div.innerHTML = `
-    <input type="text" class="shiftName" value="${data.name}" readonly style="flex: 2; background: #eee;" />
-    <input type="text" class="shiftMatricula" value="${data.memberMatricula}" readonly style="flex: 1; background: #eee;" />
-    <input type="text" class="shiftVessel" value="${data.vessel}" readonly style="flex: 2; background: #eee;" />
-    <input type="text" class="shiftBlock" value="${data.block}" readonly style="flex: 1; background: #eee;" />
-    <select class="shiftTurno" style="flex: 1;">
-      <option value="">Turno</option>
-      <option value="Diurno" ${data.shift === "Diurno" ? "selected" : ""}>Diurno</option>
-      <option value="Noturno" ${data.shift === "Noturno" ? "selected" : ""}>Noturno</option>
+    <select class="memberLocalSelect">
+      <option value="">Selecione Local</option>
+      <option value="Montagem" ${member.local === "Montagem" ? "selected" : ""}>Montagem</option>
+      <option value="Sub Montagem" ${member.local === "Sub Montagem" ? "selected" : ""}>Sub Montagem</option>
+      <option value="Edificação" ${member.local === "Edificação" ? "selected" : ""}>Edificação</option>
+      <option value="Outros" ${member.local === "Outros" ? "selected" : ""}>Outros</option>
     </select>
-    <input type="text" class="shiftObservations" placeholder="Observações" value="${data.observations || ""}" style="flex: 2;" />
+    <input type="text" class="memberCustomLocalInput" placeholder="Informe outro local" value="${member.customLocal || ''}" style="display: none; margin-left: 5px; flex: 1;" />
+    <button class="btn removeMemberBtn" style="margin-left: 5px;"><i class="fas fa-trash"></i></button>
   `;
+
+  const localSelect = div.querySelector(".memberLocalSelect");
+  const customLocalInput = div.querySelector(".memberCustomLocalInput");
+
+  function toggleCustomLocal() {
+    if (localSelect.value === "Outros") {
+      customLocalInput.style.display = "block";
+    } else {
+      customLocalInput.style.display = "none";
+      customLocalInput.value = "";
+    }
+  }
+  localSelect.addEventListener("change", toggleCustomLocal);
+  toggleCustomLocal();
+
+  div.querySelector(".removeMemberBtn").onclick = () => div.remove();
   return div;
 }
 
@@ -569,7 +632,6 @@ async function saveTeam() {
   const shiftRadio = document.querySelector('input[name="teamShift"]:checked');
   const shift = shiftRadio ? shiftRadio.value : "Diurno";
 
-  // coleta membros
   const members = [];
   const memberRows = membersContainer.querySelectorAll(".form-row");
   for (const row of memberRows) {
@@ -586,6 +648,8 @@ async function saveTeam() {
       matricula: matriculaInput.value.trim(),
       block: blockInput.value.trim(),
       vessel: vesselInput.value.trim(),
+      local: row.querySelector(".memberLocalSelect").value,
+      customLocal: row.querySelector(".memberCustomLocalInput").value.trim()
     });
   }
   if (members.length === 0) {
@@ -602,13 +666,11 @@ async function saveTeam() {
 
   try {
     if (editingTeamId) {
-      // Atualiza equipe existente
       await setDoc(doc(db, "teams", editingTeamId), teamData);
       editingTeamId = null;
       document.getElementById("cancelEditBtn").style.display = "none";
       saveTeamBtn.textContent = "Salvar Equipe";
     } else {
-      // Cria nova equipe
       await addDoc(collection(db, "teams"), teamData);
     }
     alert("Equipe salva com sucesso!");
@@ -626,7 +688,6 @@ function clearTeamForm() {
   membersContainer.innerHTML = "";
 }
 
-// Edição
 const editSelectedTeamBtn = document.getElementById("editSelectedTeamBtn");
 const cancelEditBtn = document.getElementById("cancelEditBtn");
 
@@ -677,7 +738,9 @@ async function sendRecord() {
   const dateStr = document.getElementById("dateInput").value;
   const vessel = document.getElementById("vesselInput").value.trim();
   const block = document.getElementById("blockSelect").value;
-  const teamId = document.getElementById("teamSelect").value;
+  const teamSelect = document.getElementById("teamSelect");
+const teamId = teamSelect.value;
+const teamName = teamSelect.options[teamSelect.selectedIndex].text;
   if (!dateStr || !vessel || !block || !teamId) {
     alert("Preencha todos os campos para enviar a apropriação.");
     return;
@@ -707,6 +770,7 @@ async function sendRecord() {
       vessel,
       block,
       teamId,
+      teamName,
       userId: currentUser.uid,
       userName: currentUser.displayName || currentUser.email,
       name,
@@ -720,12 +784,10 @@ async function sendRecord() {
   }
 
   try {
-    // Salva cada registro individualmente
     for (const rec of records) {
       await addDoc(collection(db, "records"), rec);
     }
     alert("Apropriações enviadas com sucesso!");
-    // Limpa formulário apropriação
     document.getElementById("vesselInput").value = "";
     document.getElementById("blockSelect").selectedIndex = 0;
     document.getElementById("teamSelect").selectedIndex = 0;
@@ -738,7 +800,6 @@ async function sendRecord() {
 }
 
 async function loadRecords() {
-  // Aqui foi adicionada a cláusula where para filtrar apenas os registros do usuário atual
   const q = query(
     collection(db, "records"),
     where("createdBy", "==", currentUser.uid),
@@ -753,17 +814,17 @@ async function loadRecords() {
     const tr = document.createElement("tr");
     const date = r.date?.toDate?.() || new Date();
     const dateStr = date.toLocaleString("pt-BR", {
-  day: '2-digit',
-  month: '2-digit',
-  year: 'numeric',
-  hour: '2-digit',
-  minute: '2-digit'
-});
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
     tr.innerHTML = `
       <td>${dateStr}</td>
       <td>${r.vessel || ""}</td>
       <td>${r.block || ""}</td>
-      <td>${r.teamId || ""}</td>
+      <td>${r.teamName || r.teamId || ""}</td>
       <td>${r.userName || ""}</td>
     `;
     tbody.appendChild(tr);
@@ -777,6 +838,6 @@ const menuList = document.getElementById("menuList");
 toggleMenuBtn.addEventListener("click", () => {
   menuList.classList.toggle("active");
 });
-  </script>
+</script>
 </body>
 </html>
