@@ -481,11 +481,17 @@ function createShiftRowForRecord({
   block = "",
   vessel = "",
   shift = "",
-  observations = ""
+  observations = "",
+  local = "",
+  customLocal = ""
 }) {
   const div = document.createElement("div");
   div.className = "form-row";
   div.style.position = "relative";
+
+  // Define valor final de local
+  const finalLocal = local === "Outros" && customLocal ? customLocal : local;
+
   div.innerHTML = `
     <input type="text" class="shiftName" value="${name}" readonly />
     <input type="text" class="shiftMatricula" value="${memberMatricula}" readonly />
@@ -496,10 +502,12 @@ function createShiftRowForRecord({
       <option value="Diurno" ${shift === "Diurno" ? "selected" : ""}>Diurno</option>
       <option value="Noturno" ${shift === "Noturno" ? "selected" : ""}>Noturno</option>
     </select>
+    <input type="text" class="shiftLocal" value="${finalLocal}" readonly />
     <input type="text" class="shiftObservations" placeholder="Observações" value="${observations}" />
   `;
   return div;
 }
+
 
 const firebaseConfig = {
   apiKey: "AIzaSyDtnzixicBYAQkuoeB5tgCGpDLt1lByMZo",
@@ -561,17 +569,19 @@ document.getElementById("teamSelect").addEventListener("change", async function 
   if (!teamData.members || teamData.members.length === 0) return;
   const turnoPadrao = teamData.shift || "";
   teamData.members.forEach((member) => {
-    shiftsContainer.appendChild(
-      createShiftRowForRecord({
-        name: member.name,
-        memberMatricula: member.matricula,
-        block: member.block || "",
-        vessel: member.vessel || "",
-        shift: turnoPadrao,
-        observations: "",
-      })
-    );
-  });
+  shiftsContainer.appendChild(
+    createShiftRowForRecord({
+      name: member.name,
+      memberMatricula: member.matricula,
+      block: member.block || "",
+      vessel: member.vessel || "",
+      shift: turnoPadrao,
+      observations: "",
+      local: member.local || "",
+      customLocal: member.customLocal || ""
+    })
+  );
+});
 });
 
 function createMemberRow(member = { name: "", matricula: "", block: "", vessel: "", local: "", customLocal: "" }) {
@@ -779,6 +789,7 @@ const teamName = teamSelect.options[teamSelect.selectedIndex].text;
       blockShift,
       shift,
       observations,
+      local,
       createdBy: currentUser.uid,
     });
   }
@@ -821,12 +832,12 @@ async function loadRecords() {
       minute: '2-digit'
     });
     tr.innerHTML = `
-      <td>${dateStr}</td>
-      <td>${r.vessel || ""}</td>
-      <td>${r.block || ""}</td>
-      <td>${r.teamName || r.teamId || ""}</td>
-      <td>${r.userName || ""}</td>
-    `;
+  <td>${dateStr}</td>
+  <td>${r.vessel || ""}</td>
+  <td>${r.block || ""}</td>
+  <td>${r.teamName || r.teamId || ""}</td>
+  <td>${r.userName || ""}</td>
+`;
     tbody.appendChild(tr);
   });
 }
