@@ -745,12 +745,17 @@ const submitRecordBtn = document.getElementById("submitRecordBtn");
 submitRecordBtn.addEventListener("click", sendRecord);
 
 async function sendRecord() {
+  const teamSelect = document.getElementById("teamSelect");
+  const teamId = teamSelect.value;
+  const teamName = teamSelect.options[teamSelect.selectedIndex].text;
+
+  const teamDoc = await getDoc(doc(db, "teams", teamId));
+  const teamData = teamDoc.data();
+
   const dateStr = document.getElementById("dateInput").value;
   const vessel = document.getElementById("vesselInput").value.trim();
   const block = document.getElementById("blockSelect").value;
-  const teamSelect = document.getElementById("teamSelect");
-const teamId = teamSelect.value;
-const teamName = teamSelect.options[teamSelect.selectedIndex].text;
+
   if (!dateStr || !vessel || !block || !teamId) {
     alert("Preencha todos os campos para enviar a apropriação.");
     return;
@@ -770,6 +775,14 @@ const teamName = teamSelect.options[teamSelect.selectedIndex].text;
     const blockShift = row.querySelector(".shiftBlock").value.trim();
     const shift = row.querySelector(".shiftTurno").value;
     const observations = row.querySelector(".shiftObservations").value.trim();
+    const memberOriginal = teamData.members.find(
+  m => m.name === name && m.matricula === memberMatricula
+);
+
+// Pegar o local correto
+const local = (memberOriginal?.local === "Outros")
+  ? memberOriginal?.customLocal
+  : memberOriginal?.local || "";
 
     if (!shift) {
       alert(`Preencha o turno do membro ${name}`);
