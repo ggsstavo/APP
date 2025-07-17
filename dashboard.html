@@ -342,6 +342,89 @@
   }
 }
 
+.notification-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.notification-content {
+  background: white;
+  padding: 25px 35px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  max-width: 400px;
+  width: 90%; /* importante para responsividade */
+  text-align: center;
+  animation: fadeInUp 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  border-radius: 12px;
+  border: 1px solid #ddd;
+  box-sizing: border-box;
+}
+
+.notification-content p {
+  margin-bottom: 20px;
+  color: #222;
+  font-size: 16px;
+  line-height: 1.5;
+  word-wrap: break-word; /* evita estouro de texto */
+}
+
+.notification-content button {
+  background-color: #2c3e50;
+  transition: background-color 0.3s ease;
+  color: white;
+  padding: 8px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  min-width: 80px;
+}
+
+.notification-content button:hover {
+  background-color: #34495e;
+}
+
+.notification-content button:focus {
+  outline-offset: 2px;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsividade */
+
+@media (max-width: 480px) {
+  .notification-content {
+    max-width: 95%;
+    padding: 20px 20px;
+  }
+
+  .notification-content button {
+    width: 30%;
+    padding: 10px 0;
+    font-size: 16px;
+    min-width: unset;
+  }
+}
+
+
   </style>
 </head>
 <body>
@@ -485,6 +568,13 @@
       </div>
     </section>
   </div>
+
+  <div id="notificationModal" class="notification-modal">
+  <div class="notification-content">
+    <p id="notificationMessage">Mensagem</p>
+    <button id="notificationOkBtn">OK</button>
+  </div>
+</div>
 
   <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
@@ -665,7 +755,7 @@ saveTeamBtn.addEventListener("click", saveTeam);
 async function saveTeam() {
   const name = document.getElementById("teamName").value.trim();
   if (!name) {
-    alert("Por favor, preencha o nome da equipe.");
+    showNotification("Por favor, informe o nome da equipe para continuar.");
     return;
   }
 
@@ -680,7 +770,7 @@ async function saveTeam() {
     const blockInput = row.querySelector(".memberBlock");
     const vesselInput = row.querySelector(".memberVessel");
     if (!nameInput.value.trim() || !matriculaInput.value.trim()) {
-      alert("Todos os membros devem ter nome e matrícula preenchidos.");
+      showNotification("Todos os membros devem ter nome e matrícula preenchidos.");
       return;
     }
     members.push({
@@ -693,7 +783,7 @@ async function saveTeam() {
     });
   }
   if (members.length === 0) {
-    alert("Adicione pelo menos um membro na equipe.");
+    showNotification("Adicione pelo menos um membro na equipe.");
     return;
   }
 
@@ -713,12 +803,12 @@ async function saveTeam() {
     } else {
       await addDoc(collection(db, "teams"), teamData);
     }
-    alert("Equipe salva com sucesso!");
+    showNotification("✅ Equipe salva com sucesso!");
     clearTeamForm();
     loadTeams();
   } catch (e) {
     console.error(e);
-    alert("Erro ao salvar equipe.");
+    showNotification("Erro ao salvar equipe.");
   }
 }
 
@@ -735,13 +825,13 @@ editSelectedTeamBtn.addEventListener("click", async () => {
   const teamSelect = document.getElementById("teamSelect");
   const teamId = teamSelect.value;
   if (!teamId) {
-    alert("Selecione uma equipe para editar.");
+    showNotification("Selecione uma equipe para editar.");
     return;
   }
   try {
     const teamDoc = await getDoc(doc(db, "teams", teamId));
     if (!teamDoc.exists()) {
-      alert("Equipe não encontrada.");
+      showNotification("Equipe não encontrada.");
       return;
     }
     const data = teamDoc.data();
@@ -760,7 +850,7 @@ editSelectedTeamBtn.addEventListener("click", async () => {
     saveTeamBtn.textContent = "Atualizar Equipe";
   } catch (e) {
     console.error(e);
-    alert("Erro ao carregar equipe para edição.");
+    showNotification("Erro ao carregar equipe para edição.");
   }
 });
 
@@ -787,13 +877,13 @@ async function sendRecord() {
   const block = document.getElementById("blockSelect").value;
 
   if (!dateStr || !vessel || !block || !teamId) {
-    alert("Preencha todos os campos para enviar a apropriação.");
+    showNotification("Preencha todos os campos para enviar a apropriação.");
     return;
   }
   const shiftsContainer = document.getElementById("shiftsContainer");
   const shiftRows = shiftsContainer.querySelectorAll(".form-row");
   if (shiftRows.length === 0) {
-    alert("Selecione uma equipe com membros para apropriar.");
+    showNotification("Selecione uma equipe com membros para apropriar.");
     return;
   }
 
@@ -815,7 +905,7 @@ const local = (memberOriginal?.local === "Outros")
   : memberOriginal?.local || "";
 
     if (!shift) {
-      alert(`Preencha o turno do membro ${name}`);
+      showNotification(`Preencha o turno do membro ${name}`);
       return;
     }
     records.push({
@@ -846,7 +936,7 @@ const local = (memberOriginal?.local === "Outros")
 
   await setDoc(doc(db, "records", docId), rec);
 }
-    alert("Apropriações enviadas com sucesso!");
+    showNotification("✅ Apropriações enviadas com sucesso!");
     document.getElementById("vesselInput").value = "";
     document.getElementById("blockSelect").selectedIndex = 0;
     document.getElementById("teamSelect").selectedIndex = 0;
@@ -854,7 +944,7 @@ const local = (memberOriginal?.local === "Outros")
     loadRecords();
   } catch (e) {
     console.error(e);
-    alert("Erro ao enviar apropriações.");
+    showNotification("Erro ao enviar apropriações.");
   }
 }
 
@@ -896,6 +986,36 @@ const menuList = document.getElementById("menuList");
 
 toggleMenuBtn.addEventListener("click", () => {
   menuList.classList.toggle("active");
+});
+
+// Substitui alert() por notificação elegante
+function showNotification(message) {
+  const modal = document.getElementById("notificationModal");
+  const msg = document.getElementById("notificationMessage");
+  const okBtn = document.getElementById("notificationOkBtn");
+
+  msg.textContent = message;
+  modal.style.display = "flex";
+
+  okBtn.onclick = () => {
+    modal.style.display = "none";
+  };
+}
+
+const modal = document.getElementById("notificationModal");
+modal.addEventListener("click", (e) => {
+  if (e.target === modal) {
+    modal.style.display = "none";
+  }
+});
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    const modal = document.getElementById("notificationModal");
+    if (modal.style.display === "flex") {
+      modal.style.display = "none";
+    }
+  }
 });
 </script>
 </body>
