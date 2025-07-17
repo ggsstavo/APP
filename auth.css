@@ -144,3 +144,38 @@
         max-width: 95%;
       }
     }
+
+    .notification {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-20px);
+  padding: 16px 24px;
+  border-radius: 8px;
+  font-weight: 500;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  z-index: 9999;
+  max-width: 90%;
+  text-align: center;
+}
+
+/* Sucesso (verde) */
+.notification.success {
+  background-color: #27ae60;
+  color: white;
+}
+
+/* Erro (vermelho) */
+.notification.error {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.notification.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
+}
