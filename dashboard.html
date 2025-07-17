@@ -342,6 +342,31 @@
   }
 }
 
+#notificationMessage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  font-size: 16px;
+  color: #2c3e50;
+  text-align: center;
+}
+
+#notificationMessage i {
+  font-size: 32px;
+  color: #2196f3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: #e0f7fa;
+  box-sizing: border-box;
+}
+
 .notification-modal {
   position: fixed;
   top: 0;
@@ -395,6 +420,18 @@
 
 .notification-content button:focus {
   outline-offset: 2px;
+}
+
+#notificationMessage i[style*="color:#28a745"] {
+  background-color: #d4edda;
+}
+
+#notificationMessage i[style*="color:#dc3545"] {
+  background-color: #f8d7da;
+}
+
+#notificationMessage i[style*="color:#ffc107"] {
+  background-color: #fff8e1;
 }
 
 @keyframes fadeInUp {
@@ -569,12 +606,16 @@
     </section>
   </div>
 
-  <div id="notificationModal" class="notification-modal">
+  <div id="notificationModal" class="notification-modal" style="display:none;">
   <div class="notification-content">
-    <p id="notificationMessage">Mensagem</p>
+    <p id="notificationMessage">
+      <i class="fas fa-info-circle"></i>
+      <!-- Texto da notificação será inserido aqui -->
+    </p>
     <button id="notificationOkBtn">OK</button>
   </div>
 </div>
+
 
   <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
@@ -755,7 +796,7 @@ saveTeamBtn.addEventListener("click", saveTeam);
 async function saveTeam() {
   const name = document.getElementById("teamName").value.trim();
   if (!name) {
-    showNotification("Por favor, informe o nome da equipe para continuar.");
+    showNotification("Por favor, informe o nome da equipe para continuar.", "info");
     return;
   }
 
@@ -770,7 +811,7 @@ async function saveTeam() {
     const blockInput = row.querySelector(".memberBlock");
     const vesselInput = row.querySelector(".memberVessel");
     if (!nameInput.value.trim() || !matriculaInput.value.trim()) {
-      showNotification("Todos os membros devem ter nome e matrícula preenchidos.");
+      showNotification("Todos os membros devem ter nome e matrícula preenchidos.", "warning");
       return;
     }
     members.push({
@@ -783,7 +824,7 @@ async function saveTeam() {
     });
   }
   if (members.length === 0) {
-    showNotification("Adicione pelo menos um membro na equipe.");
+    showNotification("Adicione pelo menos um membro na equipe.", "warning");
     return;
   }
 
@@ -803,12 +844,12 @@ async function saveTeam() {
     } else {
       await addDoc(collection(db, "teams"), teamData);
     }
-    showNotification("✅ Equipe salva com sucesso!");
+    showNotification("Equipe salva com sucesso!", "success");
     clearTeamForm();
     loadTeams();
   } catch (e) {
     console.error(e);
-    showNotification("Erro ao salvar equipe.");
+    showNotification("Erro ao salvar equipe.", "error");
   }
 }
 
@@ -825,13 +866,13 @@ editSelectedTeamBtn.addEventListener("click", async () => {
   const teamSelect = document.getElementById("teamSelect");
   const teamId = teamSelect.value;
   if (!teamId) {
-    showNotification("Selecione uma equipe para editar.");
+    showNotification("Por favor, selecione uma equipe para editar.", "info");
     return;
   }
   try {
     const teamDoc = await getDoc(doc(db, "teams", teamId));
     if (!teamDoc.exists()) {
-      showNotification("Equipe não encontrada.");
+      showNotification("Equipe não encontrada.", "info");
       return;
     }
     const data = teamDoc.data();
@@ -850,7 +891,7 @@ editSelectedTeamBtn.addEventListener("click", async () => {
     saveTeamBtn.textContent = "Atualizar Equipe";
   } catch (e) {
     console.error(e);
-    showNotification("Erro ao carregar equipe para edição.");
+    showNotification("Erro ao carregar equipe para edição.", "error");
   }
 });
 
@@ -877,13 +918,13 @@ async function sendRecord() {
   const block = document.getElementById("blockSelect").value;
 
   if (!dateStr || !vessel || !block || !teamId) {
-    showNotification("Preencha todos os campos para enviar a apropriação.");
+    showNotification("Preencha todos os campos para enviar a apropriação.", "warning");
     return;
   }
   const shiftsContainer = document.getElementById("shiftsContainer");
   const shiftRows = shiftsContainer.querySelectorAll(".form-row");
   if (shiftRows.length === 0) {
-    showNotification("Selecione uma equipe com membros para apropriar.");
+    showNotification("Selecione uma equipe com membros para apropriar.", "warning");
     return;
   }
 
@@ -905,7 +946,7 @@ const local = (memberOriginal?.local === "Outros")
   : memberOriginal?.local || "";
 
     if (!shift) {
-      showNotification(`Preencha o turno do membro ${name}`);
+      showNotification(`Preencha o turno do membro: ${name}`);
       return;
     }
     records.push({
@@ -936,7 +977,7 @@ const local = (memberOriginal?.local === "Outros")
 
   await setDoc(doc(db, "records", docId), rec);
 }
-    showNotification("✅ Apropriações enviadas com sucesso!");
+    showNotification("Apropriações enviadas com sucesso!", "success");
     document.getElementById("vesselInput").value = "";
     document.getElementById("blockSelect").selectedIndex = 0;
     document.getElementById("teamSelect").selectedIndex = 0;
@@ -944,7 +985,7 @@ const local = (memberOriginal?.local === "Outros")
     loadRecords();
   } catch (e) {
     console.error(e);
-    showNotification("Erro ao enviar apropriações.");
+    showNotification("Erro ao enviar apropriações.", "error");
   }
 }
 
@@ -988,14 +1029,24 @@ toggleMenuBtn.addEventListener("click", () => {
   menuList.classList.toggle("active");
 });
 
+const icons = {
+  success: '<i class="fas fa-check-circle" style="color:#28a745;"></i>',
+  error: '<i class="fas fa-times-circle" style="color:#dc3545;"></i>',
+  warning: '<i class="fas fa-exclamation-triangle" style="color:#ffc107;"></i>',
+  info: '<i class="fas fa-info-circle" style="color:##2196f3;"></i>',
+};
+
 // Substitui alert() por notificação elegante
-function showNotification(message) {
+function showNotification(message, type = "info") {
   const modal = document.getElementById("notificationModal");
   const msg = document.getElementById("notificationMessage");
   const okBtn = document.getElementById("notificationOkBtn");
 
-  msg.textContent = message;
+  msg.innerHTML = icons[type] + '<span>' + message + '</span>';
+
   modal.style.display = "flex";
+
+  okBtn.focus();
 
   okBtn.onclick = () => {
     modal.style.display = "none";
