@@ -567,12 +567,14 @@
         />
       </div>
       <div class="form-row">
-        <label for="blockSelect">Bloco:</label>
-        <select id="blockSelect">
-          <option value="BB">BB</option>
-          <option value="BE">BE</option>
-        </select>
-      </div>
+  <label for="galpaoSelect">Galpão:</label>
+  <select id="galpaoSelect">
+    <option value="Galpão 1">Galpão 1</option>
+    <option value="Galpão 2">Galpão 2</option>
+    <option value="Galpão 3">Galpão 3</option>
+    <option value="Galpão 4">Galpão 4</option>
+  </select>
+</div>
       <div class="form-row">
         <label for="teamSelect">Equipe:</label>
         <select id="teamSelect"></select>
@@ -595,7 +597,7 @@
           <tr>
             <th>Data</th>
             <th>Embarcação</th>
-            <th>Bloco</th>
+            <th>Galpão</th>
             <th>Equipe</th>
             <th>Usuário</th>
           </tr>
@@ -915,9 +917,10 @@ async function sendRecord() {
 
   const dateStr = document.getElementById("dateInput").value;
   const vessel = document.getElementById("vesselInput").value.trim();
-  const block = document.getElementById("blockSelect").value;
+ const galpao = document.getElementById("galpaoSelect").value;
 
-  if (!dateStr || !vessel || !block || !teamId) {
+
+  if (!dateStr || !vessel || !galpao || !teamId) {
     showNotification("Preencha todos os campos para enviar a apropriação.", "warning");
     return;
   }
@@ -952,7 +955,7 @@ const local = (memberOriginal?.local === "Outros")
     records.push({
       date: Timestamp.now(),
       vessel,
-      block,
+      galpao,
       teamId,
       teamName,
       userId: currentUser.uid,
@@ -979,7 +982,7 @@ const local = (memberOriginal?.local === "Outros")
 }
     showNotification("Apropriações enviadas com sucesso!", "success");
     document.getElementById("vesselInput").value = "";
-    document.getElementById("blockSelect").selectedIndex = 0;
+    document.getElementById("galpaoSelect").selectedIndex = 0;
     document.getElementById("teamSelect").selectedIndex = 0;
     document.getElementById("shiftsContainer").innerHTML = "";
     loadRecords();
@@ -1013,7 +1016,7 @@ async function loadRecords() {
     tr.innerHTML = `
   <td>${dateStr}</td>
   <td>${r.vessel || ""}</td>
-  <td>${r.block || ""}</td>
+  <td>${r.galpao || ""}</td>
   <td>${r.teamName || r.teamId || ""}</td>
   <td>${r.userName || ""}</td>
 `;
