@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Efetivo | Apropriação</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI", sans-serif;
+      background: #f9f9f9;
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 20px;
+      animation: fadeIn 0.8s ease forwards;
+    }
+
+    .loader {
+      border: 4px solid #eee;
+      border-top: 4px solid #007bff;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      animation: spin 1s linear infinite;
+      margin: 20px auto;
+    }
+
+    table {
+      width: 100%;
+      max-width: 1200px;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 0 12px rgba(0,0,0,0.08);
+      animation: fadeIn 1s ease forwards;
+    }
+
+    thead {
+      background: #007bff;
+      color: white;
+    }
+
+    th, td {
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+    }
+
+    tbody tr:hover {
+      background: #f1f9ff;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 768px) {
+      table, thead, tbody, th, td, tr {
+        display: block;
+      }
+      thead { display: none; }
+      td {
+        position: relative;
+        padding-left: 50%;
+      }
+      td::before {
+        content: attr(data-label);
+        position: absolute;
+        left: 16px;
+        top: 12px;
+        font-weight: bold;
+        color: #666;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Efetivo Atualizado</h1>
+  <div id="loader" class="loader"></div>
+  <table id="efetivoTable" style="display: none;">
+    <thead id="tableHead"></thead>
+    <tbody id="tableBody"></tbody>
+  </table>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+    import { getStorage, ref, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-storage.js";
+
+    import * as XLSX from "https://cdn.sheetjs.com/xlsx-0.20.0/package/xlsx.mjs";
+
+    const firebaseConfig = {
+      apiKey: "SUA_API_KEY",
+      authDomain: "SEU_DOMINIO.firebaseapp.com",
+      projectId: "ID_DO_PROJETO",
+      storageBucket: "SEU_BUCKET.appspot.com",
+      messagingSenderId: "SEU_ID",
+      appId: "SUA_APP_ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const storage = getStorage(app);
+
+    const fileRef = ref(storage, "efetivo/Efetivo Atualizado 17-07-25.xlsx"); // Caminho no Storage
+
+    getDownloadURL(fileRef).then(async (url) => {
+      const response = await fetch(url);
+      const blob = await response.arrayBuffer();
+      const workbook = XLSX.read(blob, { type: "array" });
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const data = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+      const [header, ...rows] = data;
+
+      // Preenche cabeçalhos
+      const headRow = document.getElementById("tableHead");
+      const ths = header.map(col => `<th>${col}</th>`).join("");
+      headRow.innerHTML = `<tr>${ths}</tr>`;
+
+      // Preenche corpo da tabela
+      const body = document.getElementById("tableBody");
+      body.innerHTML = rows.map(row => `
+        <tr>${row.map((cell, i) => `
+          <td data-label="${header[i]}">${cell ?? ""}</td>`).join("")}
+        </tr>
+      `).join("");
+
+      document.getElementById("loader").style.display = "none";
+      document.getElementById("efetivoTable").style.display = "table";
+    }).catch(err => {
+      document.getElementById("loader").style.display = "none";
+      alert("Erro ao carregar o arquivo: " + err.message);
+      console.error(err);
+    });
+  </script>
+</body>
+</html>
