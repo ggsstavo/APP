@@ -1,0 +1,338 @@
+[
+  {
+    "equipe": "SOLDADOR",
+    "matricula": 2926,
+    "nome": "Paulo Rodrigo Goncalves da Rosa",
+    "nivel": "Soldador V",
+    "entrada": "08/01/2014"
+  },
+  {
+    "equipe": "SOLDADOR",
+    "matricula": 3051,
+    "nome": "Edson Luiz de Sousa",
+    "nivel": "Soldador IV",
+    "entrada": "22/04/2014"
+  },
+  {
+    "equipe": "SOLDADOR",
+    "matricula": 3068,
+    "nome": "Anderson Afonso de Siqueira",
+    "nivel": "Soldador V",
+    "entrada": "23/04/2014"
+  },
+  {
+    "equipe": "SOLDADOR",
+    "matricula": 3838,
+    "nome": "Roberio Santos Reis",
+    "nivel": "Soldador V",
+    "entrada": "03/11/2014"
+  },
+  {
+    "equipe": "SOLDADOR",
+    "matricula": 4517,
+    "nome": "Josivam Matos da Silva",
+    "nivel": "Soldador V",
+    "entrada": "16/06/2015"
+  },
+  {
+    "equipe": "SOLDADOR",
+    "matricula": 4920,
+    "nome": "Adriano Dias de Oliveira",
+    "nivel": "Soldador IV",
+    "entrada": "11/04/2016"
+  },
+  {
+    "equipe": "SOLDADOR",
+    "matricula": 5416,
+    "nome": "Jeferson da Silva Ferreira",
+    "nivel": "Soldador III",
+    "entrada": "18/02/2019"
+  },
+  {
+    "equipe": "SOLDADOR",
+    "matricula": 6050,
+    "nome": "Julio Cesar de Jesus Santos",
+    "nivel": "Soldador IV",
+    "entrada": "21/02/2022"
+  },
+  {
+    "equipe": "SOLDADOR",
+    "matricula": 6121,
+    "nome": "Allan Edson da Silva Moreira",
+    "nivel": "Soldador II",
+    "entrada": "04/04/2022"
+  },
+  {
+    "equipe": "SOLDADOR",
+    "matricula": 6242,
+    "nome": "Rafael Policarpo de Moura",
+    "nivel": "Soldador IV",
+    "entrada": "26/09/2022"
+  },
+  {
+    "equipe": "SOLDADOR",
+    "matricula": 6456,
+    "nome": "Allef Roberto Maria",
+    "nivel": "Soldador IV",
+    "entrada": "14/02/2024"
+  },
+  {
+    "equipe": "SOLDADOR",
+    "matricula": 6462,
+    "nome": "Nereu Pereira Lopes",
+    "nivel": "Soldador III",
+    "entrada": "19/02/2024"
+  },
+  {
+    "equipe": "SOLDADOR",
+    "matricula": 6468,
+    "nome": "Flavio Henrique Fraleoni",
+    "nivel": "Soldador IV",
+    "entrada": "04/03/2024"
+  },
+  {
+    "equipe": "SOLDADOR",
+    "matricula": 6471,
+    "nome": "Jesuino Ramos da Silva",
+    "nivel": "Soldador I",
+    "entrada": "04/03/2024"
+  },
+  {
+    "equipe": "SOLDADOR",
+    "matricula": 6476,
+    "nome": "Willyan Douglas Correia",
+    "nivel": "Soldador IV",
+    "entrada": "04/03/2024"
+  },
+  {
+    "equipe": "SOLDADOR",
+    "matricula": 6483,
+    "nome": "José Washington de Santana",
+    "nivel": "Soldador III",
+    "entrada": "11/03/2024"
+  },
+  {
+    "equipe": "SOLDADOR",
+    "matricula": 6488,
+    "nome": "José Carlos Bezerra Junior",
+    "nivel": "Soldador III",
+    "entrada": "11/03/2024"
+  },
+  {
+    "equipe": "SOLDADOR",
+    "matricula": 6494,
+    "nome": "David Brum Pinto",
+    "nivel": "Soldador III",
+    "entrada": "18/03/2024"
+  },
+  {
+    "equipe": "SOLDADOR",
+    "matricula": 6534,
+    "nome": "Gilson Pinheiro dos Santos",
+    "nivel": "Soldador III",
+    "entrada": "13/05/2024"
+  },
+  {
+    "equipe": "SOLDADOR",
+    "matricula": 6554,
+    "nome": "Deivison Diniz Pinheiro",
+    "nivel": "Soldador III",
+    "entrada": "03/06/2024"
+  },
+  {
+    "equipe": "SOLDADOR",
+    "matricula": 6583,
+    "nome": "Roberto Nascimento Oliveira",
+    "nivel": "Soldador III",
+    "entrada": "24/06/2024"
+  },
+  {
+    "equipe": "SOLDADOR",
+    "matricula": 6665,
+    "nome": "Humberto Teodorio dos Santos",
+    "nivel": "Soldador III",
+    "entrada": "19/08/2024"
+  },
+  {
+    "equipe": "SOLDADOR",
+    "matricula": 6684,
+    "nome": "Glauber Barreto",
+    "nivel": "Soldador I",
+    "entrada": "02/09/2024"
+  },
+  {
+    "equipe": "SOLDADOR",
+    "matricula": 6855,
+    "nome": "Sidney Rodrigo Mateus",
+    "nivel": "Soldador IV",
+    "entrada": "20/01/2025"
+  },
+  {
+    "equipe": "SOLDADOR",
+    "matricula": 6874,
+    "nome": "André Luis Lino",
+    "nivel": "Soldador IV",
+    "entrada": "21/01/2025"
+  },
+  {
+    "equipe": "SOLDADOR",
+    "matricula": 6886,
+    "nome": "Rafael Silveira Davilla",
+    "nivel": "Soldador IV",
+    "entrada": "27/01/2025"
+  },
+  {
+    "equipe": "SOLDADOR",
+    "matricula": 6895,
+    "nome": "Dejean Estigarribia Piassarollo",
+    "nivel": "Soldador III",
+    "entrada": "27/01/2025"
+  },
+  {
+    "equipe": "SOLDADOR",
+    "matricula": 6899,
+    "nome": "Simão Ferreira Marques",
+    "nivel": "Soldador IV",
+    "entrada": "27/01/2025"
+  },
+  {
+    "equipe": "SOLDADOR",
+    "matricula": 7027,
+    "nome": "Idevan Brandao Oliveira",
+    "nivel": "Soldador IV",
+    "entrada": "17/03/2025"
+  },
+  {
+    "equipe": "SOLDADOR",
+    "matricula": 7033,
+    "nome": "Elzio Ribeiro de Melo",
+    "nivel": "Soldador III",
+    "entrada": "17/03/2025"
+  },
+  {
+    "equipe": "SOLDADOR",
+    "matricula": 7036,
+    "nome": "Maxsuel da Silva Santos",
+    "nivel": "Soldador III",
+    "entrada": "17/03/2025"
+  },
+  {
+    "equipe": "SOLDADOR",
+    "matricula": 7039,
+    "nome": "Luis Carlos Santos Carvalho",
+    "nivel": "Soldador II",
+    "entrada": "17/03/2025"
+  },
+  {
+    "equipe": "SOLDADOR",
+    "matricula": 7040,
+    "nome": "Adriano Oliveira dos Santos",
+    "nivel": "Soldador III",
+    "entrada": "17/03/2025"
+  },
+  {
+    "equipe": "SOLDADOR",
+    "matricula": 7073,
+    "nome": "Jonatas Porfirio da Silva",
+    "nivel": "Soldador III",
+    "entrada": "01/04/2025"
+  },
+  {
+    "equipe": "SOLDADOR",
+    "matricula": 7084,
+    "nome": "Fernando dos Santos",
+    "nivel": "Soldador IV",
+    "entrada": "07/04/2025"
+  },
+  {
+    "equipe": "SOLDADOR",
+    "matricula": 7099,
+    "nome": "Daniel Provesi",
+    "nivel": "Soldador IV",
+    "entrada": "07/04/2025"
+  },
+  {
+    "equipe": "SOLDADOR",
+    "matricula": 7105,
+    "nome": "Luiz Henrique Pietraz",
+    "nivel": "Soldador II",
+    "entrada": "14/04/2025"
+  },
+  {
+    "equipe": "SOLDADOR",
+    "matricula": 7135,
+    "nome": "Jeferson dos Santos",
+    "nivel": "Soldador IV",
+    "entrada": "22/04/2025"
+  },
+  {
+    "equipe": "SOLDADOR",
+    "matricula": 7137,
+    "nome": "Daniel Cavalheiro da Silva",
+    "nivel": "Soldador III",
+    "entrada": "22/04/2025"
+  },
+  {
+    "equipe": "SOLDADOR",
+    "matricula": 7145,
+    "nome": "Francisco Erivelton dos Santos Lima",
+    "nivel": "Soldador III",
+    "entrada": "22/04/2025"
+  },
+  {
+    "equipe": "SOLDADOR",
+    "matricula": 7184,
+    "nome": "Pablo Pinto Bessa",
+    "nivel": "Soldador IV",
+    "entrada": "12/05/2025"
+  },
+  {
+    "equipe": "SOLDADOR",
+    "matricula": 7177,
+    "nome": "Robson da Silva",
+    "nivel": "Soldador I",
+    "entrada": "12/05/2025"
+  },
+  {
+    "equipe": "SOLDADOR",
+    "matricula": 7209,
+    "nome": "Alexsandro da Silva Marinho",
+    "nivel": "Soldador III",
+    "entrada": "26/05/2025"
+  },
+  {
+    "equipe": "SOLDADOR",
+    "matricula": 7218,
+    "nome": "Wanderson Antonio Carvalho da Costa",
+    "nivel": "Soldador IV",
+    "entrada": "27/05/2025"
+  },
+  {
+    "equipe": "SOLDADOR",
+    "matricula": 7234,
+    "nome": "Yuri Rafael Radatz",
+    "nivel": "Soldador II",
+    "entrada": "02/06/2025"
+  },
+  {
+    "equipe": "SOLDADOR",
+    "matricula": 7295,
+    "nome": "Saul Chaves da Silva",
+    "nivel": "Soldador I",
+    "entrada": "01/07/2025"
+  },
+  {
+    "equipe": "SOLDADOR",
+    "matricula": 7319,
+    "nome": "Ithalo Freitas Caetano Pimenta",
+    "nivel": "Soldador I",
+    "entrada": "14/07/2025"
+  },
+  {
+    "equipe": "SOLDADOR",
+    "matricula": 7317,
+    "nome": "Paulo Ricardo Justamant da Cunha",
+    "nivel": "Soldador I",
+    "entrada": "14/07/2025"
+  }
+]

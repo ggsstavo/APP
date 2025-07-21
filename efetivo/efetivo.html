@@ -1,149 +1,674 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Efetivo | Apropriação</title>
+  <meta charset="UTF-8">
+  <title>Efetivo - Gráficos</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
+
+    :root {
+      --primary-line: #1D4ED8; /* azul escuro mais elegante */
+    }
     body {
-      margin: 0;
-      font-family: "Segoe UI", sans-serif;
-      background: #f9f9f9;
+      font-family: 'Inter', sans-serif;
+      background: #f4f6f8;
+      padding: 2rem;
       color: #333;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 20px;
     }
 
     h1 {
-      font-size: 2rem;
-      margin-bottom: 20px;
-      animation: fadeIn 0.8s ease forwards;
+      text-align: center;
+      margin-bottom: 2rem;
     }
 
-    .loader {
-      border: 4px solid #eee;
-      border-top: 4px solid #007bff;
-      border-radius: 50%;
-      width: 32px;
-      height: 32px;
-      animation: spin 1s linear infinite;
-      margin: 20px auto;
+    .chart-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      align-items: start;
     }
 
-    table {
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 1rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      transition: transform 0.3s ease;
+      text-align: center;
+    }
+
+    .card:hover {
+      transform: scale(1.02);
+    }
+
+    canvas {
+      width: 100% !important;
+      height: auto !important;
+    }
+
+    @media (max-width: 600px) {
+      .chart-container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Accordion Styles */
+    .accordion_section {
+      min-height: 100vh;
+      width: 90%;
+      max-width: 800px;
+      margin: 0 auto 3rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .accordion_title {
+      font-size: 2.5rem;
+      margin: 2rem 0;
+      text-align: center;
+    }
+
+    .distribuicao {
       width: 100%;
-      max-width: 1200px;
-      border-collapse: collapse;
-      background: white;
-      border-radius: 8px;
+      margin-bottom: 1rem;
+      padding: 1rem;
+      border-bottom: 2px solid #9ca3af;
+      cursor: pointer;
+      transition: background 0.2s, box-shadow 0.2s ease-in-out;
+      background-color: #f4f4f5;
+      border-radius: 5px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .distribuicao:hover {
+      background: rgba(75, 85, 99, 0.05);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .distribuicao_dados {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .distribuicao_dados h3 {
+      font-size: 1.6rem;
+      margin: 0;
+      color: #374151;
+    }
+
+    .resposta_dados {
+      max-height: 0;
       overflow: hidden;
-      box-shadow: 0 0 12px rgba(0,0,0,0.08);
-      animation: fadeIn 1s ease forwards;
+      transition: max-height 0.6s ease;
     }
 
-    thead {
-      background: #007bff;
-      color: white;
+    .resposta_dados p {
+      line-height: 1.5;
+      font-size: 1.05rem;
+      margin: 0.5rem 0 0;
+      color: #4b5563;
     }
 
-    th, td {
-      padding: 12px 16px;
-      text-align: left;
-      border-bottom: 1px solid #eee;
+    .distribuicao.active .resposta_dados {
+      max-height: 400px;
+      animation: fadeIn 0.4s ease-in-out;
+      overflow-y: auto;
     }
 
-    tbody tr:hover {
-      background: #f1f9ff;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
+    .distribuicao.active {
+  box-shadow: 0 12px 24px rgba(75, 85, 99, 0.25);
+}
 
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
+      from { opacity: 0; transform: translateY(-5px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
-    @media (max-width: 768px) {
-      table, thead, tbody, th, td, tr {
-        display: block;
+    @media (max-width: 480px) {
+      .accordion_section {
+        width: 98%;
       }
-      thead { display: none; }
-      td {
-        position: relative;
-        padding-left: 50%;
-      }
-      td::before {
-        content: attr(data-label);
-        position: absolute;
-        left: 16px;
-        top: 12px;
-        font-weight: bold;
-        color: #666;
-      }
+      .accordion_title { font-size: 2rem; }
+      .distribuicao_dados h3 { font-size: 1.4rem; }
+      .resposta_dados p { font-size: 1rem; }
     }
+
+    /* Toggle Icon */
+    .toggle-icon { width: 24px; height: 24px; transition: transform 0.3s ease-in-out; }
+    .toggle-icon .pipe { transform-origin: 12px 12px; transition: transform 0.3s ease-in-out; }
+    .distribuicao.active .toggle-icon .pipe { transform: rotate(90deg); }
+
+    #filtroNiveis {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+#filtroNiveis label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  background-color: #f3f4f6;
+  color: #374151;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+  position: relative;
+}
+
+#filtroNiveis input[type="checkbox"] {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #9ca3af;
+  border-radius: 4px;
+  background-color: white;
+  position: relative;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+#filtroNiveis input[type="checkbox"]::after {
+  content: "";
+  position: absolute;
+  top: 1px;
+  left: 5px;
+  width: 4px;
+  height: 8px;
+  border-right: 2px solid white;
+  border-bottom: 2px solid white;
+  transform: rotate(45deg);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+#filtroNiveis input[type="checkbox"]:checked {
+  background-color: #6366F1; /* Cor do checkbox marcado */
+  border-color: #4F46E5;
+}
+
+#filtroNiveis input[type="checkbox"]:checked::after {
+  opacity: 1;
+}
+
+#filtroNiveis label:has(input[type="checkbox"]:checked) {
+  background-color: #E0E7FF; /* Fundo claro no label ao marcar */
+  color: #1E3A8A;
+}
+
+#filtroNiveis label:hover {
+  background-color: #e5e7eb;
+}
+
+.status-ferias {
+  background-color: #3b82f6; /* azul */
+  padding: 3px 5px;
+  border-radius: 3px;
+  margin-bottom: 2px;
+  color: white;
+}
+
+.status-emprestadoprocessamento {
+  background-color: #fbbf24; /* amarelo */
+  padding: 3px 5px;
+  border-radius: 3px;
+  margin-bottom: 2px;
+  color: black;
+}
+
+.status-inss {
+  background-color: #ef4444; /* vermelho */
+  padding: 3px 5px;
+  border-radius: 3px;
+  margin-bottom: 2px;
+  color: white;
+}
+
+.status-trabalhoalternativopaiol {
+  background-color: #d1fae5; /* verde claro suave */
+  padding: 3px 5px;
+  border-radius: 3px;
+  margin-bottom: 2px;
+  color: #065f46; /* verde escuro para contraste */
+}
+
+.status-noturno {
+  background-color: #9ca3af; /* cinza claro perceptível */
+  padding: 3px 5px;
+  border-radius: 3px;
+  margin-bottom: 2px;
+  color: #374151; /* cinza escuro para contraste */
+}
+
+.status-integracao {
+  background-color: #facc15; /* azul (mesma cor de férias) */
+  padding: 3px 5px;
+  border-radius: 3px;
+  margin-bottom: 2px;
+  color: white;
+}
+
+.status-ativo {
+  background-color: transparent;
+}
+
+
   </style>
 </head>
 <body>
-  <h1>Efetivo Atualizado</h1>
-  <div id="loader" class="loader"></div>
-  <table id="efetivoTable" style="display: none;">
-    <thead id="tableHead"></thead>
-    <tbody id="tableBody"></tbody>
-  </table>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-    import { getStorage, ref, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-storage.js";
+  <section class="accordion_section">
+    <h2 class="accordion_title">Efetivo 18/07/2025</h2>
 
-    import * as XLSX from "https://cdn.sheetjs.com/xlsx-0.20.0/package/xlsx.mjs";
+    <div class="distribuicao">
+      <div class="distribuicao_dados">
+        <h3>Liderança</h3>
+        <svg class="toggle-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <!-- Linha horizontal com bordas arredondadas -->
+          <rect x="4" y="11" width="16" height="2" rx="1" ry="1" fill="#4b5563" />
+          <!-- Linha vertical (pipe) com bordas arredondadas -->
+          <rect class="pipe" x="11" y="4" width="2" height="16" rx="1" ry="1" fill="#4b5563"/>
+        </svg>
+      </div>
+      <div class="resposta_dados">
+        <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Aut cupiditate deserunt atque, eos tempora recusandae ratione esse ipsum qui enim vitae a sequi minus, dolorem alias maxime! Itaque, voluptas unde?</p>
+      </div>
+    </div>
 
-    const firebaseConfig = {
-      apiKey: "SUA_API_KEY",
-      authDomain: "SEU_DOMINIO.firebaseapp.com",
-      projectId: "ID_DO_PROJETO",
-      storageBucket: "SEU_BUCKET.appspot.com",
-      messagingSenderId: "SEU_ID",
-      appId: "SUA_APP_ID"
-    };
+    <div class="distribuicao">
+      <div class="distribuicao_dados">
+        <h3>Montagem</h3>
+        <svg class="toggle-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <!-- Linha horizontal com bordas arredondadas -->
+          <rect x="4" y="11" width="16" height="2" rx="1" ry="1" fill="#4b5563" />
+          <!-- Linha vertical (pipe) com bordas arredondadas -->
+          <rect class="pipe" x="11" y="4" width="2" height="16" rx="1" ry="1" fill="#4b5563"/>
+        </svg>
+      </div>
+      <div class="resposta_dados">
+        <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Aut cupiditate deserunt atque, eos tempora recusandae ratione esse ipsum qui enim vitae a sequi minus, dolorem alias maxime! Itaque, voluptas unde?</p>
+      </div>
+    </div>
 
-    const app = initializeApp(firebaseConfig);
-    const storage = getStorage(app);
+    <div class="distribuicao">
+      <div class="distribuicao_dados">
+        <h3>Meio Oficial</h3>
+        <svg class="toggle-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <!-- Linha horizontal com bordas arredondadas -->
+          <rect x="4" y="11" width="16" height="2" rx="1" ry="1" fill="#4b5563" />
+          <!-- Linha vertical (pipe) com bordas arredondadas -->
+          <rect class="pipe" x="11" y="4" width="2" height="16" rx="1" ry="1" fill="#4b5563"/>
+        </svg>
+      </div>
+      <div class="resposta_dados">
+        <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Aut cupiditate deserunt atque, eos tempora recusandae ratione esse ipsum qui enim vitae a sequi minus, dolorem alias maxime! Itaque, voluptas unde?</p>
+      </div>
+    </div>
 
-    const fileRef = ref(storage, "efetivo/Efetivo Atualizado 17-07-25.xlsx"); // Caminho no Storage
+    <div class="distribuicao">
+      <div class="distribuicao_dados">
+        <h3>Desempeno</h3>
+        <svg class="toggle-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <!-- Linha horizontal com bordas arredondadas -->
+          <rect x="4" y="11" width="16" height="2" rx="1" ry="1" fill="#4b5563" />
+          <!-- Linha vertical (pipe) com bordas arredondadas -->
+          <rect class="pipe" x="11" y="4" width="2" height="16" rx="1" ry="1" fill="#4b5563"/>
+        </svg>
+      </div>
+      <div class="resposta_dados">
+        <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Aut cupiditate deserunt atque, eos tempora recusandae ratione esse ipsum qui enim vitae a sequi minus, dolorem alias maxime! Itaque, voluptas unde?</p>
+      </div>
+    </div>
 
-    getDownloadURL(fileRef).then(async (url) => {
-      const response = await fetch(url);
-      const blob = await response.arrayBuffer();
-      const workbook = XLSX.read(blob, { type: "array" });
-      const sheet = workbook.Sheets[workbook.SheetNames[0]];
-      const data = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+    <div class="distribuicao">
+      <div class="distribuicao_dados">
+        <h3>Andaimes</h3>
+        <svg class="toggle-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <!-- Linha horizontal com bordas arredondadas -->
+          <rect x="4" y="11" width="16" height="2" rx="1" ry="1" fill="#4b5563" />
+          <!-- Linha vertical (pipe) com bordas arredondadas -->
+          <rect class="pipe" x="11" y="4" width="2" height="16" rx="1" ry="1" fill="#4b5563"/>
+        </svg>
+      </div>
+      <div class="resposta_dados">
+        <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Aut cupiditate deserunt atque, eos tempora recusandae ratione esse ipsum qui enim vitae a sequi minus, dolorem alias maxime! Itaque, voluptas unde?</p>
+      </div>
+    </div>
 
-      const [header, ...rows] = data;
+    <div class="distribuicao">
+      <div class="distribuicao_dados">
+        <h3>Soldador</h3>
+        <svg class="toggle-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <!-- Linha horizontal com bordas arredondadas -->
+          <rect x="4" y="11" width="16" height="2" rx="1" ry="1" fill="#4b5563" />
+          <!-- Linha vertical (pipe) com bordas arredondadas -->
+          <rect class="pipe" x="11" y="4" width="2" height="16" rx="1" ry="1" fill="#4b5563"/>
+        </svg>
+      </div>
+      <div class="resposta_dados">
+        <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Aut cupiditate deserunt atque, eos tempora recusandae ratione esse ipsum qui enim vitae a sequi minus, dolorem alias maxime! Itaque, voluptas unde?</p>
+      </div>
+    </div>
 
-      // Preenche cabeçalhos
-      const headRow = document.getElementById("tableHead");
-      const ths = header.map(col => `<th>${col}</th>`).join("");
-      headRow.innerHTML = `<tr>${ths}</tr>`;
+    <div class="distribuicao">
+      <div class="distribuicao_dados">
+        <h3>CEFAP</h3>
+        <svg class="toggle-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <!-- Linha horizontal com bordas arredondadas -->
+          <rect x="4" y="11" width="16" height="2" rx="1" ry="1" fill="#4b5563" />
+          <!-- Linha vertical (pipe) com bordas arredondadas -->
+          <rect class="pipe" x="11" y="4" width="2" height="16" rx="1" ry="1" fill="#4b5563"/>
+        </svg>
+      </div>
+      <div class="resposta_dados">
+        <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Aut cupiditate deserunt atque, eos tempora recusandae ratione esse ipsum qui enim vitae a sequi minus, dolorem alias maxime! Itaque, voluptas unde?</p>
+      </div>
+    </div>
+  </section>
 
-      // Preenche corpo da tabela
-      const body = document.getElementById("tableBody");
-      body.innerHTML = rows.map(row => `
-        <tr>${row.map((cell, i) => `
-          <td data-label="${header[i]}">${cell ?? ""}</td>`).join("")}
-        </tr>
-      `).join("");
+  <h1>Distribuição do Efetivo</h1>
 
-      document.getElementById("loader").style.display = "none";
-      document.getElementById("efetivoTable").style.display = "table";
-    }).catch(err => {
-      document.getElementById("loader").style.display = "none";
-      alert("Erro ao carregar o arquivo: " + err.message);
-      console.error(err);
-    });
+  <div class="chart-container">
+    <div class="card">
+      <h3>Por Equipe</h3>
+      <canvas id="graficoEquipe"></canvas>
+    </div>
+    <div class="card">
+      <h3>Por Nível</h3>
+      <canvas id="graficoNivel"></canvas>
+      <div id="filtroNiveis">
+  <label>
+    <input type="checkbox" value="Montador" checked>
+    <span>Montador</span>
+  </label>
+  <label>
+    <input type="checkbox" value="Desempenador">
+    <span>Desempenador</span>
+  </label>
+  <label>
+    <input type="checkbox" value="Montador de Andaimes">
+    <span>Montador de Andaimes</span>
+  </label>
+  <label>
+    <input type="checkbox" value="Soldador">
+    <span>Soldador</span>
+  </label>
+</div>
+
+    </div>
+    <div class="card">
+      <h3>Tempo de Empresa</h3>
+      <canvas id="graficoTempo"></canvas>
+    </div>
+  </div>
+
+  <canvas id="graficoCrescimento" height="300"></canvas>
+
+
+  <script>
+const equipesArquivos = {
+    "Montagem": "./dados_efetivo/colaboradores_montagem.json",
+    "Desempeno": "./dados_efetivo/colaboradores_desempeno.json",
+    "Meio Oficial": "./dados_efetivo/colaboradores_meio_oficial.json",
+    "Andaimes": "./dados_efetivo/colaboradores_andaimes.json",
+    "Soldador": "./dados_efetivo/colaboradores_soldador.json",
+    "CEFAP": "./dados_efetivo/colaboradores_cefap.json",
+    "Liderança": "./dados_efetivo/colaboradores_lideranca.json"
+  };
+
+  const accordionItems = document.querySelectorAll('.distribuicao');
+
+  accordionItems.forEach(async (item) => {
+    const equipe = item.querySelector('h3').innerText.trim();
+    const resposta = item.querySelector('.resposta_dados');
+
+    if (equipesArquivos[equipe]) {
+      try {
+        const res = await fetch(equipesArquivos[equipe]);
+        const dados = await res.json();
+
+        const html = dados.map(colab => {
+  const data = new Date(colab.entrada).toLocaleDateString("pt-BR");
+  
+  // Cria uma classe para o status, removendo espaços e barras
+  function removeAcentos(texto) {
+  return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+const statusPadrao = "ativo";
+
+const statusClass = colab.status
+  ? "status-" + removeAcentos(colab.status.toLowerCase()).replace(/\s+/g, '').replace(/\//g, '')
+  : "";
+  
+  return `<p class="${statusClass}">
+    <strong>${colab.nome}</strong> - ${colab.matricula} - ${colab.nivel} - ${data}
+    ${colab.status ? ` - <em>${colab.status}</em>` : ''}
+  </p>`;
+}).join('');
+
+        resposta.innerHTML = html;
+      } catch (error) {
+        resposta.innerHTML = `<p style="color:red;">Erro ao carregar dados de ${equipe}.</p>`;
+      }
+    } else {
+      resposta.innerHTML = `<p style="color:gray;">Nenhum dado disponível.</p>`;
+    }
+  });
+
+let efetivoCompleto = [];
+let chartNivel = null;
+
+const hoje = new Date();
+
+// ⬇️ Carrega uma vez todos os dados
+async function carregarEfetivo() {
+  efetivoCompleto = [];
+
+  for (const [equipe, url] of Object.entries(equipesArquivos)) {
+    try {
+      const res = await fetch(url);
+      const dados = await res.json();
+
+      dados.forEach(colab => {
+        efetivoCompleto.push({
+          equipe,
+          nivel: colab.nivel,
+          entrada: colab.entrada
+        });
+      });
+    } catch (e) {
+      console.error(`Erro ao carregar ${equipe}:`, e);
+    }
+  }
+
+  gerarGraficosGerais(efetivoCompleto);  // gráficos gerais
+  aplicarFiltroNiveis();                 // gráfico por nível filtrado
+}
+
+// ⬇️ Gráficos que usam todos os dados (sem filtro)
+function gerarGraficosGerais(efetivo) {
+  const equipes = {};
+  const tempoFaixa = { "Até 1 ano": 0, "1-3 anos": 0, "3+ anos": 0 };
+  const crescimento = {};
+
+  efetivo.forEach(colab => {
+    // Equipes
+    equipes[colab.equipe] = (equipes[colab.equipe] || 0) + 1;
+
+    // Tempo de empresa
+    const entrada = new Date(colab.entrada);
+    const anos = (hoje - entrada) / (1000 * 60 * 60 * 24 * 365);
+    if (anos < 1) tempoFaixa["Até 1 ano"]++;
+    else if (anos < 3) tempoFaixa["1-3 anos"]++;
+    else tempoFaixa["3+ anos"]++;
+
+    // Crescimento
+    const mesAno = `${entrada.getFullYear()}-${String(entrada.getMonth() + 1).padStart(2, '0')}`;
+    crescimento[mesAno] = (crescimento[mesAno] || 0) + 1;
+  });
+
+  // 🎯 Gráfico por Equipe
+  new Chart(document.getElementById('graficoEquipe'), {
+    type: 'doughnut',
+    data: {
+      labels: Object.keys(equipes),
+      datasets: [{
+        data: Object.values(equipes),
+        backgroundColor: ['#3B82F6','#10B981','#FACC15','#F87171','#8B5CF6','#EC4899','#14B8A6']
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: { color: '#333', font: { size: 14 } }
+        }
+      }
+    }
+  });
+
+  // 🎯 Gráfico Tempo de Empresa
+  new Chart(document.getElementById('graficoTempo'), {
+    type: 'pie',
+    data: {
+      labels: Object.keys(tempoFaixa),
+      datasets: [{
+        data: Object.values(tempoFaixa),
+        backgroundColor: ['#10B981','#FACC15','#F87171']
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: { color: '#333', font: { size: 14 } }
+        }
+      }
+    }
+  });
+
+  // 🎯 Gráfico Crescimento
+  const meses = Object.keys(crescimento).sort();
+  const valores = meses.map(m => crescimento[m]);
+
+  new Chart(document.getElementById('graficoCrescimento'), {
+    type: 'line',
+    data: {
+      labels: meses,
+      datasets: [{
+        label: 'Entradas no mês',
+        data: valores,
+        borderColor: '#3B82F6',
+        backgroundColor: 'rgba(59,130,246,0.2)',
+        fill: true,
+        tension: 0.4
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: { beginAtZero: true }
+      },
+      plugins: {
+        legend: { position: 'top' }
+      }
+    }
+  });
+}
+
+// ✅ Obtém filtros (checkbox)
+function getFiltrosSelecionados() {
+  const checkboxes = document.querySelectorAll('#filtroNiveis input[type="checkbox"]:checked');
+  return Array.from(checkboxes).map(cb => cb.value);
+}
+
+// ✅ Gera gráfico por nível filtrado
+function aplicarFiltroNiveis() {
+  const filtros = getFiltrosSelecionados();
+  const niveis = {};
+
+  efetivoCompleto.forEach(colab => {
+    const nivelBase = colab.nivel.trim();
+    if (filtros.some(filtro => nivelBase.toLowerCase().includes(filtro.toLowerCase()))) {
+      niveis[nivelBase] = (niveis[nivelBase] || 0) + 1;
+    }
+  });
+
+  if (chartNivel) chartNivel.destroy();
+
+  chartNivel = new Chart(document.getElementById('graficoNivel'), {
+    type: 'bar',
+    data: {
+      labels: Object.keys(niveis),
+      datasets: [{
+        label: 'Colaboradores',
+        data: Object.values(niveis),
+        backgroundColor: '#3B82F6'
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: { beginAtZero: true, ticks: { color: '#333' }, grid: { color: '#eee' } },
+        x: { ticks: { color: '#333' }, grid: { display: false } }
+      },
+      plugins: { legend: { display: false } }
+    }
+  });
+}
+
+// ⬇️ Checkbox: impede desmarcar todos + atualiza apenas gráfico por nível
+document.querySelectorAll('#filtroNiveis input[type="checkbox"]').forEach(checkbox => {
+  checkbox.addEventListener('change', () => {
+    // Se foi marcado, desmarca os outros
+    if (checkbox.checked) {
+      document.querySelectorAll('#filtroNiveis input[type="checkbox"]').forEach(outro => {
+        if (outro !== checkbox) outro.checked = false;
+      });
+    } else {
+      // Impede desmarcar todos (mantém pelo menos um marcado)
+      checkbox.checked = true;
+    }
+
+    aplicarFiltroNiveis(); // ← atualiza gráfico por nível
+  });
+});
+
+// ⬇️ Inicialização
+carregarEfetivo();
+
+const distribuicoes = document.querySelectorAll(".distribuicao");
+
+distribuicoes.forEach(distribuicao => {
+  distribuicao.addEventListener("click", (event) => {
+    // Não abrir/fechar se clicou dentro do conteúdo
+    if (event.target.closest('.resposta_dados')) {
+      return;
+    }
+
+    // Detecta se há texto selecionado (independente de onde)
+    const selection = window.getSelection();
+    if (selection && selection.toString().length > 0) {
+      // Se texto está selecionado, não toggleia para evitar fechar durante seleção
+      return;
+    }
+
+    distribuicao.classList.toggle("active");
+  });
+});
+
+
   </script>
 </body>
 </html>

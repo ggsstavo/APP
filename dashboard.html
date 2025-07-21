@@ -97,6 +97,16 @@
       margin-bottom: 15px;
       color: #2c3e50;
     }
+    .form-section h3 i{
+      margin-right: 10px;
+    }
+    .outros{
+      color: #2c3e50;
+      margin-top: 25px;
+    }
+    .outros i{
+      margin-right: 10px;
+    }
     .form-row {
       display: flex;
       gap: 10px;
@@ -347,6 +357,10 @@
   }
 }
 
+#editTeamBtn {
+  background-color: #2980b9;
+}
+
 #notificationMessage {
   display: flex;
   flex-direction: column;
@@ -500,13 +514,18 @@
     </a>
   </li>
   <li>
-    <a href="#">
+    <a href="./efetivo/efetivo.html">
       <i class="fas fa-user-friends"></i> Efetivo
     </a>
   </li>
   <li>
     <a href="#">
       <i class="fas fa-calendar-check"></i> Abono DSR
+    </a>
+  </li>
+  <li>
+    <a href="#">
+      <i class="fa-solid fa-shield-halved"></i> Observa+
     </a>
   </li>
   <li>
@@ -523,7 +542,7 @@
     </header>
     <!-- Formulário de Criação/Edição de Equipe -->
     <section class="form-section" id="teamSection">
-      <h3>Gerenciar Equipe</h3>
+      <h3><i class="fa-solid fa-users-gear"></i>Gerenciar Equipe</h3>
       <div class="form-row">
         <label for="teamName">Nome da Equipe:</label>
         <input
@@ -549,15 +568,22 @@
       <button id="addMemberBtn" class="btn">Adicionar Membro</button>
       <button id="saveTeamBtn" class="btn">Salvar Equipe</button>
       <div style="margin-top: 10px; display: flex; gap: 10px;">
-  <button id="editSelectedTeamBtn" class="btn" style="background: #2980b9">
-  <i class="fas fa-pencil-alt" style="margin-right: 4px;"></i> | Editar Equipe Selecionada
-</button>
   <button id="cancelEditBtn" class="btn" style="display: none; background: #c0392b">Cancelar Edição</button>
+</div>
+<h3 class="outros"><i class="fa-solid fa-pen-to-square"></i>Editar Equipe</h3>
+<div class="form-row">
+  <label for="teamSelectManage">Selecione uma equipe para editar:</label>
+  <select id="teamSelectManage">
+    <option value="">-- Nenhuma selecionada --</option>
+    <!-- opções preenchidas pelo loadTeamsManage() -->
+  </select>
+  <button id="editTeamBtn" class="btn">Editar Equipe</button>
 </div>
     </section>
     <!-- Formulário de Apropriação -->
     <section class="form-section" id="recordSection">
-      <h3>Enviar Apropriação</h3>
+      <h3><i class="fas fa-paper-plane"></i>
+Enviar Apropriação</h3>
       <div class="form-row">
         <label for="dateInput">Data:</label>
         <input type="date" id="dateInput" value="" />
@@ -625,6 +651,13 @@
 
 
   <script type="module">
+
+    function getCachedUID() {
+  return localStorage.getItem('uid');
+}
+function clearCachedUID() {
+  localStorage.removeItem('uid');
+}
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 import {
@@ -639,6 +672,7 @@ import {
   setDoc,
   orderBy,
   limit,
+  startAfter,
   Timestamp
 } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 
@@ -693,15 +727,31 @@ const db = getFirestore(app);
 let currentUser = null;
 let editingTeamId = null;
 
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    currentUser = user;
-    setDateToday();
-    loadTeams();
-    loadRecords();
-  } else {
-    window.location.href = "./index.html";
+window.addEventListener('DOMContentLoaded', () => {
+  const cachedUid = getCachedUID();
+
+  // Se não tiver UID em cache, força o login
+  if (!cachedUid) {
+    clearCachedUID();
+    window.location.href = './index.html';
+    return;
   }
+
+  // Se tiver, só confirme com o Firebase que continua autenticado
+  onAuthStateChanged(auth, (user) => {
+    if (user && user.uid === cachedUid) {
+      // usuário ok, pode chamar suas funções
+      currentUser = user;
+      setDateToday();
+      loadTeams();
+      loadRecords(true);
+      loadTeamsManage();
+    } else {
+      // mismatch ou não autenticado → limpa e login
+      clearCachedUID();
+      window.location.href = './index.html';
+    }
+  });
 });
 
 function setDateToday() {
@@ -866,42 +916,6 @@ function clearTeamForm() {
   membersContainer.innerHTML = "";
 }
 
-const editSelectedTeamBtn = document.getElementById("editSelectedTeamBtn");
-const cancelEditBtn = document.getElementById("cancelEditBtn");
-
-editSelectedTeamBtn.addEventListener("click", async () => {
-  const teamSelect = document.getElementById("teamSelect");
-  const teamId = teamSelect.value;
-  if (!teamId) {
-    showNotification("Por favor, selecione uma equipe para editar.", "info");
-    return;
-  }
-  try {
-    const teamDoc = await getDoc(doc(db, "teams", teamId));
-    if (!teamDoc.exists()) {
-      showNotification("Equipe não encontrada.", "info");
-      return;
-    }
-    const data = teamDoc.data();
-    editingTeamId = teamId;
-    document.getElementById("teamName").value = data.name;
-    if (data.shift) {
-      document.querySelector(`input[name="teamShift"][value="${data.shift}"]`).checked = true;
-    }
-    membersContainer.innerHTML = "";
-    if (data.members && Array.isArray(data.members)) {
-      data.members.forEach((m) => {
-        membersContainer.appendChild(createMemberRow(m));
-      });
-    }
-    cancelEditBtn.style.display = "inline-block";
-    saveTeamBtn.textContent = "Atualizar Equipe";
-  } catch (e) {
-    console.error(e);
-    showNotification("Erro ao carregar equipe para edição.", "error");
-  }
-});
-
 cancelEditBtn.addEventListener("click", () => {
   clearTeamForm();
   editingTeamId = null;
@@ -997,37 +1011,84 @@ const local = (memberOriginal?.local === "Outros")
   }
 }
 
-async function loadRecords() {
-  const q = query(
+let lastVisibleRecord = null;
+let isFetchingRecords = false;
+let recordsCache = [];
+
+async function loadRecords(initial = false) {
+  if (isFetchingRecords) return;
+  isFetchingRecords = true;
+
+  let q = query(
     collection(db, "records"),
     where("createdBy", "==", currentUser.uid),
     orderBy("date", "desc"),
-    limit(10)
+    limit(5)
   );
+
+  if (!initial && lastVisibleRecord) {
+    q = query(q, startAfter(lastVisibleRecord));
+  }
+
   const snap = await getDocs(q);
+
+  if (!snap.empty) {
+    lastVisibleRecord = snap.docs[snap.docs.length - 1];
+    snap.forEach((doc) => {
+      recordsCache.push(doc.data());
+    });
+    renderRecords(recordsCache);
+  }
+
+  isFetchingRecords = false;
+}
+
+  function renderRecords(records) {
   const tbody = document.querySelector("#recordsTable tbody");
   tbody.innerHTML = "";
-  snap.forEach((doc) => {
-    const r = doc.data();
+  records.forEach((r) => {
     const tr = document.createElement("tr");
     const date = r.date?.toDate?.() || new Date();
     const dateStr = date.toLocaleString("pt-BR", {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+      day: '2-digit', month: '2-digit', year: 'numeric',
+      hour: '2-digit', minute: '2-digit'
     });
     tr.innerHTML = `
-  <td>${dateStr}</td>
-  <td>${r.vessel || ""}</td>
-  <td>${r.galpao || ""}</td>
-  <td>${r.teamName || r.teamId || ""}</td>
-  <td>${r.userName || ""}</td>
-`;
+      <td>${dateStr}</td>
+      <td>${r.vessel || ""}</td>
+      <td>${r.galpao || ""}</td>
+      <td>${r.teamName || r.teamId || ""}</td>
+      <td>${r.userName || ""}</td>
+    `;
     tbody.appendChild(tr);
   });
 }
+
+const tableWrapper = document.querySelector("#recordsTable").parentElement;
+
+tableWrapper.addEventListener("scroll", () => {
+  if (tableWrapper.scrollTop + tableWrapper.clientHeight >= tableWrapper.scrollHeight - 50) {
+    loadRecords(); // próximo lote
+  }
+});
+
+async function loadTeamsManage() {
+  const teamSelect = document.getElementById("teamSelectManage");
+  teamSelect.innerHTML = '<option value="">-- Nenhuma selecionada --</option>';
+
+  const q = query(collection(db, "teams"), where("ownerUid", "==", currentUser.uid));
+  const snap = await getDocs(q);
+
+  snap.forEach(doc => {
+    const data = doc.data();
+    const opt = document.createElement("option");
+    opt.value = doc.id;
+    opt.textContent = data.name;
+    teamSelect.appendChild(opt);
+  });
+}
+
+
 
 // Menu hamburger
 const toggleMenuBtn = document.getElementById("toggleMenu");
@@ -1076,6 +1137,50 @@ document.addEventListener("keydown", (e) => {
     }
   }
 });
+
+const teamSelectManage = document.getElementById("teamSelectManage");
+const editTeamBtn      = document.getElementById("editTeamBtn");
+
+// Ao clicar em editar, só preenche os campos — o form já está visível
+editTeamBtn.addEventListener("click", async () => {
+  const teamId = teamSelectManage.value;
+
+  // 1) Se não selecionou, notifica e sai sem tocar no Firebase
+  if (!teamId) {
+    showNotification("Selecione uma equipe para editar.", "warning");
+    return;
+  }
+
+  // 2) Só aqui você faz a leitura no Firestore
+  let teamDoc;
+  try {
+    teamDoc = await getDoc(doc(db, "teams", teamId));
+  } catch (e) {
+    console.error(e);
+    showNotification("Erro ao acessar o banco de dados.", "error");
+    return;
+  }
+
+  if (!teamDoc.exists()) {
+    showNotification("Equipe não encontrada.", "info");
+    return;
+  }
+
+  // 3) Agora sim: pega os dados
+  const data = teamDoc.data();
+
+  // Preenche o form diretamente (já visível)
+  document.getElementById("teamName").value = data.name;
+  document.querySelector(`input[name="teamShift"][value="${data.shift}"]`).checked = true;
+  membersContainer.innerHTML = "";
+  data.members.forEach(m => membersContainer.appendChild(createMemberRow(m)));
+
+  editingTeamId = teamId;
+  saveTeamBtn.textContent = "Atualizar Equipe";
+  cancelEditBtn.style.display = "inline-block";
+});
+
+
 </script>
 </body>
 </html>

@@ -1,0 +1,442 @@
+[
+  {
+    "equipe": "MONTAGEM",
+    "matricula": 362,
+    "nome": "Andre Nogueira",
+    "nivel": "Supervisor Edificaçao IV",
+    "entrada": "2008-02-04",
+    "status": ""
+  },
+  {
+    "equipe": "MONTAGEM",
+    "matricula": 2043,
+    "nome": "Jean Carlos Roberto Felicio",
+    "nivel": "Supervisor Sub-montagem IV",
+    "entrada": "2012-10-08",
+    "status": ""
+  },
+  {
+    "equipe": "MONTAGEM",
+    "matricula": 4200,
+    "nome": "Valerio Joao Vieira",
+    "nivel": "Supervisor de Estrutura I",
+    "entrada": "2015-02-09",
+    "status": ""
+  },
+  {
+    "equipe": "MONTAGEM",
+    "matricula": 3310,
+    "nome": "Josias Oresto dos Santos",
+    "nivel": "Supervisor de Estrutura II",
+    "entrada": "2014-07-02",
+    "status": ""
+  },
+  {
+    "equipe": "MONTAGEM",
+    "matricula": 812,
+    "nome": "Marlon Reis",
+    "nivel": "Supervisor de Estrutura II",
+    "entrada": "2010-11-01",
+    "status": ""
+  },
+  {
+    "equipe": "MONTAGEM",
+    "matricula": 2609,
+    "nome": "Luiz Carlos Silveira",
+    "nivel": "Inspetor Tecnico IV",
+    "entrada": "2013-05-13",
+    "status": ""
+  },
+  {
+    "equipe": "MONTAGEM",
+    "matricula": 6615,
+    "nome": "Jorge Eduardo Alves de Medeiros",
+    "nivel": "Montador III dimensional",
+    "entrada": "2024-07-15",
+    "status": ""
+  },
+  {
+    "equipe": "MONTAGEM",
+    "matricula": 6596,
+    "nome": "Ronicleiton Eyng",
+    "nivel": "Soldador IV",
+    "entrada": "2024-07-01",
+    "status": ""
+  },
+  {
+    "equipe": "MONTAGEM",
+    "matricula": 3603,
+    "nome": "Jean Carlos Serpa",
+    "nivel": "Encarregado Sub-montagem IV",
+    "entrada": "2014-09-08",
+    "status": ""
+  },
+  {
+    "equipe": "MONTAGEM",
+    "matricula": 6120,
+    "nome": "Luciano Siqueira",
+    "nivel": "Encarregado III",
+    "entrada": "2022-04-04",
+    "status": ""
+  },
+  {
+    "equipe": "MONTAGEM",
+    "matricula": 5455,
+    "nome": "Sidnei Jacomone",
+    "nivel": "Encarregado I",
+    "entrada": "2019-04-08",
+    "status": "férias"
+  },
+  {
+    "equipe": "MONTAGEM",
+    "matricula": 5687,
+    "nome": "Bruno da Silva Candido",
+    "nivel": "Encarregado I",
+    "entrada": "2020-01-13",
+    "status": ""
+  },
+  {
+    "equipe": "MONTAGEM",
+    "matricula": 6007,
+    "nome": "Rodrigo das Neves",
+    "nivel": "Encarregado I",
+    "entrada": "2022-02-07",
+    "status": ""
+  },
+  {
+    "equipe": "MONTAGEM",
+    "matricula": 5854,
+    "nome": "Aliandro de Souza",
+    "nivel": "Encarregado I",
+    "entrada": "2021-07-19",
+    "status": ""
+  },
+  {
+    "equipe": "MONTAGEM",
+    "matricula": 5465,
+    "nome": "Jose Machado",
+    "nivel": "Montador IV",
+    "entrada": "2019-04-08",
+    "status": ""
+  },
+  {
+    "equipe": "MONTAGEM",
+    "matricula": 5225,
+    "nome": "Carlos Alberto da Costa",
+    "nivel": "Montador IV",
+    "entrada": "2017-07-03",
+    "status": ""
+  },
+  {
+    "equipe": "MONTAGEM",
+    "matricula": 5230,
+    "nome": "Leandro dos Santos",
+    "nivel": "Montador II",
+    "entrada": "2017-07-03",
+    "status": ""
+  },
+  {
+    "equipe": "MONTAGEM",
+    "matricula": 5411,
+    "nome": "Altair Manoel Anacleto",
+    "nivel": "Montador IV",
+    "entrada": "2019-02-14",
+    "status": ""
+  },
+  {
+    "equipe": "MONTAGEM",
+    "matricula": 5423,
+    "nome": "Felipe Rodrigues Nunes",
+    "nivel": "Montador IV",
+    "entrada": "2019-02-20",
+    "status": "férias"
+  },
+  {
+    "equipe": "MONTAGEM",
+    "matricula": 5859,
+    "nome": "Edson Souza Santos",
+    "nivel": "Montador IV",
+    "entrada": "2021-08-02",
+    "status": ""
+  },
+  {
+    "equipe": "MONTAGEM",
+    "matricula": 5890,
+    "nome": "Tarcio Silva de Lima",
+    "nivel": "Montador II",
+    "entrada": "2021-09-27",
+    "status": ""
+  },
+  {
+    "equipe": "MONTAGEM",
+    "matricula": 5958,
+    "nome": "Allysson Benevides de Aquino",
+    "nivel": "Montador I",
+    "entrada": "2022-01-10",
+    "status": ""
+  },
+  {
+    "equipe": "MONTAGEM",
+    "matricula": 5959,
+    "nome": "Wesley Vieira Rocha",
+    "nivel": "Montador II",
+    "entrada": "2022-01-10",
+    "status": "férias"
+  },
+  {
+    "equipe": "MONTAGEM",
+    "matricula": 5972,
+    "nome": "Cleber Tiago Crispim",
+    "nivel": "Montador IV",
+    "entrada": "2022-01-17",
+    "status": ""
+  },
+  {
+    "equipe": "MONTAGEM",
+    "matricula": 6059,
+    "nome": "Joelson Ricardo Rocha Alves Filho",
+    "nivel": "Montador I",
+    "entrada": "2022-02-21",
+    "status": ""
+  },
+  {
+    "equipe": "MONTAGEM",
+    "matricula": 6064,
+    "nome": "Arilson Correa Fernandes",
+    "nivel": "Montador IV",
+    "entrada": "2022-03-02",
+    "status": ""
+  },
+  {
+    "equipe": "MONTAGEM",
+    "matricula": 6228,
+    "nome": "Kennidy Bristotti",
+    "nivel": "Montador III",
+    "entrada": "2022-09-12",
+    "status": "férias"
+  },
+  {
+    "equipe": "MONTAGEM",
+    "matricula": 6495,
+    "nome": "Leonildo Crestani",
+    "nivel": "Montador IV",
+    "entrada": "2024-03-18",
+    "status": ""
+  },
+  {
+    "equipe": "MONTAGEM",
+    "matricula": 6604,
+    "nome": "Ademir Mariano",
+    "nivel": "Montador IV",
+    "entrada": "2024-07-08",
+    "status": ""
+  },
+  {
+    "equipe": "MONTAGEM",
+    "matricula": 6626,
+    "nome": "Claudio Oliveira Leite",
+    "nivel": "Montador IV",
+    "entrada": "2024-07-22",
+    "status": ""
+  },
+  {
+    "equipe": "MONTAGEM",
+    "matricula": 6507,
+    "nome": "Luiz Fernando Horn",
+    "nivel": "Montador II",
+    "entrada": "2024-04-01",
+    "status": ""
+  },
+  {
+    "equipe": "MONTAGEM",
+    "matricula": 6876,
+    "nome": "Andre Neves Gularte",
+    "nivel": "Montador II",
+    "entrada": "2025-01-27",
+    "status": ""
+  },
+  {
+    "equipe": "MONTAGEM",
+    "matricula": 6937,
+    "nome": "Ezequiel Freitas",
+    "nivel": "Montador III",
+    "entrada": "2025-02-10",
+    "status": ""
+  },
+  {
+    "equipe": "MONTAGEM",
+    "matricula": 6953,
+    "nome": "Lucas Valsoler",
+    "nivel": "Montador IV",
+    "entrada": "2025-02-17",
+    "status": "noturno"
+  },
+  {
+    "equipe": "MONTAGEM",
+    "matricula": 6966,
+    "nome": "Valter da Silva Lins Filho",
+    "nivel": "Montador I",
+    "entrada": "2025-02-24",
+    "status": ""
+  },
+  {
+    "equipe": "MONTAGEM",
+    "matricula": 6448,
+    "nome": "Romero Ferreira da Silva",
+    "nivel": "Montador I",
+    "entrada": "2024-02-05",
+    "status": ""
+  },
+  {
+    "equipe": "MONTAGEM",
+    "matricula": 6457,
+    "nome": "Manoel dos Santos de Jesus",
+    "nivel": "Montador I",
+    "entrada": "2024-02-14",
+    "status": ""
+  },
+  {
+    "equipe": "MONTAGEM",
+    "matricula": 6717,
+    "nome": "João Marcos Forte Araújo",
+    "nivel": "Montador I",
+    "entrada": "2024-09-16",
+    "status": ""
+  },
+  {
+    "equipe": "MONTAGEM",
+    "matricula": 6788,
+    "nome": "Maicon Evangelista da Silva",
+    "nivel": "Montador III",
+    "entrada": "2024-11-18",
+    "status": ""
+  },
+  {
+    "equipe": "MONTAGEM",
+    "matricula": 6551,
+    "nome": "Marcelo Cardoso De Paiva",
+    "nivel": "Montador I",
+    "entrada": "2024-05-27",
+    "status": "férias"
+  },
+  {
+    "equipe": "MONTAGEM",
+    "matricula": 6894,
+    "nome": "Vinicius Mandonça da Silva",
+    "nivel": "Montador I",
+    "entrada": "2025-01-27",
+    "status": ""
+  },
+  {
+    "equipe": "MONTAGEM",
+    "matricula": 6621,
+    "nome": "Jonathan Allifer Pires",
+    "nivel": "Montador I",
+    "entrada": "2024-07-15",
+    "status": ""
+  },
+  {
+    "equipe": "MONTAGEM",
+    "matricula": 6993,
+    "nome": "Rikelme Borges Santos",
+    "nivel": "Montador III",
+    "entrada": "2025-03-10",
+    "status": "noturno"
+  },
+  {
+    "equipe": "MONTAGEM",
+    "matricula": 7049,
+    "nome": "Jose Adilson Ferreira",
+    "nivel": "Montador III",
+    "entrada": "2025-03-24",
+    "status": ""
+  },
+  {
+    "equipe": "MONTAGEM",
+    "matricula": 7058,
+    "nome": "Nemias Ricardo Fagundes Uller",
+    "nivel": "Montador IV",
+    "entrada": "2025-03-24",
+    "status": ""
+  },
+  {
+    "equipe": "MONTAGEM",
+    "matricula": 7087,
+    "nome": "Reinoldo Gerson de Souza",
+    "nivel": "Montador II",
+    "entrada": "2025-04-07",
+    "status": ""
+  },
+  {
+    "equipe": "MONTAGEM",
+    "matricula": 7120,
+    "nome": "Edenilson Marchioro",
+    "nivel": "Montador I",
+    "entrada": "2025-04-14",
+    "status": "noturno"
+  },
+  {
+    "equipe": "MONTAGEM",
+    "matricula": 7133,
+    "nome": "Alessandro da Costa Viana",
+    "nivel": "Montador III",
+    "entrada": "2025-04-22",
+    "status": "noturno"
+  },
+  {
+    "equipe": "MONTAGEM",
+    "matricula": 7162,
+    "nome": "Nicolas Jung Pfingstag",
+    "nivel": "Montador II",
+    "entrada": "2025-04-28",
+    "status": ""
+  },
+  {
+    "equipe": "MONTAGEM",
+    "matricula": 7168,
+    "nome": "Darnllei William Azevedo da Rosa",
+    "nivel": "Montador II",
+    "entrada": "2025-05-05",
+    "status": ""
+  },
+  {
+    "equipe": "MONTAGEM",
+    "matricula": 7182,
+    "nome": "Jaison dos Santos",
+    "nivel": "Montador IV",
+    "entrada": "2025-05-12",
+    "status": ""
+  },
+  {
+    "equipe": "MONTAGEM",
+    "matricula": 7288,
+    "nome": "Leandro de Oliveira Tadim",
+    "nivel": "Montador II",
+    "entrada": "2025-07-01",
+    "status": ""
+  },
+  {
+    "equipe": "MONTAGEM",
+    "matricula": 7300,
+    "nome": "Daniel Monteiro",
+    "nivel": "Montador I",
+    "entrada": "2025-07-01",
+    "status": ""
+  },
+  {
+    "equipe": "MONTAGEM",
+    "matricula": 7303,
+    "nome": "Cristiano Ferreira Dutra",
+    "nivel": "Montador II",
+    "entrada": "2025-07-07",
+    "status": ""
+  },
+  {
+    "equipe": "MONTAGEM",
+    "matricula": 7306,
+    "nome": "Julio Cesar Claudino",
+    "nivel": "Montador IV",
+    "entrada": "2025-07-07",
+    "status": ""
+  }
+]
