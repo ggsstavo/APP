@@ -5,16 +5,88 @@
   <title>Efetivo - Gráficos</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="icon" type="image/png" href="./favicon/favicon-96x96.png" sizes="96x96" />
+<link rel="icon" type="image/svg+xml" href="./favicon/favicon.svg" />
+<link rel="shortcut icon" href="./favicon/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="./favicon/apple-touch-icon.png" />
+<link rel="manifest" href="./favicon/site.webmanifest" />
   <style>
 
     :root {
       --primary-line: #1D4ED8; /* azul escuro mais elegante */
     }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+    .sidebar {
+      width: 220px;
+      background: #2c3e50;
+      color: #fff;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+    }
+    .sidebar-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .hamburger {
+      display: none;
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 24px;
+      position: absolute;
+      left: 0;
+      cursor: pointer;
+    }
+    .logo {
+      font-size: 24px;
+      user-select: none;
+    }
+    nav ul {
+      list-style: none;
+      margin-top: 20px;
+    }
+    nav ul li {
+      margin: 15px 0;
+    }
+    nav ul li a {
+      text-decoration: none;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+    nav ul li a i {
+      margin-right: 10px;
+    }
+    nav ul li a.active,
+    nav ul li a:hover {
+      background: #34495e;
+    }
+    .main-content {
+      flex: 1;
+      padding: 30px;
+    }
+    header h2 {
+      margin-bottom: 20px;
+      color: #2c3e50;
+    }
     body {
       font-family: 'Inter', sans-serif;
-      background: #f4f6f8;
-      padding: 2rem;
-      color: #333;
+       display: flex;
+      min-height: 100vh;
+      background-color: #f5f7fa;
     }
 
     h1 {
@@ -213,7 +285,7 @@
   padding: 3px 5px;
   border-radius: 3px;
   margin-bottom: 2px;
-  color: white;
+  color: white !important;
 }
 
 .status-emprestadoprocessamento {
@@ -245,7 +317,7 @@
   padding: 3px 5px;
   border-radius: 3px;
   margin-bottom: 2px;
-  color: #374151; /* cinza escuro para contraste */
+  color: #374151 !important; /* cinza escuro para contraste */
 }
 
 .status-integracao {
@@ -260,13 +332,129 @@
   background-color: transparent;
 }
 
+@media (max-width: 768px) {
+  body {
+    flex-direction: column;
+  }
+  .sidebar {
+    width: 100%;
+    padding: 15px;
+    flex-direction: column; /* <--- mudou de row para column */
+    align-items: center;
+    justify-content: flex-start;
+  }
 
+  .sidebar-header {
+    width: 100%;
+    justify-content: center;
+    position: relative;
+  }
+
+  .hamburger {
+    display: block;
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .logo {
+    font-size: 20px;
+    text-align: center;
+    width: 100%;
+  }
+
+  nav ul {
+    width: 100%;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transform-origin: top center;
+    transform: translateY(-10px);
+    transition: max-height 0.4s ease, opacity 0.4s ease, transform 0.4s ease;
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  nav ul.active {
+    max-height: 600px;
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .main-content {
+    padding: 15px;
+  }
+  }
+
+@media (max-width: 480px) {
+  header h2 {
+    font-size: 1.2rem;
+  }
+}
   </style>
 </head>
 <body>
+<div class="sidebar">
+    <div class="sidebar-header">
+      <button id="toggleMenu" class="hamburger">
+        <i class="fas fa-bars"></i>
+      </button>
+      <h1 class="logo">Estrutura</h1>
+    </div>
+    <nav>
+      <ul id="menuList">
+  <li>
+    <a href="../dashboard.html">
+      <i class="fas fa-file-signature"></i> Apropriações
+    </a>
+  </li>
+  <li>
+    <a href="#">
+      <i class="fas fa-users-cog"></i> Equipes
+    </a>
+  </li>
+  <li>
+    <a href="#">
+      <i class="fas fa-clipboard-list"></i> Apontamentos
+    </a>
+  </li>
+  <li>
+    <a href="#">
+      <i class="fas fa-book"></i> Diário de obra
+    </a>
+  </li>
+  <li>
+    <a href="./efetivo/efetivo.html" class="active">
+      <i class="fas fa-user-friends"></i> Efetivo
+    </a>
+  </li>
+  <li>
+    <a href="#">
+      <i class="fas fa-calendar-check"></i> Abono DSR
+    </a>
+  </li>
+  <li>
+  <a href="https://detroitbrasil.qforms.com.br/QuestionarioWeb/ResponderQuestionarioLink?chave=ADC929D335B064357179BDBAE1686855"
+     target="_blank"
+     rel="noopener noreferrer">
+    <i class="fa-solid fa-shield-halved"></i> Observa+
+  </a>
+</li>
+  <li>
+    <a href="#">
+      <i class="fas fa-cog"></i> Configurações
+    </a>
+  </li>
+</ul>
+    </nav>
+  </div>
 
+  <div class="main-content">
   <section class="accordion_section">
-    <h2 class="accordion_title">Efetivo 18/07/2025</h2>
+    <h2 class="accordion_title">Efetivo 23/07/2025</h2>
 
     <div class="distribuicao">
       <div class="distribuicao_dados">
@@ -411,7 +599,7 @@
   </div>
 
   <canvas id="graficoCrescimento" height="300"></canvas>
-
+</div>
 
   <script>
 const equipesArquivos = {
@@ -668,6 +856,13 @@ distribuicoes.forEach(distribuicao => {
   });
 });
 
+// Menu hamburger
+const toggleMenuBtn = document.getElementById("toggleMenu");
+const menuList = document.getElementById("menuList");
+
+toggleMenuBtn.addEventListener("click", () => {
+  menuList.classList.toggle("active");
+});
 
   </script>
 </body>

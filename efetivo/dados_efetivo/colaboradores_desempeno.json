@@ -5,7 +5,7 @@
     "nome": "Romil Godoy",
     "nivel": "Desempenador IV",
     "entrada": "14/11/2012",
-    "status": "ferias"
+    "status": ""
   },
   {
     "equipe": "DESEMPENO",
@@ -13,7 +13,7 @@
     "nome": "Paulo Baptista",
     "nivel": "Desempenador V",
     "entrada": "22/06/2020",
-    "status": "noturno"
+    "status": ""
   },
   {
     "equipe": "DESEMPENO",
@@ -21,7 +21,7 @@
     "nome": "Alessandro Lopes",
     "nivel": "Desempenador II",
     "entrada": "10/01/2022",
-    "status": "trabalhoalternativopaiol"
+    "status": ""
   },
   {
     "equipe": "DESEMPENO",
@@ -29,7 +29,7 @@
     "nome": "Adriano dos Reis Silva",
     "nivel": "Desempenador II",
     "entrada": "29/01/2024",
-    "status": "emprestadoprocessamento"
+    "status": ""
   },
   {
     "equipe": "DESEMPENO",
@@ -37,6 +37,6 @@
     "nome": "Hermogenes Luiz dos Santos",
     "nivel": "Desempenador II",
     "entrada": "20/05/2024",
-    "status": "integracao"
+    "status": ""
   }
 ]
