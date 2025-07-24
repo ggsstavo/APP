@@ -583,7 +583,7 @@
       <button id="addMemberBtn" class="btn"><i class="fa-solid fa-plus"></i>Adicionar Membro</button>
       <button id="saveTeamBtn" class="btn"><i class="fa-solid fa-user-plus"></i>Salvar Equipe</button>
       <div style="margin-top: 10px; display: flex; gap: 10px;">
-  <button id="cancelEditBtn" class="btn" style="display: none; background: #c0392b">Cancelar Edição</button>
+  <button id="cancelEditBtn" class="btn" style="display: none; background: #c0392b"><i class="fa-solid fa-xmark"></i>Cancelar Edição</button>
 </div>
 <h3 class="outros"><i class="fa-solid fa-pen-to-square"></i>Editar Equipe</h3>
 <div class="form-row">
@@ -602,15 +602,6 @@ Enviar Apropriação</h3>
       <div class="form-row">
         <label for="dateInput">Data:</label>
         <input type="date" id="dateInput" value="" />
-      </div>
-      <div class="form-row">
-        <label for="vesselInput">Embarcação:</label>
-        <input
-          type="text"
-          id="vesselInput"
-          placeholder="Código ou nome"
-          autocomplete="off"
-        />
       </div>
       <div class="form-row">
   <label for="galpaoSelect">Galpão:</label>
@@ -642,7 +633,6 @@ Enviar Apropriação</h3>
         <thead>
           <tr>
             <th>Data</th>
-            <th>Embarcação</th>
             <th>Galpão</th>
             <th>Equipe</th>
             <th>Usuário</th>
@@ -956,11 +946,10 @@ async function sendRecord() {
   const teamData = teamDoc.data();
 
   const dateStr = document.getElementById("dateInput").value;
-  const vessel = document.getElementById("vesselInput").value.trim();
  const galpao = document.getElementById("galpaoSelect").value;
 
 
-  if (!dateStr || !vessel || !galpao || !teamId) {
+  if (!dateStr || !galpao || !teamId) {
     showNotification("Preencha todos os campos para enviar a apropriação.", "warning");
     return;
   }
@@ -994,7 +983,6 @@ const local = (memberOriginal?.local === "Outros")
     }
     records.push({
       date: Timestamp.now(),
-      vessel,
       galpao,
       teamId,
       teamName,
@@ -1021,7 +1009,6 @@ const local = (memberOriginal?.local === "Outros")
   await setDoc(doc(db, "records", docId), rec);
 }
     showNotification("Apropriações enviadas com sucesso!", "success");
-    document.getElementById("vesselInput").value = "";
     document.getElementById("galpaoSelect").selectedIndex = 0;
     document.getElementById("teamSelect").selectedIndex = 0;
     document.getElementById("shiftsContainer").innerHTML = "";
@@ -1076,7 +1063,6 @@ async function loadRecords(initial = false) {
     });
     tr.innerHTML = `
       <td>${dateStr}</td>
-      <td>${r.vessel || ""}</td>
       <td>${r.galpao || ""}</td>
       <td>${r.teamName || r.teamId || ""}</td>
       <td>${r.userName || ""}</td>
@@ -1197,7 +1183,7 @@ editTeamBtn.addEventListener("click", async () => {
   data.members.forEach(m => membersContainer.appendChild(createMemberRow(m)));
 
   editingTeamId = teamId;
-  saveTeamBtn.textContent = "Atualizar Equipe";
+  saveTeamBtn.innerHTML = '<i class="fas fa-rotate"></i>Atualizar Equipe';
   cancelEditBtn.style.display = "inline-block";
 });
 
