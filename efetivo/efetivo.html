@@ -125,6 +125,30 @@
       }
     }
 
+    /* centraliza o wrapper inteiro */
+.single-chart-wrapper {
+  display: flex;
+  justify-content: center;
+  margin: 3rem 0;      /* espaço acima e abaixo */
+}
+
+/* card específico para status */
+.single-chart-card {
+  background: #fff;
+      border-radius: 12px;
+      padding: 1rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      transition: transform 0.3s ease;
+      text-align: center;
+}
+
+/* faz o canvas ocupar todo o espaço interno do card */
+.single-chart-card canvas {
+  width: 100% !important;
+      height: auto !important;
+}
+
+
     /* Accordion Styles */
     .accordion_section {
       min-height: 100vh;
@@ -598,6 +622,13 @@
     </div>
   </div>
 
+  <div class="single-chart-wrapper">
+  <div class="card single-chart-card">
+    <h3>Status dos Colaboradores</h3>
+    <canvas id="graficoStatus"></canvas>
+  </div>
+</div>
+
   <canvas id="graficoCrescimento" height="300"></canvas>
 </div>
 
@@ -670,7 +701,8 @@ async function carregarEfetivo() {
         efetivoCompleto.push({
           equipe,
           nivel: colab.nivel,
-          entrada: colab.entrada
+          entrada: colab.entrada,
+          status: colab.status || 'ativo'
         });
       });
     } catch (e) {
@@ -679,6 +711,7 @@ async function carregarEfetivo() {
   }
 
   gerarGraficosGerais(efetivoCompleto);  // gráficos gerais
+  gerarGraficoStatus(efetivoCompleto);
   aplicarFiltroNiveis();                 // gráfico por nível filtrado
 }
 
@@ -773,6 +806,56 @@ function gerarGraficosGerais(efetivo) {
       }
     }
   });
+}
+
+function gerarGraficoStatus(efetivo) {
+  const statusCounts = {};
+
+  efetivo.forEach(colab => {
+    // se não existir status, trate como “ativo” ou “semStatus”
+    const raw = colab.status || 'ativo';
+    // normaliza: remove acentos, espaços, barras, tudo em minúsculas
+    const key = raw
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/\s+/g, "")
+      .replace(/\//g, "");
+    statusCounts[key] = (statusCounts[key] || 0) + 1;
+  });
+
+  // destrói instância anterior, se houver
+  if (window.chartStatus) window.chartStatus.destroy();
+
+  // cria o chart
+  window.chartStatus = new Chart(
+    document.getElementById('graficoStatus'),
+    {
+      type: 'doughnut',  // ou 'bar' / 'pie'
+      data: {
+        labels: Object.keys(statusCounts),
+        datasets: [{
+          data: Object.values(statusCounts),
+          // opcional: cores
+          backgroundColor: [
+            '#10B981', // ativo
+            '#3b82f6', // férias
+            '#9ca3af', //noturno
+            '#2DD4BF', // trabalho alternativo
+            '#facc15' // integração
+          ]
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { color: '#333', font: { size: 14 } }
+          }
+        }
+      }
+    }
+  );
 }
 
 // ✅ Obtém filtros (checkbox)
