@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Apontamentos</title>
+  <!-- Firebase Compat -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="icon" type="image/png" href="../favicon/favicon-96x96.png" sizes="96x96" />
+<link rel="icon" type="image/svg+xml" href="../favicon/favicon.svg" />
+<link rel="shortcut icon" href="../favicon/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="../favicon/apple-touch-icon.png" />
+<link rel="manifest" href="../favicon/site.webmanifest" />
+  <!-- Estilos -->
+  <style>
+    * {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f5f7fa;
+}
+
+/* ---------- SIDEBAR ---------- */
+
+.sidebar {
+  width: 220px;
+  background-color: #2c3e50;
+  color: #ffffff;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.hamburger {
+  display: none;
+  background: none;
+  border: none;
+  color: #ffffff;
+  font-size: 24px;
+  position: absolute;
+  left: 0;
+  cursor: pointer;
+}
+
+.logo {
+  font-size: 24px;
+  user-select: none;
+}
+
+nav ul {
+  list-style-type: none;
+  margin-top: 20px;
+}
+
+nav li {
+  margin: 12px 0;
+}
+
+nav a {
+  color: #ffffff;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+nav a:hover,
+nav a.active {
+  background-color: #34495e;
+}
+
+nav a i {
+  margin-right: 10px;
+}
+
+/* ---------- CONTEÚDO PRINCIPAL ---------- */
+
+.main-content {
+  flex: 1;
+  padding: 30px;
+  overflow-y: auto;
+}
+
+header h2 {
+  margin-bottom: 20px;
+  color: #2c3e50;
+}
+
+/* ---------- FILTROS ---------- */
+
+.filter-section {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 30px;
+}
+
+.filter-section label {
+  font-weight: bold;
+  color: #333333;
+}
+
+.filter-section input,
+.filter-section select {
+  padding: 8px;
+  border: 1px solid #cccccc;
+  border-radius: 4px;
+}
+
+/* ---------- CARDS DE APONTAMENTOS ---------- */
+
+/* ---------- CARDS DE APONTAMENTOS ---------- */
+
+/* Container dos cards */
+#reportContainer {
+  display: grid;
+  /* Duas colunas mínimas de 320px, com espaçamento amplo */
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 24px; /* um pouco mais de espaço entre os cards */
+  padding: 8px;
+}
+
+/* Card principal */
+.card {
+  background-color: #ffffff;
+  border-radius: 16px; /* cantos mais suaves */
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06); /* sombra mais difundida */
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Hover suave */
+.card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.10);
+}
+
+/* Cabeçalho do card */
+.card-header {
+  background-color: #3b5360; /* tom suave de azul-acinzentado */
+  color: #f5f7fa;            /* contraste leve */
+  padding: 20px;             /* mais espaço interno */
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.card-header h4 {
+  margin: 0;
+  font-size: 1.25rem;  /* um pouco maior para hierarquia */
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.card-header small {
+  font-size: 0.9rem;
+  opacity: 0.75;
+}
+
+/* Corpo do card */
+.card-body {
+  padding: 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;  /* mais espaçamento entre seções */
+}
+
+/* Informação genérica */
+.card-body .info {
+  font-size: 0.95rem;
+  line-height: 1.4;
+  color: #2c3e50;  /* cor escura, mas não preta */
+}
+
+/* Destaque de rótulos */
+.card-body .info span {
+  font-weight: 600;
+  color: #1f2a33;
+}
+
+/* Lista de membros */
+.members-list {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Item de membro */
+.member-item {
+  padding: 12px;
+  border-radius: 8px;
+  background-color: #eef4f8; /* fundo levemente azulado */
+  font-size: 0.9rem;
+  line-height: 1.3;
+  transition: background-color 0.2s ease;
+}
+
+/* Hover nos itens de membro */
+.member-item:hover {
+  background-color: #e0e9f1;
+}
+
+.info-label{
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 0.95rem;      /* tamanho legível mas discreto */
+  font-weight: 700;         /* peso médio pra destacar sem pesar */
+  color: #2c3e50;           /* tom cinza-azulado, calmo e neutro */
+
+  /* Espaçamento interno e externo */
+  margin-bottom: 4px;       /* cria distância para o valor abaixo */
+  letter-spacing: 0.5px;    /* um leve espaçamento para respirar */
+
+  /* Alinhamento e transformações */
+  text-transform: uppercase;/* se quiser rótulos em maiúsculas */
+  line-height: 1.2;         /* controle de altura de linha */
+
+  /* Transição suave ao mudar estado (hover, foco, etc.) */
+  transition: color 0.2s ease;
+}
+
+.members-title{
+    text-transform: uppercase;
+    font-weight: bold;
+    color: #2c3e50;
+    margin-top: 20px;
+}
+
+.member-item {
+  background-color: #f7fafc;            /* fundo clarinho */
+  border-radius: 10px;                  /* cantos suaves */
+  padding: 16px;                        /* espaço interno generoso */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); /* leve elevação */
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* efeito hover no cartão de membro */
+.member-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* ─── Nome e matrícula ─── */
+.member-name {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #1f2a33;
+  margin-bottom: 18px;
+}
+
+.member-name i{
+  margin-right: 2px;
+  color: #2c3e50;
+}
+
+/* matrícula num tom mais suave */
+.member-matricula {
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: #6b7c93;
+}
+
+/* ─── Detalhes em grid ─── */
+.member-details {
+  display: grid;
+  /* duas colunas iguais, mas se a tela for menor, quebra pra uma */
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px 12px;  /* vertical e horizontal */
+  margin-bottom: 8px;
+}
+
+/* cada detail com borda inferior suave para separar linhas */
+.detail {
+  font-size: 0.9rem;
+  color: #34495e;
+}
+
+.detail strong {
+  color: #2c3e50;     /* cor levemente mais escura pro label */
+  font-weight: 600;
+  margin-right: 4px;
+}
+
+.detail i {
+  margin-right: 2px;
+  color: #2c3e50;
+}
+
+
+/* -------- RESPONSIVIDADE -------- */
+
+  @media (max-width: 768px) {
+  body {
+    flex-direction: column;
+  }
+  .sidebar {
+    width: 100%;
+    padding: 15px;
+    flex-direction: column; /* <--- mudou de row para column */
+    align-items: center;
+    justify-content: flex-start;
+  }
+
+  .sidebar-header {
+    width: 100%;
+    justify-content: center;
+    position: relative;
+  }
+
+  .hamburger {
+    display: block;
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .logo {
+    font-size: 20px;
+    text-align: center;
+    width: 100%;
+  }
+
+  nav ul {
+    width: 100%;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transform-origin: top center;
+    transform: translateY(-10px);
+    transition: max-height 0.4s ease, opacity 0.4s ease, transform 0.4s ease;
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  nav ul.active {
+    max-height: 600px;
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .main-content {
+    padding: 15px;
+  }
+  }
+
+  </style>
+</head>
+<body>
+
+  <!-- SIDEBAR (idêntica à sua) -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <button id="toggleMenu" class="hamburger"><i class="fas fa-bars"></i></button>
+      <h1 class="logo">Estrutura</h1>
+    </div>
+    <nav>
+      <ul id="menuList">
+        <li><a href="./apropriacao.html"><i class="fas fa-file-signature"></i> Apropriações</a></li>
+        <li><a href="./equipes/equipe.html"><i class="fas fa-users-cog"></i> Equipes</a></li>
+        <li><a href="#" class="active"><i class="fas fa-clipboard-list"></i> Apontamentos</a></li>
+        <li><a href="#"><i class="fas fa-book"></i> Diário de obra</a></li>
+        <li><a href="./efetivo/efetivo.html"><i class="fas fa-user-friends"></i> Efetivo</a></li>
+        <li><a href="#"><i class="fas fa-calendar-check"></i> Abono DSR</a></li>
+        <li><a href="#"><i class="fas fa-cog"></i> Configurações</a></li>
+      </ul>
+    </nav>
+  </div>
+
+  <!-- CONTEÚDO PRINCIPAL -->
+  <div class="main-content">
+    <header><h2>Apontamentos</h2></header>
+
+    <!-- FILTROS: data e equipe -->
+    <div class="filter-section">
+      <div>
+        <label for="dateFilter">Data:</label><br/>
+        <input type="date" id="dateFilter" />
+      </div>
+      <div>
+        <label for="teamFilter">Equipe:</label><br/>
+        <select id="teamFilter">
+          <option value="">-- Todas as equipes --</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- CONTAINER DOS CARDS -->
+    <div id="reportContainer">
+      <!-- cards gerados via JS -->
+    </div>
+  </div>
+
+  <!-- SCRIPT FIREBASE E LÓGICA -->
+ <!-- SCRIPT FIREBASE E LÓGICA -->
+<script>
+  // Config Firebase
+  const firebaseConfig = {
+    apiKey: "AIzaSyDtnzixicBYAQkuoeB5tgCGpDLt1lByMZo",
+    authDomain: "apropriacao-estrutura.firebaseapp.com",
+    projectId: "apropriacao-estrutura",
+    storageBucket: "apropriacao-estrutura.appspot.com",
+    messagingSenderId: "155266586257",
+    appId: "1:155266586257:web:6d70edc967cdbfc56e5130"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  let currentUserUid = null;
+  let lastQueryKey = '';
+
+  // Formata Timestamp para 'DD/MM/YYYY HH:mm'
+  function formatDate(ts) {
+    const d = ts.toDate();
+    return d.toLocaleString('pt-BR', {
+      day:'2-digit', month:'2-digit', year:'numeric',
+      hour:'2-digit', minute:'2-digit'
+    });
+  }
+
+  // Carrega equipes no filtro
+  async function loadTeamsFilter() {
+    const sel = document.getElementById('teamFilter');
+    sel.innerHTML = '<option value="">-- Todas as equipes --</option>';
+    const snap = await db.collection('teams')
+                       .where('ownerUid','==', currentUserUid)
+                       .get();
+    snap.forEach(doc => {
+      const t = doc.data();
+      const opt = document.createElement('option');
+      opt.value = doc.id;
+      opt.textContent = t.name;
+      sel.appendChild(opt);
+    });
+  }
+
+  // Busca e renderiza apontamentos filtrados
+  async function fetchAndRender() {
+    const dateVal = document.getElementById('dateFilter').value;
+    const teamId = document.getElementById('teamFilter').value || null;
+    if (!dateVal) return;
+
+    const queryKey = `${dateVal}_${teamId||'all'}`;
+    if (queryKey === lastQueryKey) return;
+    lastQueryKey = queryKey;
+
+    const [y,m,d] = dateVal.split('-').map(n=>parseInt(n));
+    const start = new Date(y,m-1,d,0,0,0);
+    const end   = new Date(y,m-1,d,23,59,59);
+
+    let q = db.collection('records')
+              .where('createdBy','==', currentUserUid)
+              .where('date','>=', firebase.firestore.Timestamp.fromDate(start))
+              .where('date','<=', firebase.firestore.Timestamp.fromDate(end));
+
+    if (teamId) q = q.where('teamId','==', teamId);
+
+    const snap = await q.orderBy('date','desc').get();
+    const docs = snap.docs.map(d=>({ id:d.id, ...d.data() }));
+    renderCards(docs);
+  }
+
+  // Renderiza os cards
+  function renderCards(records) {
+    const container = document.getElementById('reportContainer');
+    container.innerHTML = '';
+    if (records.length === 0) {
+      container.innerHTML = '<p>Nenhum apontamento para esses filtros.</p>';
+      return;
+    }
+
+    const groups = {};
+    records.forEach(r => {
+      const key = formatDate(r.date).slice(0,-3);
+      (groups[key] = groups[key] || []).push(r);
+    });
+
+    Object.entries(groups).forEach(([time, group]) => {
+      const any = group[0];
+      const card = document.createElement('div');
+      card.className = 'card';
+
+      const hdr = document.createElement('div');
+      hdr.className = 'card-header';
+      hdr.innerHTML = `
+        <h4>${any.teamName} — ${any.galpao}</h4>
+        <small>Enviado em ${time}</small>
+      `;
+      card.appendChild(hdr);
+
+      const body = document.createElement('div');
+body.className = 'card-body';
+body.innerHTML = `
+  <div class="info-group">
+    <div class="info-label">Total de Colaboradores:</div>
+    <div class="info-value">${group.length}</div>
+  </div>
+  <div class="info-group">
+    <div class="info-label">Enviado por:</div>
+    <div class="info-value">${any.userName}</div>
+  </div>
+  <div class="members-title">Colaboradores:</div>
+  <div class="members-list">
+    ${group.map(r => `
+      <div class="member-item">
+        <div class="member-name">
+          <i class="fas fa-user"></i>
+          ${r.name}
+          <span class="member-matricula">(${r.memberMatricula})</span>
+        </div>
+        <div class="member-details">
+          <span class="detail">
+            <i class="fas fa-clock"></i>
+            <strong>Turno:</strong> ${r.shift}
+          </span>
+          <span class="detail">
+            <i class="fas fa-layer-group"></i>
+            <strong>Bloco:</strong> ${r.blockShift || '–'}
+          </span>
+          <span class="detail">
+            <i class="fas fa-ship"></i>
+            <strong>Embarcação:</strong> ${r.vesselShift || '–'}
+          </span>
+        </div>
+        <div class="member-details">
+          <span class="detail">
+            <i class="fas fa-map-marker-alt"></i>
+            <strong>Local:</strong> ${r.local || '–'}
+          </span>
+          <span class="detail">
+            <i class="fas fa-sticky-note"></i>
+            <strong>Obs:</strong> ${r.observations || '–'}
+          </span>
+        </div>
+      </div>
+    `).join('')}
+  </div>
+`;
+card.appendChild(body);
+
+      container.appendChild(card);
+    });
+  }
+
+  // Quando o estado de autenticação mudar
+  auth.onAuthStateChanged(user => {
+    if (!user) {
+      // não autenticado → volta pro login
+      window.location.href = './index.html';
+      return;
+    }
+    currentUserUid = user.uid;
+
+    // Após autenticação, inicializa filtros e dados
+    const today = new Date();
+    document.getElementById('dateFilter').valueAsDate = today;
+
+    loadTeamsFilter().then(fetchAndRender);
+
+    // liga os eventos de filtro
+    document.getElementById('dateFilter').addEventListener('change', fetchAndRender);
+    document.getElementById('teamFilter').addEventListener('change', fetchAndRender);
+  });
+
+  // Toggle mobile menu
+  document.getElementById('toggleMenu').onclick = () =>
+    document.getElementById('menuList').classList.toggle('active');
+</script>
+
+</body>
+</html>
