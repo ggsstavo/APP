@@ -532,6 +532,11 @@
     </a>
   </li>
   <li>
+    <a href="./anotar/anotar.html">
+      <i class="fas fa-sticky-note" aria-hidden="true"></i> Anotações
+    </a>
+  </li>
+  <li>
     <a href="#">
       <i class="fas fa-calendar-check"></i> Abono DSR
     </a>
@@ -813,7 +818,7 @@ document.getElementById("teamSelect").addEventListener("change", async function 
 });
 });
 
-function createMemberRow(member = { name: "", matricula: "", block: "", vessel: "", local: "", customLocal: "" }) {
+function createMemberRow(member = { name: "", matricula: "", block: "", vessel: "", local: "", customLocal: "", details: "" }) {
   const div = document.createElement("div");
   div.className = "form-row";
   div.style.position = "relative";
@@ -830,6 +835,13 @@ function createMemberRow(member = { name: "", matricula: "", block: "", vessel: 
       <option value="Outros" ${member.local === "Outros" ? "selected" : ""}>Outros</option>
     </select>
     <input type="text" class="memberCustomLocalInput" placeholder="Informe outro local" value="${member.customLocal || ''}" style="display: none; margin-left: 5px; flex: 1;" />
+    <input
+  type="text"
+  class="memberDetailsInput"
+  placeholder="Detalhes (Perfilado, Barras, Anteparas)"
+  value="${member.details}"
+  required
+/>
     <button class="btn removeMemberBtn" style="margin-left: 5px;"><i class="fas fa-trash"></i></button>
   `;
 
@@ -882,13 +894,21 @@ async function saveTeam() {
       showNotification("Todos os membros devem ter nome e matrícula preenchidos.", "warning");
       return;
     }
+    const detailsInput = row.querySelector(".memberDetailsInput");
+
+// Validação de campo obrigatório
+if (!detailsInput.value.trim()) {
+  showNotification("O campo Detalhes é obrigatório para todos os membros.", "warning");
+  return;
+}
     members.push({
       name: nameInput.value.trim(),
       matricula: matriculaInput.value.trim(),
       block: blockInput.value.trim(),
       vessel: vesselInput.value.trim(),
       local: row.querySelector(".memberLocalSelect").value,
-      customLocal: row.querySelector(".memberCustomLocalInput").value.trim()
+      customLocal: row.querySelector(".memberCustomLocalInput").value.trim(),
+      details:   detailsInput.value.trim()
     });
   }
   if (members.length === 0) {

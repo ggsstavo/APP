@@ -495,10 +495,10 @@ header h2 {
     }
 
     const groups = {};
-    records.forEach(r => {
-      const key = formatDate(r.date).slice(0,-3);
-      (groups[key] = groups[key] || []).push(r);
-    });
+  records.forEach(r => {
+    const key = formatDate(r.date);       // já retorna "DD/MM/YYYY HH:mm"
+    (groups[key] = groups[key] || []).push(r);
+  });
 
     Object.entries(groups).forEach(([time, group]) => {
       const any = group[0];
