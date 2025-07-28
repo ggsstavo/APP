@@ -380,6 +380,7 @@ dialog::backdrop {
 
   .notes-grid {
     grid-template-columns: 1fr;
+  word-break: break-word;
   }
 
   .note-card {
