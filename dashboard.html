@@ -190,10 +190,12 @@
       border: none;
       border-radius: 4px;
       cursor: pointer;
-      transition: background 0.2s;
+      transition: box-shadow 0.2s ease, transform 0.2s ease;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
     }
     .btn:hover {
       background: #34495e;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
     }
     .btn i {
   margin-right: 6px;
@@ -632,7 +634,7 @@ Enviar Apropriação</h3>
     </section>
     <!-- Tabela de Registros -->
     <section class="form-section">
-      <h3>Registros Recentes</h3>
+      <h3><i class="fas fa-history"></i>Registros Recentes</h3>
       <div class="table-wrapper">
       <table id="recordsTable">
         <thead>
