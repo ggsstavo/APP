@@ -116,21 +116,24 @@
       teams.forEach(tm => {
         const last = lastMap[tm.id];
         const galp = last ? last.galpao : '-';
-        const updated = tm.updatedAt ? new Date(tm.updatedAt.seconds * 1000).toLocaleDateString('pt-BR') : '-';
         const created = tm.createdAt ? new Date(tm.createdAt.seconds * 1000).toLocaleDateString('pt-BR') : '-';
+const lastDate = last
+  ? new Date(last.date.seconds * 1000).toLocaleString('pt-BR')
+  : '-';
 
         const card = document.createElement('div'); card.className = 'card';
         card.innerHTML = `
           <div class="card-header">
             <h4>${tm.name || '-'}</h4>
-            <small>Criado em ${created} | Atualizado em ${updated}</small>
+            <small>Criado em ${created}</small>
           </div>
           <div class="card-body">
             <div class="info-group"><div class="info-label">Turno:</div><div class="info-value">${tm.shift || '-'}</div></div>
             <div class="info-group"><div class="info-label">Último Galpão:</div><div class="info-value">${galp}</div></div>
             <div class="info-group"><div class="info-label">Colaboradores:</div><div class="info-value">${tm.members?.length || 0}</div></div>
-            <div class="info-group"><div class="info-label">Supervisor:</div><div class="info-value">${tm.supervisorName || '-'}</div></div>
-            <div class="info-group"><div class="info-label">Encarregado:</div><div class="info-value">${tm.foremanName || '-'}</div></div>
+            <div class="info-group"><div class="info-label">Última Apropriação:</div>
+  <div class="info-value">${lastDate}</div>
+</div>
           </div>
         `;
         container.appendChild(card);
