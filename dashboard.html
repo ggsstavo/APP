@@ -600,6 +600,9 @@
     <!-- opções preenchidas pelo loadTeamsManage() -->
   </select>
   <button id="editTeamBtn" class="btn">Editar Equipe</button>
+  <button id="deleteTeamBtn" class="btn" style="background: #c0392b;">
+    <i class="fas fa-trash"></i> Excluir Equipe
+  </button>
 </div>
     </section>
     <!-- Formulário de Apropriação -->
@@ -661,6 +664,18 @@ Enviar Apropriação</h3>
   </div>
 </div>
 
+<div id="confirmModal" class="notification-modal" style="display: none;">
+  <div class="notification-content">
+    <p id="confirmMessage" style="color: #dc3545; font-weight: bold;">
+      <!-- Mensagem será inserida dinamicamente -->
+    </p>
+    <div style="display: flex; justify-content: space-around; margin-top: 20px;">
+      <button id="confirmYesBtn" class="btn" style="background: #c0392b;">SIM</button>
+      <button id="confirmNoBtn" class="btn">NÃO</button>
+    </div>
+  </div>
+</div>
+
 
   <script type="module">
 
@@ -672,6 +687,7 @@ function clearCachedUID() {
 }
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+import { deleteDoc } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 import {
   initializeFirestore,
   persistentLocalCache,
@@ -1208,6 +1224,65 @@ editTeamBtn.addEventListener("click", async () => {
   saveTeamBtn.innerHTML = '<i class="fas fa-rotate"></i>Atualizar Equipe';
   cancelEditBtn.style.display = "inline-block";
 });
+
+const deleteTeamBtn   = document.getElementById("deleteTeamBtn");
+const confirmModal    = document.getElementById("confirmModal");
+const confirmMessage  = document.getElementById("confirmMessage");
+const confirmYesBtn   = document.getElementById("confirmYesBtn");
+const confirmNoBtn    = document.getElementById("confirmNoBtn");
+
+// Ação ao clicar em Excluir
+deleteTeamBtn.addEventListener("click", () => {
+  const teamId   = teamSelectManage.value;
+  const teamName = teamSelectManage.options[teamSelectManage.selectedIndex].text;
+  
+  if (!teamId) {
+    showNotification("Selecione uma equipe para excluir.", "warning");
+    return;
+  }
+  
+  // Prepara mensagem e exibe modal de confirmação
+  confirmMessage.textContent = `Deseja apagar a equipe "${teamName}"? Essa alteração não pode ser revertida.`;
+  confirmModal.style.display   = "flex";
+});
+
+// Se clicar em NÃO, fecha o modal
+confirmNoBtn.addEventListener("click", () => {
+  confirmModal.style.display = "none";
+});
+
+// Se clicar em SIM, procede à exclusão
+confirmYesBtn.addEventListener("click", async () => {
+  const teamId = teamSelectManage.value;
+
+  try {
+    // 1) Apaga todos os registros (records) vinculados a esta equipe
+    const recordsQ = query(
+      collection(db, "records"),
+      where("teamId", "==", teamId)
+    );
+    const recordsSnap = await getDocs(recordsQ);
+    for (const docSnap of recordsSnap.docs) {
+      await deleteDoc(doc(db, "records", docSnap.id));
+    }
+
+    // 2) Apaga o documento da equipe
+    await deleteDoc(doc(db, "teams", teamId));
+
+    // 3) Atualiza a interface
+    confirmModal.style.display = "none";
+    clearTeamForm();
+    loadTeams();
+    loadTeamsManage();
+    showNotification("Equipe apagado com sucesso!", "success");
+
+  } catch (e) {
+    console.error(e);
+    confirmModal.style.display = "none";
+    showNotification("Erro ao excluir equipe.", "error");
+  }
+});
+
 
 
 </script>
