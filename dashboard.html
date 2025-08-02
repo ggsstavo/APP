@@ -524,7 +524,7 @@
     </a>
   </li>
   <li>
-    <a href="#">
+    <a href="./diario/diario.html">
       <i class="fas fa-book"></i> Diário de obra
     </a>
   </li>
@@ -551,7 +551,7 @@
   </a>
 </li>
   <li>
-    <a href="#">
+    <a href="./configurações/configuracao.html">
       <i class="fas fa-cog"></i> Configurações
     </a>
   </li>
@@ -715,7 +715,8 @@ function createShiftRowForRecord({
   shift = "",
   observations = "",
   local = "",
-  customLocal = ""
+  customLocal = "",
+  details = ""
 }) {
   const div = document.createElement("div");
   div.className = "form-row";
@@ -735,6 +736,7 @@ function createShiftRowForRecord({
       <option value="Noturno" ${shift === "Noturno" ? "selected" : ""}>Noturno</option>
     </select>
     <input type="text" class="shiftLocal" value="${finalLocal}" readonly />
+    <input type="hidden" class="shiftDetails" value="${details}" />
     <input type="text" class="shiftObservations" placeholder="Observações" value="${observations}" />
   `;
   return div;
@@ -830,7 +832,8 @@ document.getElementById("teamSelect").addEventListener("change", async function 
       shift: turnoPadrao,
       observations: "",
       local: member.local || "",
-      customLocal: member.customLocal || ""
+      customLocal: member.customLocal || "",
+      details: member.details
     })
   );
 });
@@ -1006,6 +1009,7 @@ async function sendRecord() {
     const blockShift = row.querySelector(".shiftBlock").value.trim();
     const shift = row.querySelector(".shiftTurno").value;
     const observations = row.querySelector(".shiftObservations").value.trim();
+    const details      = row.querySelector(".shiftDetails").value;
     const memberOriginal = teamData.members.find(
   m => m.name === name && m.matricula === memberMatricula
 );
@@ -1033,6 +1037,7 @@ const local = (memberOriginal?.local === "Outros")
       shift,
       observations,
       local,
+      details,
       createdBy: currentUser.uid,
     });
   }
