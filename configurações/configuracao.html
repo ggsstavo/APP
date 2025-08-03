@@ -130,6 +130,14 @@
           window.location.href = '../index.html';
         });
     });
+
+    // Menu hamburger
+const toggleMenuBtn = document.getElementById("toggleMenu");
+const menuList = document.getElementById("menuList");
+
+toggleMenuBtn.addEventListener("click", () => {
+  menuList.classList.toggle("active");
+});
   </script>
 
   <style>
@@ -149,8 +157,12 @@
       --soft: #3c3f68;
     }
 
-    *, *::before, *::after { box-sizing: border-box; }
+    *, *::before, *::after { margin: 0;
+      padding: 0;
+      box-sizing: border-box; }
     body {
+      display: flex;
+      min-height: 100vh;
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
       background: var(--bg);
@@ -182,6 +194,67 @@
   opacity: 0.8;
   filter: blur(140px);
 }
+
+.sidebar {
+  font-family: Arial, sans-serif;
+      width: 220px;
+      background: #2c3e50;
+      color: #fff;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+    }
+    .sidebar-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .hamburger {
+      display: none;
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 24px;
+      position: absolute;
+      left: 0;
+      cursor: pointer;
+    }
+    .logo {
+      font-size: 24px;
+      user-select: none;
+    }
+    nav ul {
+      list-style: none;
+      margin-top: 20px;
+    }
+    nav ul li {
+      margin: 15px 0;
+    }
+    nav ul li a {
+      text-decoration: none;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+    nav ul li a i {
+      margin-right: 10px;
+    }
+    nav ul li a.active,
+    nav ul li a:hover {
+      background: #34495e;
+    }
+    .main-content {
+      flex: 1;
+      padding: 30px;
+    }
+    header h2 {
+      margin-bottom: 20px;
+      color: #2c3e50;
+    }
     .settings {
       max-width: 600px;
       margin: 40px auto;
@@ -197,6 +270,60 @@
     }
 
     @media (max-width: 768px) {
+  body {
+    flex-direction: column;
+  }
+  .sidebar {
+    width: 100%;
+    padding: 15px;
+    flex-direction: column; /* <--- mudou de row para column */
+    align-items: center;
+    justify-content: flex-start;
+  }
+
+  .sidebar-header {
+    width: 100%;
+    justify-content: center;
+    position: relative;
+  }
+
+  .hamburger {
+    display: block;
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .logo {
+    font-size: 20px;
+    text-align: center;
+    width: 100%;
+  }
+
+  nav ul {
+    width: 100%;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transform-origin: top center;
+    transform: translateY(-10px);
+    transition: max-height 0.4s ease, opacity 0.4s ease, transform 0.4s ease;
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  nav ul.active {
+    max-height: 600px;
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .main-content {
+    padding: 15px;
+  }
 
   .settings h1{
     font-size: 1.8rem;
@@ -246,7 +373,7 @@
       from { opacity: 0; transform: translateY(20px); }
       to   { opacity: 1; transform: translateY(0); }
     }
-    h1 { text-align: center; margin-bottom: 24px; }
+    .settings h1 { text-align: center; margin-bottom: 24px; }
 
     .section { margin-bottom: 24px; }
     .section label.title {
@@ -433,9 +560,92 @@
   color: var(--accent);
   opacity: 1;
 }
+
+.dark .sidebar {
+  background: var(--card);       /* #090b16 */
+  color: var(--text);            /* #e0e0e0 */
+  border-right: 1px solid var(--soft); /* #3c3f68 como linha */
+}
+
+/* links e hover na sidebar em dark */
+.dark .sidebar a {
+  color: var(--text);
+}
+.dark .sidebar a:hover,
+.dark .sidebar a.active {
+  background: var(--soft);       /* #3c3f68 */
+}
+
+/* hamburger e ícones */
+.dark .sidebar .hamburger,
+.dark .sidebar .logo,
+.dark .sidebar i {
+  color: var(--text);
+}
   </style>
 </head>
 <body>
+
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <button id="toggleMenu" class="hamburger">
+        <i class="fas fa-bars"></i>
+      </button>
+      <h1 class="logo">Estrutura</h1>
+    </div>
+    <nav>
+      <ul id="menuList">
+  <li>
+    <a href="#">
+      <i class="fas fa-file-signature"></i> Apropriações
+    </a>
+  </li>
+  <li>
+    <a href="./equipes/equipe.html">
+      <i class="fas fa-users-cog"></i> Equipes
+    </a>
+  </li>
+  <li>
+    <a href="./apontamentos/apontamentos.html">
+      <i class="fas fa-clipboard-list"></i> Apontamentos
+    </a>
+  </li>
+  <li>
+    <a href="./diario/diario.html">
+      <i class="fas fa-book"></i> Diário de obra
+    </a>
+  </li>
+  <li>
+    <a href="./efetivo/efetivo.html">
+      <i class="fas fa-user-friends"></i> Efetivo
+    </a>
+  </li>
+  <li>
+    <a href="./anotar/anotar.html">
+      <i class="fas fa-sticky-note" aria-hidden="true"></i> Anotações
+    </a>
+  </li>
+  <li>
+    <a href="#">
+      <i class="fas fa-calendar-check"></i> Abono DSR
+    </a>
+  </li>
+  <li>
+  <a href="https://detroitbrasil.qforms.com.br/QuestionarioWeb/ResponderQuestionarioLink?chave=ADC929D335B064357179BDBAE1686855"
+     target="_blank"
+     rel="noopener noreferrer">
+    <i class="fa-solid fa-shield-halved"></i> Observa+
+  </a>
+</li>
+  <li>
+    <a href="./configurações/configuracao.html" class="active">
+      <i class="fas fa-cog"></i> Configurações
+    </a>
+  </li>
+</ul>
+    </nav>
+  </div>
+  <div class="main-content">
   <div class="settings">
     <h1>Configurações de Conta</h1>
 
@@ -494,6 +704,7 @@
     <div class="version-number">v1.5</div>
   </div>
 </div>
+  </div>
   </div>
 </body>
 </html>
