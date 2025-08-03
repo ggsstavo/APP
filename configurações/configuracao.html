@@ -323,7 +323,7 @@ toggleMenuBtn.addEventListener("click", () => {
   }
 
   nav ul.active {
-    max-height: 600px;
+    max-height: 650px;
     opacity: 1;
     transform: translateY(0);
   }
@@ -353,6 +353,7 @@ toggleMenuBtn.addEventListener("click", () => {
     z-index: -1;
     will-change: opacity;
     transition: opacity .3s ease, background .3s ease;
+    overflow-x: hidden;
   }
 
   .dark .settings::before {
