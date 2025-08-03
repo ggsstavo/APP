@@ -162,37 +162,34 @@ toggleMenuBtn.addEventListener("click", () => {
       box-sizing: border-box; }
     body {
       display: flex;
-      min-height: 100vh;
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      transition: background .3s, color .3s;
-  z-index: 0;
-  overflow-x: hidden;
+    min-height: 100vh;
+    font-family: 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    transition: background .3s, color .3s;
+    overflow-x: hidden;
     }
 
     body::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 200vw;
-  height: 200vh;
-  transform: translate(-50%, -50%);
-  background: radial-gradient(circle at center, rgba(92,124,250,0.15), transparent 60%);
-  z-index: -1;
-  filter: blur(100px);
-  opacity: 1;
-  pointer-events: none;
-  transition: background 0.4s ease, opacity 0.4s ease;
+  content: "";
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 200vw; height: 200vh;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle at center, rgba(92,124,250,0.15), transparent 60%);
+    filter: blur(40px);
+    opacity: 1;
+    pointer-events: none;
+    z-index: -1;
+    will-change: opacity;
+    transition: opacity .4s ease, background .4s ease;
 }
 
 /* Tema escuro: brilho mais visível e adaptado */
 .dark body::before {
   background: radial-gradient(circle at center, rgba(44,108,215,0.2), transparent 70%);
-  opacity: 0.8;
-  filter: blur(140px);
+    filter: blur(60px);
+    opacity: .8;
 }
 
 .sidebar {
@@ -273,6 +270,15 @@ toggleMenuBtn.addEventListener("click", () => {
   body {
     flex-direction: column;
   }
+
+  body::before {
+      filter: none !important;
+      opacity: 0 !important;
+    }
+    .dark .sidebar {
+      border-right: none !important;
+      border-bottom: 1px solid var(--soft);
+    }
   .sidebar {
     width: 100%;
     padding: 15px;
@@ -330,35 +336,22 @@ toggleMenuBtn.addEventListener("click", () => {
   }
 
   :not(.dark) .settings::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 160%;
-    height: 160%;
     background: radial-gradient(circle, rgba(200,200,200,0.4), transparent 70%);
-    filter: blur(50px);
-    z-index: -1;
-    pointer-events: none;
-    opacity: 1;
-    transition: all 0.3s ease;
+      filter: blur(50px);
   }
 
   .settings::before {
-    content: '';
+    content: "";
     position: absolute;
-    top: 50%;
-    left: 50%;
+    top: 50%; left: 50%;
+    width: 160%; height: 160%;
     transform: translate(-50%, -50%);
-    width: 160%;
-    height: 160%;
     background: radial-gradient(circle, rgba(92,124,250,0.3), transparent 70%);
     filter: blur(50px);
-    z-index: -1;
     pointer-events: none;
-    opacity: 1;
-    transition: all 0.3s ease;
+    z-index: -1;
+    will-change: opacity;
+    transition: opacity .3s ease, background .3s ease;
   }
 
   .dark .settings::before {
@@ -564,8 +557,8 @@ toggleMenuBtn.addEventListener("click", () => {
 .dark .sidebar {
   background: var(--card);       /* #090b16 */
   color: var(--text);            /* #e0e0e0 */
-  border-right: 1px solid var(--soft); /* #3c3f68 como linha */
-}
+  border-right: 1px solid var(--soft); /* #3c3f68 como linha */  
+} 
 
 /* links e hover na sidebar em dark */
 .dark .sidebar a {
