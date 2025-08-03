@@ -1,0 +1,10 @@
+:root.dark {
+  --bg: #06080c;
+  --card: #090b16;
+  --text: #e0e0e0;
+  --accent: #2c6cd7;
+  --soft: #3c3f68;
+  --text2: #e0e0e0;
+
+  --accent-rgb: 44, 108, 215;
+}
