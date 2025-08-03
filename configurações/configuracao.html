@@ -266,6 +266,10 @@ toggleMenuBtn.addEventListener("click", () => {
   z-index: 1;
     }
 
+    html, body {
+  overflow-x: hidden;
+}
+
     @media (max-width: 768px) {
   body {
     flex-direction: column;
@@ -323,7 +327,7 @@ toggleMenuBtn.addEventListener("click", () => {
   }
 
   nav ul.active {
-    max-height: 650px;
+    max-height: 600px;
     opacity: 1;
     transform: translateY(0);
   }
@@ -353,7 +357,6 @@ toggleMenuBtn.addEventListener("click", () => {
     z-index: -1;
     will-change: opacity;
     transition: opacity .3s ease, background .3s ease;
-    overflow-x: hidden;
   }
 
   .dark .settings::before {
