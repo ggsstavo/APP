@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Diário de Obra</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+  * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+    body {
+      display: flex;
+      min-height: 100vh;
+      background-color: #f5f7fa;
+    }
+    .sidebar {
+      width: 220px;
+      background: #2c3e50;
+      color: #fff;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+    }
+    .sidebar-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .hamburger {
+      display: none;
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 24px;
+      position: absolute;
+      left: 0;
+      cursor: pointer;
+    }
+    .logo {
+      font-size: 24px;
+      user-select: none;
+    }
+    nav ul {
+      list-style: none;
+      margin-top: 20px;
+    }
+    nav ul li {
+      margin: 15px 0;
+    }
+    nav ul li a {
+      text-decoration: none;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+    nav ul li a i {
+      margin-right: 10px;
+    }
+    nav ul li a.active,
+    nav ul li a:hover {
+      background: #34495e;
+    }
+    .main-content {
+      flex: 1;
+      padding: 30px;
+    }
+    header h2 {
+      margin-bottom: 20px;
+      color: #2c3e50;
+    }
+
+    @media (max-width: 768px) {
+  body {
+    flex-direction: column;
+  }
+  .sidebar {
+    width: 100%;
+    padding: 15px;
+    flex-direction: column; /* <--- mudou de row para column */
+    align-items: center;
+    justify-content: flex-start;
+  }
+
+  .sidebar-header {
+    width: 100%;
+    justify-content: center;
+    position: relative;
+  }
+
+  .hamburger {
+    display: block;
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .logo {
+    font-size: 20px;
+    text-align: center;
+    width: 100%;
+  }
+
+  nav ul {
+    width: 100%;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transform-origin: top center;
+    transform: translateY(-10px);
+    transition: max-height 0.4s ease, opacity 0.4s ease, transform 0.4s ease;
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  nav ul.active {
+    max-height: 600px;
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .main-content {
+    padding: 15px;
+  }
+    }
+
+@media (max-width: 480px) {
+  header h2 {
+    font-size: 1.2rem;
+  }
+}
+
+  /* Ajustes gerais */
+label {
+  font-weight: 600;
+  color: #34495e;
+  display: block;
+  margin-bottom: 4px;
+}
+
+select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-bottom: 16px;
+}
+
+/* Botão PDF */
+.pdf-btn {
+  background: #2c3e50;
+  color: #fff;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.3s, transform 0.3s;
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.pdf-btn i {
+  margin-right: 8px;
+  font-size: 1.2rem;
+}
+
+.pdf-btn:hover {
+  background: #34495e;
+  transform: translateY(-2px);
+}
+
+/* Notificação */
+.notification {
+  background: #f9f3c4;
+  color: #856404;
+  padding: 12px;
+  margin-bottom: 20px;
+  border-left: 6px solid #ffeeba;
+  border-radius: 4px;
+}
+
+/* Preview geral */
+.preview {
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  margin-bottom: 24px;
+}
+
+.preview h3 {
+  margin-top: 0;
+  color: #2c3e50;
+  display: flex;
+  align-items: center;
+  font-size: 1.25rem;
+  margin-bottom: 10px;
+}
+
+.preview h3 i {
+  margin-right: 10px;
+  color: #2980b9;
+}
+
+/* Entradas de preview */
+.preview-entry {
+  padding: 15px;
+  margin-bottom: 12px;
+  border-radius: 6px;
+  background: #fdfdfd;
+  border: 1px solid #ececec;
+  transition: background 0.3s;
+}
+
+.preview-entry:hover {
+  background: #f7f9fb;
+}
+
+.preview-entry .info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.preview-entry .info div {
+  display: flex;
+  align-items: center;
+  font-size: 0.95rem;
+  color: #444;
+}
+
+.preview-entry .info div i {
+  margin-right: 6px;
+  color: #2980b9;
+}
+
+/* ===== RESPONSIVIDADE ===== */
+@media (max-width: 768px) {
+  /* Agrupa label+select em colunas */
+  label, select {
+    width: 100%;
+  }
+
+  /* Botão PDF ocupa toda largura */
+  .pdf-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Preview com padding reduzido */
+  .preview {
+    padding: 16px;
+  }
+
+  .preview-entry {
+    padding: 12px;
+  }
+
+  .preview-entry .info {
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Fontes menores */
+  .pdf-btn {
+    font-size: 0.9rem;
+    padding: 8px 16px;
+  }
+
+  .preview h3 {
+    font-size: 1.1rem;
+  }
+
+  .preview-entry .info div {
+    font-size: 0.9rem;
+  }
+}
+
+</style>
+
+</head>
+
+<body>
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <button id="toggleMenu" class="hamburger">
+        <i class="fas fa-bars"></i>
+      </button>
+      <h1 class="logo">Estrutura</h1>
+    </div>
+    <nav>
+      <ul id="menuList">
+  <li>
+    <a href="../dashboard.html">
+      <i class="fas fa-file-signature"></i> Apropriações
+    </a>
+  </li>
+  <li>
+    <a href="../equipes/equipe.html">
+      <i class="fas fa-users-cog"></i> Equipes
+    </a>
+  </li>
+  <li>
+    <a href="../apontamentos/apontamentos.html">
+      <i class="fas fa-clipboard-list"></i> Apontamentos
+    </a>
+  </li>
+  <li>
+    <a href="./diario.html" class="active">
+      <i class="fas fa-book"></i> Diário de obra
+    </a>
+  </li>
+  <li>
+    <a href="../efetivo/efetivo.html">
+      <i class="fas fa-user-friends"></i> Efetivo
+    </a>
+  </li>
+  <li>
+    <a href="../anotar/anotar.html">
+      <i class="fas fa-sticky-note" aria-hidden="true"></i> Anotações
+    </a>
+  </li>
+  <li>
+    <a href="#">
+      <i class="fas fa-calendar-check"></i> Abono DSR
+    </a>
+  </li>
+  <li>
+  <a href="https://detroitbrasil.qforms.com.br/QuestionarioWeb/ResponderQuestionarioLink?chave=ADC929D335B064357179BDBAE1686855"
+     target="_blank"
+     rel="noopener noreferrer">
+    <i class="fa-solid fa-shield-halved"></i> Observa+
+  </a>
+</li>
+  <li>
+    <a href="#">
+      <i class="fas fa-cog"></i> Configurações
+    </a>
+  </li>
+</ul>
+    </nav>
+  </div>
+
+  <div class="main-content">
+    <div class="header">
+      <div>
+        <label for="teamSelect"><i class="fas fa-users"></i>Equipe:</label>
+        <select id="teamSelect">
+          <option value="">-- Escolha uma equipe --</option>
+        </select>
+      </div>
+      <button id="downloadBtn" class="pdf-btn" disabled><i class="fa-solid fa-download"></i> Baixar PDF</button>
+    </div>
+
+    <div id="notification" class="notification" style="display:none;"><i class="fas fa-exclamation-circle"></i> Nenhuma equipe selecionada. Por favor, selecione uma para baixar o diário de obra.</div>
+
+    <div class="preview">
+      <h3><i class="fas fa-eye"></i> Pré-visualização do Diário</h3>
+      <div id="previewContent" style="color:#666;">Selecione uma equipe para ver os registros.</div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    // Firebase config
+    const firebaseConfig = {
+  apiKey: "AIzaSyDtnzixicBYAQkuoeB5tgCGpDLt1lByMZo",
+  authDomain: "apropriacao-estrutura.firebaseapp.com",
+  projectId: "apropriacao-estrutura",
+  storageBucket: "apropriacao-estrutura.appspot.com",
+  messagingSenderId: "155266586257",
+  appId: "1:155266586257:web:6d70edc967cdbfc56e5130",
+};
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    let currentTeamId = '';
+    let currentRecords = [];
+
+    const teamSelect = document.getElementById('teamSelect');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const notification = document.getElementById('notification');
+    const previewContent = document.getElementById('previewContent');
+
+    auth.onAuthStateChanged(user => {
+      if (!user) return window.location.href = './index.html';
+      loadTeams(user.uid);
+    });
+
+    async function loadTeams(uid) {
+      const snapshot = await db.collection('teams')
+        .where('ownerUid', '==', uid)
+        .get();
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const option = document.createElement('option');
+        option.value = doc.id;
+        option.textContent = data.name;
+        teamSelect.appendChild(option);
+      });
+    }
+
+    teamSelect.addEventListener('change', async e => {
+      currentTeamId = e.target.value;
+      downloadBtn.disabled = !currentTeamId;
+      notification.style.display = currentTeamId ? 'none' : 'block';
+      if (!currentTeamId) {
+        previewContent.innerHTML = 'Selecione uma equipe para ver os registros.';
+        return;
+      }
+      const snapshot = await db.collection('records')
+        .where('teamId', '==', currentTeamId)
+        .where('createdBy', '==', auth.currentUser.uid)
+        .orderBy('date', 'desc')
+        .limit(100)
+        .get();
+      currentRecords = snapshot.docs.map(d => d.data());
+      renderPreview();
+    });
+
+    function renderPreview() {
+      if (!currentRecords.length) {
+        previewContent.innerHTML = '<i class="fas fa-info-circle"></i> Nenhum registro encontrado.';
+        return;
+      }
+      previewContent.innerHTML = currentRecords.map(r => `
+        <div class="preview-entry">
+          <div class="info">
+            <div><i class="fas fa-calendar-day"></i> ${new Date(r.date.seconds * 1000).toLocaleString()}</div>
+            <div><i class="fas fa-user"></i> ${r.name}</div>
+            <div><i class="fas fa-id-badge"></i> ${r.memberMatricula}</div>
+            <div><i class="fas fa-map-marker-alt"></i> ${r.local || '-'}</div>
+            <div><i class="fas fa-warehouse"></i> ${r.galpao || '-'}</div>
+            <div><i class="fas fa-stream"></i> ${r.details}</div>
+            <div><i class="fas fa-layer-group"></i> ${r.blockShift || '-'}</div>
+            <div><i class="fas fa-ship"></i> ${r.vesselShift || '-'}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    downloadBtn.addEventListener('click', () => {
+      if (!currentTeamId || !currentRecords.length) return;
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ unit: 'pt', format: 'letter' });
+      doc.setFontSize(18);
+      doc.setTextColor('#c0392b');
+      doc.text('Diário de Obra', 40, 40);
+      let y = 60;
+      doc.setFontSize(12);
+      doc.setTextColor('#333');
+      currentRecords.forEach(r => {
+        const date = new Date(r.date.seconds * 1000).toLocaleString();
+        const lines = doc.splitTextToSize(
+          `Data: ${date}
+Nome: ${r.name} (Matrícula: ${r.memberMatricula})
+Local: ${r.local || '-'}
+Galpão: ${r.galpao || '-'}
+Detalhes: ${r.details}
+Bloco: ${r.blockShift || '-'}
+Embarcação: ${r.vesselShift || '-'}
+` , 500);
+        if (y + lines.length * 14 > doc.internal.pageSize.height - 40) { doc.addPage(); y = 40; }
+        doc.text(lines, 40, y);
+        y += lines.length * 14 + 10;
+      });
+      doc.save('diario_de_obra.pdf');
+    });
+
+    // Menu hamburger
+const toggleMenuBtn = document.getElementById("toggleMenu");
+const menuList = document.getElementById("menuList");
+
+toggleMenuBtn.addEventListener("click", () => {
+  menuList.classList.toggle("active");
+});
+  </script>
+</body>
+
+</html>
