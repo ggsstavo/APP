@@ -6,17 +6,32 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Diário de Obra</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="icon" type="image/png" href="../favicon/favicon-96x96.png" sizes="96x96" />
+<link rel="icon" type="image/svg+xml" href="../favicon/favicon.svg" />
+<link rel="shortcut icon" href="../favicon/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="../favicon/apple-touch-icon.png" />
+<link rel="manifest" href="../favicon/site.webmanifest" />
+<link rel="stylesheet" href="../theme.css">
   <style>
+     :root{
+      --bg: #f5f7fa;
+      --card: #ffffff;
+      --text: #2c3e50;
+      --accent: #2c3e50;
+      --soft: #ccc;
+      --text2: #34495e;
+    }
   * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
       font-family: Arial, sans-serif;
     }
+
     body {
       display: flex;
       min-height: 100vh;
-      background-color: #f5f7fa;
+      background-color: var(--bg);
     }
     .sidebar {
       width: 220px;
@@ -144,22 +159,30 @@
   /* Ajustes gerais */
 label {
   font-weight: 600;
-  color: #34495e;
+  color: var(--text2);
   display: block;
-  margin-bottom: 4px;
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+  font-size: 1.2rem;
+}
+
+label i{
+  margin-right: 5px;
 }
 
 select {
   width: 100%;
   padding: 8px 12px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--soft);
   border-radius: 4px;
   margin-bottom: 16px;
+  background-color: var(--bg);
+  color: var(--text);
 }
 
 /* Botão PDF */
 .pdf-btn {
-  background: #2c3e50;
+  background: var(--accent);
   color: #fff;
   padding: 10px 20px;
   border: none;
@@ -194,7 +217,7 @@ select {
 
 /* Preview geral */
 .preview {
-  background: #fff;
+  background: var(--card);
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
@@ -203,7 +226,7 @@ select {
 
 .preview h3 {
   margin-top: 0;
-  color: #2c3e50;
+  color: var(--text);
   display: flex;
   align-items: center;
   font-size: 1.25rem;
@@ -220,7 +243,7 @@ select {
   padding: 15px;
   margin-bottom: 12px;
   border-radius: 6px;
-  background: #fdfdfd;
+  background: var(--bg);
   border: 1px solid #ececec;
   transition: background 0.3s;
 }
@@ -239,7 +262,7 @@ select {
   display: flex;
   align-items: center;
   font-size: 0.95rem;
-  color: #444;
+  color: var(--text);
 }
 
 .preview-entry .info div i {
@@ -371,7 +394,7 @@ select {
 
     <div class="preview">
       <h3><i class="fas fa-eye"></i> Pré-visualização do Diário</h3>
-      <div id="previewContent" style="color:#666;">Selecione uma equipe para ver os registros.</div>
+      <div id="previewContent" style="color:var(--text2);">Selecione uma equipe para ver os registros.</div>
     </div>
   </div>
 
@@ -493,6 +516,17 @@ const menuList = document.getElementById("menuList");
 toggleMenuBtn.addEventListener("click", () => {
   menuList.classList.toggle("active");
 });
+
+(function(){
+    if (localStorage.getItem('dark') === '1') {
+      document.documentElement.classList.add('dark');
+    }
+  })();
+  window.addEventListener('storage', e => {
+    if (e.key === 'dark') {
+      document.documentElement.classList.toggle('dark', e.newValue === '1');
+    }
+  });
   </script>
 </body>
 
