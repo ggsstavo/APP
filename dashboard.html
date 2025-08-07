@@ -26,6 +26,9 @@
       --accent: #2c3e50;
       --soft: #ccc;
       --text2: black;
+      --submit: #27ae60;
+      --tabela: #f0f0f0;
+      --tabela-text: #333;
     }
     * {
       margin: 0;
@@ -125,7 +128,7 @@
       color: var(--accent);
     }
     .dark .form-section h3{
-      background: rgba(92,124,250, .1);
+      background: rgba(83, 155, 245, 0.1);
       display: inline-block;
       padding: 6px 10px;
   border-radius: 4px;
@@ -225,7 +228,7 @@
       border: none;
       border-radius: 4px;
       cursor: pointer;
-      transition: box-shadow 0.2s ease, transform 0.2s ease;
+      transition: all 0.2s ease;
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
     }
     .btn:hover {
@@ -237,11 +240,14 @@
   font-size: 1em;
 }
 
-#recordsTable
-
-    #submitRecordBtn {
-      background-color: #27ae60 !important;
+.btn#submitRecordBtn,
+#submitRecordBtn {
+      background-color: var(--submit);
+      transition: background 0.2s ease;
     }
+    #submitRecordBtn:hover {
+  background: #1f8e4f; /* tom levemente mais escuro para hover */
+}
     table {
       width: 100%;
       border-collapse: collapse;
@@ -257,8 +263,8 @@
       font-size: 14px;
     }
     th {
-      background: #f0f0f0;
-      color: #333;
+      background: var(--tabela);
+      color: var(--tabela-text);
     }
 @media (max-width: 768px) {
   body {
@@ -1196,7 +1202,7 @@ const icons = {
   success: '<i class="fas fa-check-circle" style="color:#28a745;"></i>',
   error: '<i class="fas fa-times-circle" style="color:#dc3545;"></i>',
   warning: '<i class="fas fa-exclamation-triangle" style="color:#ffc107;"></i>',
-  info: '<i class="fas fa-info-circle" style="color:##2196f3;"></i>',
+  info: '<i class="fas fa-info-circle" style="color:#2196f3;"></i>',
 };
 
 // Substitui alert() por notificação elegante
