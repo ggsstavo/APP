@@ -27,8 +27,7 @@
   /* Linhas e separadores */
   --soft: #3C3C46;        /* cinza médio para bordas */
 
-  /* Links e ícones secundários */
-  --info: #6BCB77;        /* verde suave para ações positivas */
+  /* Links e ícones secundários */    /* verde suave para ações positivas */
   --warning: #F5A25D;     /* laranja suave para alertas */
   --error: #E26A6A;       /* vermelho suave para erros */
 
@@ -39,4 +38,6 @@
   --badge-bg: #444450;
   --badge-text: #CACCD1;
   --text2: #E1E1E6;        /* quase branco, ótimo contraste */
+  --tabela: #35353F;
+  --tabela-text: #ffffff;
 }
