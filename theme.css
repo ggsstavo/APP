@@ -1,4 +1,4 @@
-:root.dark {
+/* :root.dark {
   --bg: #06080c;
   --card: #090b16;
   --text: #e0e0e0;
@@ -7,4 +7,36 @@
   --text2: #e0e0e0;
 
   --accent-rgb: 44, 108, 215;
+} */
+
+:root.dark {
+  /* Plano de fundo geral */
+  --bg: #1E1E24;          /* quase preto, suave aos olhos */
+  
+  /* Cartões e superfícies */
+  --card: #2A2A33;        /* cinza escuro com leve calor */
+  
+  /* Textos principais e secundários */
+  --text: #E1E1E6;        /* quase branco, ótimo contraste */
+  --text-muted: #A0A0AA;  /* para legendas e descrições */
+
+  /* Cor de destaque */
+  --accent: #539BF5;      /* azul claro, vibrante mas suave */
+  --accent-soft: rgba(83, 155, 245, 0.2);
+
+  /* Linhas e separadores */
+  --soft: #3C3C46;        /* cinza médio para bordas */
+
+  /* Links e ícones secundários */
+  --info: #6BCB77;        /* verde suave para ações positivas */
+  --warning: #F5A25D;     /* laranja suave para alertas */
+  --error: #E26A6A;       /* vermelho suave para erros */
+
+  /* Para casos de hover/focus */
+  --hover-bg: #35353F;    /* leve diferença no fundo ao passar o mouse */
+
+  /* Componentes especiais */
+  --badge-bg: #444450;
+  --badge-text: #CACCD1;
+  --text2: #E1E1E6;        /* quase branco, ótimo contraste */
 }
