@@ -10,70 +10,390 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="icon" type="image/png" href="../favicon/favicon-96x96.png" sizes="96x96" />
+<link rel="icon" type="image/svg+xml" href="../favicon/favicon.svg" />
+<link rel="shortcut icon" href="../favicon/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="../favicon/apple-touch-icon.png" />
+<link rel="manifest" href="../favicon/site.webmanifest" />
+<link rel="stylesheet" href="../theme.css">
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
-    body { display: flex; min-height: 100vh; background-color: #f5f7fa; }
-    .sidebar { width: 220px; background: #2c3e50; color: #fff; padding: 20px; display: flex; flex-direction: column; }
-    .sidebar-header { display: flex; align-items: center; justify-content: center; position: relative; }
-    .hamburger { display: none; background: none; border: none; color: #fff; font-size: 24px; position: absolute; left: 0; cursor: pointer; }
-    .logo { font-size: 24px; user-select: none; }
-    nav ul { list-style: none; margin-top: 20px; }
-    nav ul li { margin: 15px 0; }
-    nav ul li a { text-decoration: none; color: #fff; display: flex; align-items: center; padding: 10px; border-radius: 4px; transition: background 0.2s; }
-    nav ul li a i { margin-right: 10px; }
-    nav ul li a.active, nav ul li a:hover { background: #34495e; }
-    .main-content { flex: 1; padding: 30px; }
-    h2 { color: #111827; margin-bottom: 20px; }
-    /* Grid de cards */
-    #cardsContainer { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-    .card { background-color: #ffffff; border-radius: 16px; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06); overflow: hidden; display: flex; flex-direction: column; transition: transform 0.3s ease, box-shadow 0.3s ease; }
-    .card:hover { transform: translateY(-6px); box-shadow: 0 12px 28px rgba(0, 0, 0, 0.10); }
-    .card-header { background-color: #3b5360; color: #f5f7fa; padding: 16px; display: flex; flex-direction: column; }
-    .card-header h4 { margin: 0; font-size: 1.25rem; font-weight: 600; }
-    .card-header small { font-size: 0.9rem; opacity: 0.75; }
-    .card-body { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
-    .info-group { display: flex; justify-content: space-between; }
-    .info-label { font-weight: 600; color: #2c3e50; }
-    .info-value { color: #374151; }
-    .members-title { text-transform: uppercase; font-weight: bold; color: #2c3e50; margin-top: 12px; }
-    .members-list { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
-    .member-item { background-color: #f7fafc; border-radius: 10px; padding: 12px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); transition: transform 0.2s ease, box-shadow 0.2s ease; }
-    .member-item:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
-    .member-name { font-size: 1.05rem; font-weight: 600; color: #1f2a33; margin-bottom: 8px; }
-    .member-name i { margin-right: 4px; }
-    .member-matricula { font-size: 0.9rem; font-weight: 400; color: #6b7c93; margin-left: 8px; }
-    .member-details { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; }
-    .detail { font-size: 0.9rem; color: #34495e; }
-    .detail strong { color: #2c3e50; margin-right: 4px; }
-    .detail i { margin-right: 4px; }
-    @media (max-width: 768px) {
-      body { flex-direction: column; }
-      .sidebar { width: 100%; padding: 15px; align-items: center; }
-      .hamburger { display: block; }
-      nav ul { width: 100%; max-height: 0; overflow: hidden; opacity: 0; transform: translateY(-10px); transition: 0.4s; flex-direction: column; }
-      nav ul.active { max-height: 600px; opacity: 1; transform: translateY(0); }
-      .main-content { padding: 15px; }
-      #cardsContainer { grid-template-columns: 1fr; }
+:root{
+      --bg: #f5f7fa;
+      --card: #ffffff;
+      --text: #2c3e50;
+      --accent: #3b5360;
+      --soft: #ccc;
+      --text2: black;
+      --submit: #27ae60;
+      --tabela: #f0f0f0;
+      --tabela-text: #333;
+      --text-muted: #374151;
     }
+
+    * {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--bg);
+}
+
+.sidebar {
+  width: 220px;
+  background: #2c3e50;
+  color: #fff;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* MODO ESCURO SIDEBAR */
+.dark .sidebar {
+  background: var(--card);           /* #090b16 */
+  color: var(--text);                /* #e0e0e0 */
+  border-right: 1px solid var(--soft); /* #3c3f68 */
+}
+
+.dark .sidebar a:hover,
+.dark .sidebar a.active {
+  background: var(--soft);           /* #3c3f68 */
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.hamburger {
+  display: none;
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 24px;
+  position: absolute;
+  left: 0;
+  cursor: pointer;
+}
+
+.logo {
+  font-size: 24px;
+  user-select: none;
+}
+
+nav ul {
+  list-style: none;
+  margin-top: 20px;
+}
+
+nav ul li {
+  margin: 15px 0;
+}
+
+nav ul li a {
+  text-decoration: none;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+nav ul li a i {
+  margin-right: 10px;
+}
+
+nav ul li a.active,
+nav ul li a:hover {
+  background: #34495e;
+}
+
+.main-content {
+  flex: 1;
+  padding: 30px;
+}
+
+.main-content h2{
+  margin-bottom: 2rem;
+  color: var(--text);
+}
+
+header h2 {
+  margin-bottom: 20px;
+  color: var(--accent);
+}
+
+.dark header h2 {
+  background: rgba(92, 124, 250, 0.1);
+  display: inline-block;
+  padding: 6px 10px;
+  border-radius: 4px;
+}
+
+/* Grid de cards */
+#cardsContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.card {
+  background-color: var(--card);
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.10);
+}
+
+.card-header {
+  background-color: var(--accent);
+  color: #f5f7fa;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-header h4 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  word-wrap: break-word;
+}
+
+.card-header small {
+  font-size: 0.9rem;
+  opacity: 0.75;
+}
+
+.card-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.info-group {
+  display: flex;
+  justify-content: space-between;
+}
+
+.info-label {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.info-value {
+  color: var(--text-muted);
+}
+
+.members-title {
+  text-transform: uppercase;
+  font-weight: bold;
+  color: #2c3e50;
+  margin-top: 12px;
+}
+
+.members-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.member-item {
+  background-color: #f7fafc;
+  border-radius: 10px;
+  padding: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.member-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.member-name {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #1f2a33;
+  margin-bottom: 8px;
+}
+
+.member-name i {
+  margin-right: 4px;
+}
+
+.member-matricula {
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: #6b7c93;
+  margin-left: 8px;
+}
+
+.member-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+}
+
+.detail {
+  font-size: 0.9rem;
+  color: #34495e;
+}
+
+.detail strong {
+  color: #2c3e50;
+  margin-right: 4px;
+}
+
+.detail i {
+  margin-right: 4px;
+}
+
+/* ========== MEDIA QUERY ========== */
+@media (max-width: 768px) {
+  body {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    padding: 15px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+  }
+
+  .dark .sidebar {
+    border-right: none !important;
+    border-bottom: 1px solid var(--soft);
+  }
+
+  .sidebar-header {
+    width: 100%;
+    justify-content: center;
+    position: relative;
+  }
+
+  .hamburger {
+    display: block;
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .logo {
+    font-size: 20px;
+    text-align: center;
+    width: 100%;
+  }
+
+  nav ul {
+    width: 100%;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transform-origin: top center;
+    transform: translateY(-10px);
+    transition: max-height 0.4s ease, opacity 0.4s ease, transform 0.4s ease;
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  nav ul.active {
+    max-height: 700px;
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .main-content {
+    padding: 15px;
+  }
+
+  #cardsContainer {
+    grid-template-columns: 1fr;
+  }
+}
+
   </style>
 </head>
 
 <body>
   <div class="sidebar">
     <div class="sidebar-header">
-      <button id="toggleMenu" class="hamburger"><i class="fas fa-bars"></i></button>
+      <button id="toggleMenu" class="hamburger">
+        <i class="fas fa-bars"></i>
+      </button>
       <h1 class="logo">Estrutura</h1>
     </div>
     <nav>
       <ul id="menuList">
-        <li><a href="../dashboard.html"><i class="fas fa-file-signature"></i> Apropriações</a></li>
-        <li><a href="./equipe.html" class="active"><i class="fas fa-users-cog"></i> Equipes</a></li>
-        <li><a href="#"><i class="fas fa-clipboard-list"></i> Apontamentos</a></li>
-        <li><a href="#"><i class="fas fa-book"></i> Diário de obra</a></li>
-        <li><a href="../efetivo/efetivo.html"><i class="fas fa-user-friends"></i> Efetivo</a></li>
-        <li><a href="#"><i class="fas fa-calendar-check"></i> Abono DSR</a></li>
-        <li><a href="#"><i class="fas fa-cog"></i> Configurações</a></li>
-      </ul>
+  <li>
+    <a href="../dashboard.html">
+      <i class="fas fa-file-signature"></i> Apropriações
+    </a>
+  </li>
+  <li>
+    <a href="../equipes/equipe.html" class="active">
+      <i class="fas fa-users-cog"></i> Equipes
+    </a>
+  </li>
+  <li>
+    <a href="../apontamentos/apontamentos.html">
+      <i class="fas fa-clipboard-list"></i> Apontamentos
+    </a>
+  </li>
+  <li>
+    <a href="../diario/diario.html">
+      <i class="fas fa-book"></i> Diário de obra
+    </a>
+  </li>
+  <li>
+    <a href="../efetivo/efetivo.html">
+      <i class="fas fa-user-friends"></i> Efetivo
+    </a>
+  </li>
+  <li>
+    <a href="../anotar/anotar.html">
+      <i class="fas fa-sticky-note" aria-hidden="true"></i> Anotações
+    </a>
+  </li>
+  <li>
+    <a href="#">
+      <i class="fas fa-calendar-check"></i> Abono DSR
+    </a>
+  </li>
+  <li>
+  <a href="https://detroitbrasil.qforms.com.br/QuestionarioWeb/ResponderQuestionarioLink?chave=ADC929D335B064357179BDBAE1686855"
+     target="_blank"
+     rel="noopener noreferrer">
+    <i class="fa-solid fa-shield-halved"></i> Observa+
+  </a>
+</li>
+  <li>
+    <a href="../configurações/configuracao.html">
+      <i class="fas fa-cog"></i> Configurações
+    </a>
+  </li>
+</ul>
     </nav>
   </div>
   <div class="main-content">
@@ -139,6 +459,17 @@ const lastDate = last
         container.appendChild(card);
       });
     });
+
+    (function(){
+    if (localStorage.getItem('dark') === '1') {
+      document.documentElement.classList.add('dark');
+    }
+  })();
+  window.addEventListener('storage', e => {
+    if (e.key === 'dark') {
+      document.documentElement.classList.toggle('dark', e.newValue === '1');
+    }
+  });
   </script>
 </body>
 

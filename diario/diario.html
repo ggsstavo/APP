@@ -20,6 +20,7 @@
       --accent: #2c3e50;
       --soft: #ccc;
       --text2: #34495e;
+      --text-muted: #34495e;
     }
   * {
       margin: 0;
@@ -47,6 +48,16 @@
       justify-content: center;
       position: relative;
     }
+    .dark .sidebar {
+  background: var(--card);       /* #090b16 */
+  color: var(--text);            /* #e0e0e0 */
+  border-right: 1px solid var(--soft); /* #3c3f68 como linha */  
+} 
+
+.dark .sidebar a:hover,
+.dark .sidebar a.active {
+  background: var(--soft);       /* #3c3f68 */
+}
     .hamburger {
       display: none;
       background: none;
@@ -90,7 +101,17 @@
     }
     header h2 {
       margin-bottom: 20px;
-      color: #2c3e50;
+      color: var(--accent);
+    }
+    .dark header h2{
+      background: rgba(92,124,250, .1);
+      display: inline-block;
+      padding: 6px 10px;
+  border-radius: 4px;
+    }
+    .main-content {
+      flex: 1;
+      padding: 30px;
     }
 
     @media (max-width: 768px) {
@@ -110,6 +131,11 @@
     justify-content: center;
     position: relative;
   }
+
+  .dark .sidebar {
+      border-right: none !important;
+      border-bottom: 1px solid var(--soft);
+    }
 
   .hamburger {
     display: block;
@@ -394,7 +420,7 @@ select {
 
     <div class="preview">
       <h3><i class="fas fa-eye"></i> Pré-visualização do Diário</h3>
-      <div id="previewContent" style="color:var(--text2);">Selecione uma equipe para ver os registros.</div>
+      <div id="previewContent" style="color:var(--text-muted);">Selecione uma equipe para ver os registros.</div>
     </div>
   </div>
 
