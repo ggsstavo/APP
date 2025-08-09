@@ -21,6 +21,8 @@
       --soft: #ccc;
       --text2: #34495e;
       --text-muted: #34495e;
+      --accent-hover: #34495e;
+      --hover-bg: #f7f9fb;
     }
   * {
       margin: 0;
@@ -227,7 +229,7 @@ select {
 }
 
 .pdf-btn:hover {
-  background: #34495e;
+  background: var(--accent-hover);
   transform: translateY(-2px);
 }
 
@@ -275,7 +277,7 @@ select {
 }
 
 .preview-entry:hover {
-  background: #f7f9fb;
+  background: var(--hover-bg);
 }
 
 .preview-entry .info {

@@ -30,6 +30,7 @@
       --tabela: #f0f0f0;
       --tabela-text: #333;
       --text-muted: black;
+      --accent-hover: #34495e;
     }
     * {
       margin: 0;
@@ -233,7 +234,7 @@
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
     }
     .btn:hover {
-      background: #34495e;
+      background: var(--accent-hover);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
     }
     .btn i {
@@ -424,7 +425,7 @@
 }
 
 #editTeamBtn {
-  background-color: #2980b9;
+  background-color: #1E88E5;
 }
 
 #notificationMessage {
@@ -517,6 +518,26 @@
 
 #notificationMessage i[style*="color:#ffc107"] {
   background-color: #fff8e1;
+}
+
+.dark #notificationMessage i {
+  /* fundo neutro para ícones no dark mode */
+  background-color: var(--badge-bg);
+  color: var(--badge-text); /* se quiseres ícone claro por cima do fundo escuro */
+}
+
+/* Mantém os 'tints' por tipo (baseado nas cores inline atuais) — ajusta se preciso */
+.dark #notificationMessage i[style*="color:#28a745"] { /* success */
+  background-color: rgba(40,167,69,0.12);
+}
+.dark #notificationMessage i[style*="color:#dc3545"] { /* error */
+  background-color: rgba(220,53,69,0.12);
+}
+.dark #notificationMessage i[style*="color:#ffc107"] { /* warning */
+  background-color: rgba(255,193,7,0.08);
+}
+.dark #notificationMessage i[style*="color:#2196f3"] { /* info */
+  background-color: rgba(33,150,243,0.10);
 }
 
 @keyframes fadeInUp {

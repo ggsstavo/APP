@@ -22,6 +22,7 @@
 
   /* Cor de destaque */
   --accent: #539BF5;      /* azul claro, vibrante mas suave */
+  --accent-hover: #247FF2;
   --accent-soft: rgba(83, 155, 245, 0.2);
 
   /* Linhas e separadores */
