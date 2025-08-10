@@ -6,15 +6,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-  <link rel="icon" type="image/png" href="./favicon/favicon-96x96.png" sizes="96x96" />
-<link rel="icon" type="image/svg+xml" href="./favicon/favicon.svg" />
-<link rel="shortcut icon" href="./favicon/favicon.ico" />
-<link rel="apple-touch-icon" sizes="180x180" href="./favicon/apple-touch-icon.png" />
-<link rel="manifest" href="./favicon/site.webmanifest" />
+  <link rel="icon" type="image/png" href="../favicon/favicon-96x96.png" sizes="96x96" />
+<link rel="icon" type="image/svg+xml" href="../favicon/favicon.svg" />
+<link rel="shortcut icon" href="../favicon/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="../favicon/apple-touch-icon.png" />
+<link rel="manifest" href="../favicon/site.webmanifest" />
+<link rel="stylesheet" href="../theme.css">
   <style>
 
     :root {
       --primary-line: #1D4ED8; /* azul escuro mais elegante */
+      --bg: #f5f7fa;
+      --card: #f4f4f5;
+      --text: #374151;
+      --accent: #2c3e50;
+      --soft: #fff;
+      --text2: black;
+      --submit: #27ae60;
+      --tabela-text: #333;
+      --text-muted: #4b5563;
     }
 
     * {
@@ -22,6 +32,11 @@
       padding: 0;
       box-sizing: border-box;
       font-family: Arial, sans-serif;
+    }
+    body {
+      display: flex;
+      min-height: 100vh;
+      background-color: var(--bg);
     }
     .sidebar {
       width: 220px;
@@ -37,6 +52,16 @@
       justify-content: center;
       position: relative;
     }
+    .dark .sidebar {
+  background: var(--card);       /* #090b16 */
+  color: var(--text);            /* #e0e0e0 */
+  border-right: 1px solid var(--soft); /* #3c3f68 como linha */  
+} 
+
+.dark .sidebar a:hover,
+.dark .sidebar a.active {
+  background: var(--soft);       /* #3c3f68 */
+}
     .hamburger {
       display: none;
       background: none;
@@ -80,18 +105,19 @@
     }
     header h2 {
       margin-bottom: 20px;
-      color: #2c3e50;
+      color: var(--accent);
     }
-    body {
-      font-family: 'Inter', sans-serif;
-       display: flex;
-      min-height: 100vh;
-      background-color: #f5f7fa;
+    .dark header h2{
+      background: rgba(92,124,250, .1);
+      display: inline-block;
+      padding: 6px 10px;
+  border-radius: 4px;
     }
 
     .tituloeft {
       text-align: center;
       margin-bottom: 2rem;
+      color: var(--accent);
     }
 
     .chart-container {
@@ -102,12 +128,13 @@
     }
 
     .card {
-      background: #fff;
+      background: var(--soft);
       border-radius: 12px;
       padding: 1rem;
       box-shadow: 0 4px 12px rgba(0,0,0,0.05);
       transition: transform 0.3s ease;
       text-align: center;
+      color: var(--text2);
     }
 
     .card:hover {
@@ -134,7 +161,7 @@
 
 /* card específico para status */
 .single-chart-card {
-  background: #fff;
+  background: var(--soft);
       border-radius: 12px;
       padding: 1rem;
       box-shadow: 0 4px 12px rgba(0,0,0,0.05);
@@ -164,6 +191,7 @@
       font-size: 2.5rem;
       margin: 2rem 0;
       text-align: center;
+      color: var(--accent);
     }
 
     .distribuicao {
@@ -173,7 +201,7 @@
       border-bottom: 2px solid #9ca3af;
       cursor: pointer;
       transition: background 0.2s, box-shadow 0.2s ease-in-out;
-      background-color: #f4f4f5;
+      background-color: var(--card);
       border-radius: 5px;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     }
@@ -192,7 +220,7 @@
     .distribuicao_dados h3 {
       font-size: 1.6rem;
       margin: 0;
-      color: #374151;
+      color: var(--text);
     }
 
     .resposta_dados {
@@ -205,7 +233,7 @@
       line-height: 1.5;
       font-size: 1.05rem;
       margin: 0.5rem 0 0;
-      color: #4b5563;
+      color: var(--text-muted);
     }
 
     .distribuicao.active .resposta_dados {
@@ -216,6 +244,11 @@
 
     .distribuicao.active {
   box-shadow: 0 12px 24px rgba(75, 85, 99, 0.25);
+}
+
+.dark .distribuicao.active {
+  border: 2px solid var(--hover-bg);
+  background: rgba(75, 85, 99, 0.07)
 }
 
     @keyframes fadeIn {
@@ -374,6 +407,11 @@
     position: relative;
   }
 
+  .dark .sidebar {
+      border-right: none !important;
+      border-bottom: 1px solid var(--soft);
+    }
+
   .hamburger {
     display: block;
     position: absolute;
@@ -436,23 +474,28 @@
     </a>
   </li>
   <li>
-    <a href="#">
+    <a href="../equipes/equipe.html">
       <i class="fas fa-users-cog"></i> Equipes
     </a>
   </li>
   <li>
-    <a href="#">
+    <a href="../apontamentos/apontamentos.html">
       <i class="fas fa-clipboard-list"></i> Apontamentos
     </a>
   </li>
   <li>
-    <a href="#">
+    <a href="../diario/diario.html">
       <i class="fas fa-book"></i> Diário de obra
     </a>
   </li>
   <li>
     <a href="./efetivo/efetivo.html" class="active">
       <i class="fas fa-user-friends"></i> Efetivo
+    </a>
+  </li>
+  <li>
+    <a href="./anotar/anotar.html">
+      <i class="fas fa-sticky-note" aria-hidden="true"></i> Anotações
     </a>
   </li>
   <li>
@@ -468,7 +511,7 @@
   </a>
 </li>
   <li>
-    <a href="#">
+    <a href="../configurações/configuracao.html">
       <i class="fas fa-cog"></i> Configurações
     </a>
   </li>
@@ -485,9 +528,9 @@
         <h3>Liderança</h3>
         <svg class="toggle-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
           <!-- Linha horizontal com bordas arredondadas -->
-          <rect x="4" y="11" width="16" height="2" rx="1" ry="1" fill="#4b5563" />
+          <rect x="4" y="11" width="16" height="2" rx="1" ry="1" fill="var(--text-muted)" />
           <!-- Linha vertical (pipe) com bordas arredondadas -->
-          <rect class="pipe" x="11" y="4" width="2" height="16" rx="1" ry="1" fill="#4b5563"/>
+          <rect class="pipe" x="11" y="4" width="2" height="16" rx="1" ry="1" fill="var(--text-muted)"/>
         </svg>
       </div>
       <div class="resposta_dados">
@@ -500,9 +543,9 @@
         <h3>Montagem</h3>
         <svg class="toggle-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
           <!-- Linha horizontal com bordas arredondadas -->
-          <rect x="4" y="11" width="16" height="2" rx="1" ry="1" fill="#4b5563" />
+          <rect x="4" y="11" width="16" height="2" rx="1" ry="1" fill="var(--text-muted)" />
           <!-- Linha vertical (pipe) com bordas arredondadas -->
-          <rect class="pipe" x="11" y="4" width="2" height="16" rx="1" ry="1" fill="#4b5563"/>
+          <rect class="pipe" x="11" y="4" width="2" height="16" rx="1" ry="1" fill="var(--text-muted)"/>
         </svg>
       </div>
       <div class="resposta_dados">
@@ -515,9 +558,9 @@
         <h3>Meio Oficial</h3>
         <svg class="toggle-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
           <!-- Linha horizontal com bordas arredondadas -->
-          <rect x="4" y="11" width="16" height="2" rx="1" ry="1" fill="#4b5563" />
+          <rect x="4" y="11" width="16" height="2" rx="1" ry="1" fill="var(--text-muted)" />
           <!-- Linha vertical (pipe) com bordas arredondadas -->
-          <rect class="pipe" x="11" y="4" width="2" height="16" rx="1" ry="1" fill="#4b5563"/>
+          <rect class="pipe" x="11" y="4" width="2" height="16" rx="1" ry="1" fill="var(--text-muted)"/>
         </svg>
       </div>
       <div class="resposta_dados">
@@ -530,9 +573,9 @@
         <h3>Desempeno</h3>
         <svg class="toggle-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
           <!-- Linha horizontal com bordas arredondadas -->
-          <rect x="4" y="11" width="16" height="2" rx="1" ry="1" fill="#4b5563" />
+          <rect x="4" y="11" width="16" height="2" rx="1" ry="1" fill="var(--text-muted)" />
           <!-- Linha vertical (pipe) com bordas arredondadas -->
-          <rect class="pipe" x="11" y="4" width="2" height="16" rx="1" ry="1" fill="#4b5563"/>
+          <rect class="pipe" x="11" y="4" width="2" height="16" rx="1" ry="1" fill="var(--text-muted)"/>
         </svg>
       </div>
       <div class="resposta_dados">
@@ -545,9 +588,9 @@
         <h3>Andaimes</h3>
         <svg class="toggle-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
           <!-- Linha horizontal com bordas arredondadas -->
-          <rect x="4" y="11" width="16" height="2" rx="1" ry="1" fill="#4b5563" />
+          <rect x="4" y="11" width="16" height="2" rx="1" ry="1" fill="var(--text-muted)" />
           <!-- Linha vertical (pipe) com bordas arredondadas -->
-          <rect class="pipe" x="11" y="4" width="2" height="16" rx="1" ry="1" fill="#4b5563"/>
+          <rect class="pipe" x="11" y="4" width="2" height="16" rx="1" ry="1" fill="var(--text-muted)"/>
         </svg>
       </div>
       <div class="resposta_dados">
@@ -560,9 +603,9 @@
         <h3>Soldador</h3>
         <svg class="toggle-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
           <!-- Linha horizontal com bordas arredondadas -->
-          <rect x="4" y="11" width="16" height="2" rx="1" ry="1" fill="#4b5563" />
+          <rect x="4" y="11" width="16" height="2" rx="1" ry="1" fill="var(--text-muted)" />
           <!-- Linha vertical (pipe) com bordas arredondadas -->
-          <rect class="pipe" x="11" y="4" width="2" height="16" rx="1" ry="1" fill="#4b5563"/>
+          <rect class="pipe" x="11" y="4" width="2" height="16" rx="1" ry="1" fill="var(--text-muted)"/>
         </svg>
       </div>
       <div class="resposta_dados">
@@ -575,9 +618,9 @@
         <h3>CEFAP</h3>
         <svg class="toggle-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
           <!-- Linha horizontal com bordas arredondadas -->
-          <rect x="4" y="11" width="16" height="2" rx="1" ry="1" fill="#4b5563" />
+          <rect x="4" y="11" width="16" height="2" rx="1" ry="1" fill="var(--text-muted)" />
           <!-- Linha vertical (pipe) com bordas arredondadas -->
-          <rect class="pipe" x="11" y="4" width="2" height="16" rx="1" ry="1" fill="#4b5563"/>
+          <rect class="pipe" x="11" y="4" width="2" height="16" rx="1" ry="1" fill="var(--text-muted)"/>
         </svg>
       </div>
       <div class="resposta_dados">
@@ -897,7 +940,7 @@ function aplicarFiltroNiveis() {
       plugins: { legend: { display: false } }
     }
   });
-}
+} 
 
 // ⬇️ Checkbox: impede desmarcar todos + atualiza apenas gráfico por nível
 document.querySelectorAll('#filtroNiveis input[type="checkbox"]').forEach(checkbox => {
@@ -946,6 +989,17 @@ const menuList = document.getElementById("menuList");
 toggleMenuBtn.addEventListener("click", () => {
   menuList.classList.toggle("active");
 });
+
+(function(){
+    if (localStorage.getItem('dark') === '1') {
+      document.documentElement.classList.add('dark');
+    }
+  })();
+  window.addEventListener('storage', e => {
+    if (e.key === 'dark') {
+      document.documentElement.classList.toggle('dark', e.newValue === '1');
+    }
+  });
 
   </script>
 </body>

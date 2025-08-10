@@ -221,6 +221,7 @@ select {
   display: inline-flex;
   align-items: center;
   margin-bottom: 16px;
+  margin-top: 1rem;
 }
 
 .pdf-btn i {
@@ -342,6 +343,193 @@ select {
   }
 }
 
+#notificationMessage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  font-size: 16px;
+  color: var(--text);
+  text-align: center;
+}
+
+#notificationMessage i {
+  font-size: 32px;
+  color: #2196f3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: #e0f7fa;
+  box-sizing: border-box;
+}
+
+.notification-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.notification-content {
+  background: var(--bg);
+  padding: 25px 35px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  max-width: 400px;
+  width: 90%; /* importante para responsividade */
+  text-align: center;
+  animation: fadeInUp 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  border-radius: 12px;
+  border: 1px solid #ddd;
+  box-sizing: border-box;
+}
+
+.notification-content p {
+  margin-bottom: 20px;
+  color: #222;
+  font-size: 16px;
+  line-height: 1.5;
+  word-wrap: break-word; /* evita estouro de texto */
+}
+
+.notification-content button {
+  background-color: var(--accent);
+  transition: background-color 0.3s ease;
+  color: white;
+  padding: 8px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  min-width: 80px;
+}
+
+.notification-content button:hover {
+  background-color: #34495e;
+}
+
+.notification-content button:focus {
+  outline-offset: 2px;
+}
+
+#notificationMessage i[style*="color:#28a745"] {
+  background-color: #d4edda;
+}
+
+#notificationMessage i[style*="color:#dc3545"] {
+  background-color: #f8d7da;
+}
+
+#notificationMessage i[style*="color:#ffc107"] {
+  background-color: #fff8e1;
+}
+
+.dark #notificationMessage i {
+  /* fundo neutro para ícones no dark mode */
+  background-color: var(--badge-bg);
+  color: var(--badge-text); /* se quiseres ícone claro por cima do fundo escuro */
+}
+
+/* Mantém os 'tints' por tipo (baseado nas cores inline atuais) — ajusta se preciso */
+.dark #notificationMessage i[style*="color:#28a745"] { /* success */
+  background-color: rgba(40,167,69,0.12);
+}
+.dark #notificationMessage i[style*="color:#dc3545"] { /* error */
+  background-color: rgba(220,53,69,0.12);
+}
+.dark #notificationMessage i[style*="color:#ffc107"] { /* warning */
+  background-color: rgba(255,193,7,0.08);
+}
+.dark #notificationMessage i[style*="color:#2196f3"] { /* info */
+  background-color: rgba(33,150,243,0.10);
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsividade */
+
+@media (max-width: 480px) {
+  .notification-content {
+    max-width: 95%;
+    padding: 20px 20px;
+  }
+
+  .notification-content button {
+    width: 30%;
+    padding: 10px 0;
+    font-size: 16px;
+    min-width: unset;
+  }
+}
+
+/* deixa input date com mesmo visual do select */
+.select-like {
+  padding: 8px 12px;
+  border: 1px solid var(--soft);
+  border-radius: 4px;
+  background-color: var(--bg);
+  color: var(--text);
+  min-width: 220px;
+  height: 38px;
+  box-sizing: border-box;
+  font-size: 0.95rem;
+}
+
+/* remove aparência nativa do date nos browsers (melhora visual) */
+input[type="date"].select-like {
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+/* ícone de calendário (alguns navegadores mostram seta — isso normal) */
+
+/* botão limpar ao lado do date (pequeno) */
+.clear-date-btn {
+  background: var(--soft);
+  color: #fff;
+  border: none;
+  padding: 6px 15px;
+  border-radius: 6px;
+  cursor: pointer;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+  transition: background .15s ease, transform .08s ease;
+}
+
+.clear-date-btn i { font-size: 0.95rem; }
+
+/* hover */
+.clear-date-btn:hover { background: #aeb6b6; transform: translateY(-1px); }
+
+/* garante responsividade: empilha em telas pequenas */
+@media (max-width: 640px) {
+  .header > div[style] { width: 100%; }
+  .select-like { min-width: 140px; }
+}
+
 </style>
 
 </head>
@@ -415,6 +603,14 @@ select {
           <option value="">-- Escolha uma equipe --</option>
         </select>
       </div>
+
+      <div style="display:flex;flex-direction:column;">
+      <label for="dateSelect"><i class="fas fa-calendar-day"></i>Data:</label>
+      <div class="date-group" style="display:flex;gap:8px;align-items:center;">
+        <input id="dateSelect" type="date" class="select-like" />
+        <button id="clearDateBtn" class="clear-date-btn" title="Limpar data"><i class="fas fa-times"></i></button>
+      </div>
+    </div>
       <button id="downloadBtn" class="pdf-btn" disabled><i class="fa-solid fa-download"></i> Baixar PDF</button>
     </div>
 
@@ -425,6 +621,16 @@ select {
       <div id="previewContent" style="color:var(--text-muted);">Selecione uma equipe para ver os registros.</div>
     </div>
   </div>
+
+  <div id="notificationModal" class="notification-modal" style="display:none;">
+  <div class="notification-content">
+    <p id="notificationMessage">
+      <i class="fas fa-info-circle"></i>
+      <!-- Texto da notificação será inserido aqui -->
+    </p>
+    <button id="notificationOkBtn">OK</button>
+  </div>
+</div>
 
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
@@ -470,72 +676,178 @@ select {
       });
     }
 
-    teamSelect.addEventListener('change', async e => {
-      currentTeamId = e.target.value;
-      downloadBtn.disabled = !currentTeamId;
-      notification.style.display = currentTeamId ? 'none' : 'block';
-      if (!currentTeamId) {
-        previewContent.innerHTML = 'Selecione uma equipe para ver os registros.';
-        return;
-      }
-      const snapshot = await db.collection('records')
+    const dateSelect = document.getElementById('dateSelect');
+const clearDateBtn = document.getElementById('clearDateBtn');
+
+// chama fetch quando time ou date mudarem
+teamSelect.addEventListener('change', () => {
+  currentTeamId = teamSelect.value;
+  downloadBtn.disabled = !currentTeamId;
+  notification.style.display = currentTeamId ? 'none' : 'block';
+  fetchRecords();
+});
+dateSelect.addEventListener('change', () => {
+  fetchRecords();
+});
+clearDateBtn.addEventListener('click', () => {
+  dateSelect.value = '';
+  fetchRecords();
+});
+
+// função que busca os registros considerando team + date (se preenchida)
+async function fetchRecords() {
+  if (!auth.currentUser) return;
+  if (!currentTeamId) {
+    currentRecords = [];
+    renderPreview();
+    return;
+  }
+
+  let query = db.collection('records')
+    .where('teamId', '==', currentTeamId)
+    .where('createdBy', '==', auth.currentUser.uid);
+
+  const selectedDate = dateSelect.value; // formato YYYY-MM-DD ou '' se vazio
+
+  if (selectedDate) {
+    // Preferência: se existir 'dateOnly' no banco, usamos igualdade (mais simples)
+    // Do contrário, fazemos consulta por range no campo Timestamp `date`.
+    // Vamos detectar dinamicamente: tentar consultar por 'dateOnly' primeiro
+    const snapshotDateOnly = await db.collection('records')
+      .where('teamId', '==', currentTeamId)
+      .where('createdBy', '==', auth.currentUser.uid)
+      .where('dateOnly', '==', selectedDate)
+      .limit(1)
+      .get();
+
+    if (!snapshotDateOnly.empty) {
+      // Há registros com dateOnly: usamos esse campo (igualdade)
+      query = db.collection('records')
         .where('teamId', '==', currentTeamId)
         .where('createdBy', '==', auth.currentUser.uid)
+        .where('dateOnly', '==', selectedDate)
         .orderBy('date', 'desc')
-        .limit(100)
-        .get();
-      currentRecords = snapshot.docs.map(d => d.data());
-      renderPreview();
-    });
+        .limit(100);
+    } else {
+      // Não há dateOnly — vamos criar range para a data selecionada (start/end do dia)
+      const d = new Date(selectedDate + 'T00:00:00'); // local timezone
+      const start = new Date(d);
+      start.setHours(0,0,0,0);
+      const end = new Date(d);
+      end.setHours(23,59,59,999);
+      const startTs = firebase.firestore.Timestamp.fromDate(start);
+      const endTs = firebase.firestore.Timestamp.fromDate(end);
 
-    function renderPreview() {
-      if (!currentRecords.length) {
-        previewContent.innerHTML = '<i class="fas fa-info-circle"></i> Nenhum registro encontrado.';
-        return;
-      }
-      previewContent.innerHTML = currentRecords.map(r => `
-        <div class="preview-entry">
-          <div class="info">
-            <div><i class="fas fa-calendar-day"></i> ${new Date(r.date.seconds * 1000).toLocaleString()}</div>
-            <div><i class="fas fa-user"></i> ${r.name}</div>
-            <div><i class="fas fa-id-badge"></i> ${r.memberMatricula}</div>
-            <div><i class="fas fa-map-marker-alt"></i> ${r.local || '-'}</div>
-            <div><i class="fas fa-warehouse"></i> ${r.galpao || '-'}</div>
-            <div><i class="fas fa-stream"></i> ${r.details}</div>
-            <div><i class="fas fa-layer-group"></i> ${r.blockShift || '-'}</div>
-            <div><i class="fas fa-ship"></i> ${r.vesselShift || '-'}</div>
-          </div>
-        </div>
-      `).join('');
+      query = db.collection('records')
+        .where('teamId', '==', currentTeamId)
+        .where('createdBy', '==', auth.currentUser.uid)
+        .where('date', '>=', startTs)
+        .where('date', '<=', endTs)
+        .orderBy('date', 'desc')
+        .limit(100);
     }
+  } else {
+    // nenhuma data selecionada: pega últimos 100 registros da equipe
+    query = db.collection('records')
+      .where('teamId', '==', currentTeamId)
+      .where('createdBy', '==', auth.currentUser.uid)
+      .orderBy('date', 'desc')
+      .limit(100);
+  }
 
-    downloadBtn.addEventListener('click', () => {
-      if (!currentTeamId || !currentRecords.length) return;
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF({ unit: 'pt', format: 'letter' });
-      doc.setFontSize(18);
-      doc.setTextColor('#c0392b');
-      doc.text('Diário de Obra', 40, 40);
-      let y = 60;
-      doc.setFontSize(12);
-      doc.setTextColor('#333');
-      currentRecords.forEach(r => {
-        const date = new Date(r.date.seconds * 1000).toLocaleString();
-        const lines = doc.splitTextToSize(
-          `Data: ${date}
-Nome: ${r.name} (Matrícula: ${r.memberMatricula})
+  const snapshot = await query.get();
+  currentRecords = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+  renderPreview();
+}
+
+
+    // helpers: evita XSS e preserva quebras de linha no preview
+function escapeHtml(str = '') {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+function nl2br(str = '') {
+  return escapeHtml(str).replace(/\n/g, '<br>');
+}
+
+// pega o campo de observação em possíveis nomes usados no banco
+function getObservation(r) {
+  return (r.obs || r.observacoes || r.observations || r.comentario || '').toString().trim();
+}
+
+function renderPreview() {
+  if (!currentRecords.length) {
+    previewContent.innerHTML = '<i class="fas fa-info-circle"></i> Nenhum registro encontrado.';
+    return;
+  }
+
+  previewContent.innerHTML = currentRecords.map(r => {
+    const date = r.date && r.date.seconds ? new Date(r.date.seconds * 1000).toLocaleString() : (r.date || '-');
+    const obs = getObservation(r);
+    return `
+      <div class="preview-entry">
+        <div class="info">
+          <div><i class="fas fa-calendar-day"></i> ${escapeHtml(date)}</div>
+          <div><i class="fas fa-user"></i> ${escapeHtml(r.name || '-')}</div>
+          <div><i class="fas fa-id-badge"></i> ${escapeHtml(r.memberMatricula || '-')}</div>
+          <div><i class="fas fa-map-marker-alt"></i> ${escapeHtml(r.local || '-')}</div>
+          <div><i class="fas fa-warehouse"></i> ${escapeHtml(r.galpao || '-')}</div>
+          <div><i class="fas fa-stream"></i> ${escapeHtml(r.details || '-')}</div>
+          <div><i class="fas fa-layer-group"></i> ${escapeHtml(r.blockShift || '-')}</div>
+          <div><i class="fas fa-ship"></i> ${escapeHtml(r.vesselShift || '-')}</div>
+          ${obs ? `<div><i class="fas fa-clipboard"></i> ${nl2br(obs)}</div>` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+downloadBtn.addEventListener('click', () => {
+  // Verifica data selecionada
+  if (!dateSelect || !dateSelect.value) {
+    showNotification('Por favor selecione uma data antes de baixar o PDF.', 'warning');
+    return;
+  }
+  if (!currentTeamId || !currentRecords.length) return;
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'pt', format: 'letter' });
+  doc.setFontSize(18);
+  doc.setTextColor('#c0392b');
+  doc.text('Diário de Obra', 40, 40);
+  let y = 60;
+  doc.setFontSize(12);
+  doc.setTextColor('#333');
+
+  currentRecords.forEach(r => {
+    const date = r.date && r.date.seconds ? new Date(r.date.seconds * 1000).toLocaleString() : (r.date || '-');
+    const obs = getObservation(r);
+    let textBlock = 
+`Data: ${date}
+Nome: ${r.name || '-'} (Matrícula: ${r.memberMatricula || '-'})
 Local: ${r.local || '-'}
 Galpão: ${r.galpao || '-'}
-Detalhes: ${r.details}
+Detalhes: ${r.details || '-'}
 Bloco: ${r.blockShift || '-'}
 Embarcação: ${r.vesselShift || '-'}
-` , 500);
-        if (y + lines.length * 14 > doc.internal.pageSize.height - 40) { doc.addPage(); y = 40; }
-        doc.text(lines, 40, y);
-        y += lines.length * 14 + 10;
-      });
-      doc.save('diario_de_obra.pdf');
-    });
+`;
+    if (obs) textBlock += `Obs: ${obs}\n\n`;
+
+    const lines = doc.splitTextToSize(textBlock, 500);
+    const lineHeight = 14;
+    if (y + lines.length * lineHeight > doc.internal.pageSize.height - 40) {
+      doc.addPage();
+      y = 40;
+    }
+    doc.text(lines, 40, y);
+    y += lines.length * lineHeight + 10;
+  });
+
+  doc.save('diario_de_obra.pdf');
+});
 
     // Menu hamburger
 const toggleMenuBtn = document.getElementById("toggleMenu");
@@ -555,6 +867,46 @@ toggleMenuBtn.addEventListener("click", () => {
       document.documentElement.classList.toggle('dark', e.newValue === '1');
     }
   });
+
+  const icons = {
+  success: '<i class="fas fa-check-circle" style="color:#28a745;"></i>',
+  error: '<i class="fas fa-times-circle" style="color:#dc3545;"></i>',
+  warning: '<i class="fas fa-exclamation-triangle" style="color:#ffc107;"></i>',
+  info: '<i class="fas fa-info-circle" style="color:#2196f3;"></i>',
+};
+
+// Substitui alert() por notificação elegante
+function showNotification(message, type = "info") {
+  const modal = document.getElementById("notificationModal");
+  const msg = document.getElementById("notificationMessage");
+  const okBtn = document.getElementById("notificationOkBtn");
+
+  msg.innerHTML = icons[type] + '<span>' + message + '</span>';
+
+  modal.style.display = "flex";
+
+  okBtn.focus();
+
+  okBtn.onclick = () => {
+    modal.style.display = "none";
+  };
+}
+
+const modal = document.getElementById("notificationModal");
+modal.addEventListener("click", (e) => {
+  if (e.target === modal) {
+    modal.style.display = "none";
+  }
+});
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    const modal = document.getElementById("notificationModal");
+    if (modal.style.display === "flex") {
+      modal.style.display = "none";
+    }
+  }
+});
   </script>
 </body>
 
