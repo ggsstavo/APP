@@ -137,3 +137,14 @@ const menuList = document.getElementById("menuList");
 toggleMenuBtn.addEventListener("click", () => {
   menuList.classList.toggle("active");
 });
+
+(function(){
+    if (localStorage.getItem('dark') === '1') {
+      document.documentElement.classList.add('dark');
+    }
+  })();
+  window.addEventListener('storage', e => {
+    if (e.key === 'dark') {
+      document.documentElement.classList.toggle('dark', e.newValue === '1');
+    }
+  });
