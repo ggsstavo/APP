@@ -835,6 +835,106 @@ const db = initializeFirestore(app, {
 let currentUser = null;
 let editingTeamId = null;
 
+const TEAMS_CACHE_KEY = 'teams_cache_v1'; // se mudar structure, incremente a versão
+const TEAMS_CACHE_TTL_MS = 1000 * 60 * 60 * 24; // 24 horas (ajuste se quiser)
+
+const teamsCache = new Map();
+
+// Converte Map -> objeto serializável e grava no localStorage com timestamp
+function saveTeamsCacheToLocalStorage() {
+  try {
+    const entries = [];
+    teamsCache.forEach((value, key) => entries.push([key, value]));
+    const payload = {
+      ts: Date.now(),
+      entries
+    };
+    localStorage.setItem(TEAMS_CACHE_KEY, JSON.stringify(payload));
+  } catch (e) {
+    console.warn('Erro ao salvar teamsCache no localStorage', e);
+  }
+}
+
+// Tenta carregar do localStorage; retorna true se carregou com sucesso
+function loadTeamsCacheFromLocalStorage() {
+  try {
+    const raw = localStorage.getItem(TEAMS_CACHE_KEY);
+    if (!raw) return false;
+    const payload = JSON.parse(raw);
+    if (!payload || !payload.ts || !payload.entries) return false;
+
+    // validar TTL
+    if (Date.now() - payload.ts > TEAMS_CACHE_TTL_MS) {
+      // expirado
+      localStorage.removeItem(TEAMS_CACHE_KEY);
+      return false;
+    }
+
+    teamsCache.clear();
+    for (const [id, data] of payload.entries) {
+      teamsCache.set(id, data);
+    }
+    return true;
+  } catch (e) {
+    console.warn('Erro ao ler teamsCache do localStorage', e);
+    return false;
+  }
+}
+
+function clearTeamsCacheLocalStorage() {
+  try {
+    localStorage.removeItem(TEAMS_CACHE_KEY);
+  } catch (e) {
+    console.warn('Erro ao limpar teams cache', e);
+  }
+}
+
+
+
+// Reconstrói visualmente os selects a partir do teamsCache (use ao atualizar cache)
+function rebuildTeamSelectsFromCache() {
+  const teamSelect = document.getElementById("teamSelect");
+  const teamSelectManage = document.getElementById("teamSelectManage");
+  if (!teamSelect || !teamSelectManage) return;
+  teamSelect.innerHTML = '<option value="">Selecione uma equipe</option>';
+  teamSelectManage.innerHTML = '<option value="">-- Nenhuma selecionada --</option>';
+  teamsCache.forEach((data, id) => {
+    const opt = document.createElement("option");
+    opt.value = id;
+    opt.textContent = data.name;
+    teamSelect.appendChild(opt);
+    teamSelectManage.appendChild(opt.cloneNode(true));
+  });
+}
+
+async function loadTeamsOnce() {
+  // tenta carregar do localStorage primeiro (rápido, sem leitura Firestore)
+  const loadedFromLocal = loadTeamsCacheFromLocalStorage();
+  if (loadedFromLocal) {
+    rebuildTeamSelectsFromCache();
+    return;
+  }
+
+  // senão, lê do Firestore e popula cache/localStorage
+  try {
+    const q = query(collection(db, "teams"), where("ownerUid", "==", currentUser.uid));
+    const snap = await getDocs(q);
+
+    teamsCache.clear();
+    snap.forEach(docSnap => {
+      teamsCache.set(docSnap.id, docSnap.data());
+    });
+
+    // salva para uso futuro e atualiza UI
+    saveTeamsCacheToLocalStorage();
+    rebuildTeamSelectsFromCache();
+  } catch (e) {
+    console.error('Erro ao carregar teams do Firestore', e);
+    // relança se quiser que o caller (onAuthStateChanged) entre no catch
+    throw e;
+  }
+}
+
 window.addEventListener('DOMContentLoaded', () => {
   const cachedUid = getCachedUID();
 
@@ -846,14 +946,17 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   // Se tiver, só confirme com o Firebase que continua autenticado
-  onAuthStateChanged(auth, (user) => {
-    if (user && user.uid === cachedUid) {
-      // usuário ok, pode chamar suas funções
-      currentUser = user;
-      setDateToday();
-      loadTeams();
-      loadRecords(true);
-      loadTeamsManage();
+  onAuthStateChanged(auth, async (user) => {
+  if (user && user.uid === cachedUid) {
+    currentUser = user;
+    setDateToday();
+    try {
+      await loadTeamsOnce();
+      await loadRecords(true);
+    } catch (e) {
+      console.error(e);
+      showNotification('Erro ao carregar dados iniciais.', 'error');
+    }
     } else {
       // mismatch ou não autenticado → limpa e login
       clearCachedUID();
@@ -870,46 +973,74 @@ function setDateToday() {
   document.getElementById("dateInput").value = `${yyyy}-${mm}-${dd}`;
 }
 
-async function loadTeams() {
-  const q = query(collection(db, "teams"), where("ownerUid", "==", currentUser.uid));
-  const snap = await getDocs(q);
-  const select = document.getElementById("teamSelect");
-  select.innerHTML = '<option value="">Selecione uma equipe</option>';
-  snap.forEach((doc) => {
-    const t = doc.data();
-    const opt = document.createElement("option");
-    opt.value = doc.id;
-    opt.textContent = t.name;
-    select.appendChild(opt);
-  });
-}
+// async function loadTeams() {
+//   const q = query(collection(db, "teams"), where("ownerUid", "==", currentUser.uid));
+//   const snap = await getDocs(q);
+//   const select = document.getElementById("teamSelect");
+//   select.innerHTML = '<option value="">Selecione uma equipe</option>';
+//   snap.forEach((doc) => {
+//     const t = doc.data();
+//     const opt = document.createElement("option");
+//     opt.value = doc.id;
+//     opt.textContent = t.name;
+//     select.appendChild(opt);
+//   });
+// }
 
-document.getElementById("teamSelect").addEventListener("change", async function () {
+// document.getElementById("teamSelect").addEventListener("change", async function () {
+//   const teamId = this.value;
+//   const shiftsContainer = document.getElementById("shiftsContainer");
+//   shiftsContainer.innerHTML = "";
+//   if (!teamId) return;
+//   const teamDoc = await getDoc(doc(db, "teams", teamId));
+//   if (!teamDoc.exists()) return;
+//   const teamData = teamDoc.data();
+//   if (!teamData.members || teamData.members.length === 0) return;
+//   const turnoPadrao = teamData.shift || "";
+//   teamData.members.forEach((member) => {
+//   shiftsContainer.appendChild(
+//     createShiftRowForRecord({
+//       name: member.name,
+//       memberMatricula: member.matricula,
+//       block: member.block || "",
+//       vessel: member.vessel || "",
+//       shift: turnoPadrao,
+//       observations: "",
+//       local: member.local || "",
+//       customLocal: member.customLocal || "",
+//       details: member.details
+//     })
+//   );
+// });
+// });
+
+document.getElementById("teamSelect").addEventListener("change", function () {
   const teamId = this.value;
   const shiftsContainer = document.getElementById("shiftsContainer");
   shiftsContainer.innerHTML = "";
   if (!teamId) return;
-  const teamDoc = await getDoc(doc(db, "teams", teamId));
-  if (!teamDoc.exists()) return;
-  const teamData = teamDoc.data();
-  if (!teamData.members || teamData.members.length === 0) return;
+
+  const teamData = teamsCache.get(teamId);
+  if (!teamData || !teamData.members || teamData.members.length === 0) return;
+
   const turnoPadrao = teamData.shift || "";
   teamData.members.forEach((member) => {
-  shiftsContainer.appendChild(
-    createShiftRowForRecord({
-      name: member.name,
-      memberMatricula: member.matricula,
-      block: member.block || "",
-      vessel: member.vessel || "",
-      shift: turnoPadrao,
-      observations: "",
-      local: member.local || "",
-      customLocal: member.customLocal || "",
-      details: member.details
-    })
-  );
+    shiftsContainer.appendChild(
+      createShiftRowForRecord({
+        name: member.name,
+        memberMatricula: member.matricula,
+        block: member.block || "",
+        vessel: member.vessel || "",
+        shift: turnoPadrao,
+        observations: "",
+        local: member.local || "",
+        customLocal: member.customLocal || "",
+        details: member.details
+      })
+    );
+  });
 });
-});
+
 
 function createMemberRow(member = { name: "", matricula: "", block: "", vessel: "", local: "", customLocal: "", details: "" }) {
   const div = document.createElement("div");
@@ -1016,18 +1147,25 @@ if (!detailsInput.value.trim()) {
     ownerUid: currentUser.uid,
   };
 
-  try {
+    try {
     if (editingTeamId) {
       await setDoc(doc(db, "teams", editingTeamId), teamData);
-      editingTeamId = null;
-      document.getElementById("cancelEditBtn").style.display = "none";
-      saveTeamBtn.textContent = "Salvar Equipe";
+      teamsCache.set(editingTeamId, teamData);
     } else {
-      await addDoc(collection(db, "teams"), teamData);
+      const ref = await addDoc(collection(db, "teams"), teamData);
+      teamsCache.set(ref.id, teamData);
     }
+
+    // persiste cache e atualiza selects
+    saveTeamsCacheToLocalStorage();
+    rebuildTeamSelectsFromCache();
+
+    editingTeamId = null;
+    document.getElementById("cancelEditBtn").style.display = "none";
+    saveTeamBtn.textContent = "Salvar Equipe";
+
     showNotification("Equipe salva com sucesso!", "success");
     clearTeamForm();
-    loadTeams();
   } catch (e) {
     console.error(e);
     showNotification("Erro ao salvar equipe.", "error");
@@ -1194,21 +1332,21 @@ tableWrapper.addEventListener("scroll", () => {
   }
 });
 
-async function loadTeamsManage() {
-  const teamSelect = document.getElementById("teamSelectManage");
-  teamSelect.innerHTML = '<option value="">-- Nenhuma selecionada --</option>';
+// async function loadTeamsManage() {
+//   const teamSelect = document.getElementById("teamSelectManage");
+//   teamSelect.innerHTML = '<option value="">-- Nenhuma selecionada --</option>';
 
-  const q = query(collection(db, "teams"), where("ownerUid", "==", currentUser.uid));
-  const snap = await getDocs(q);
+//   const q = query(collection(db, "teams"), where("ownerUid", "==", currentUser.uid));
+//   const snap = await getDocs(q);
 
-  snap.forEach(doc => {
-    const data = doc.data();
-    const opt = document.createElement("option");
-    opt.value = doc.id;
-    opt.textContent = data.name;
-    teamSelect.appendChild(opt);
-  });
-}
+//   snap.forEach(doc => {
+//     const data = doc.data();
+//     const opt = document.createElement("option");
+//     opt.value = doc.id;
+//     opt.textContent = data.name;
+//     teamSelect.appendChild(opt);
+//   });
+// }
 
 
 
@@ -1346,11 +1484,13 @@ confirmYesBtn.addEventListener("click", async () => {
     // 2) Apaga o documento da equipe
     await deleteDoc(doc(db, "teams", teamId));
 
-    // 3) Atualiza a interface
+    // 3) Atualiza cache local e interface (sem nova leitura)
+    teamsCache.delete(teamId);
+    saveTeamsCacheToLocalStorage();
+    rebuildTeamSelectsFromCache();
+
     confirmModal.style.display = "none";
     clearTeamForm();
-    loadTeams();
-    loadTeamsManage();
     showNotification("Equipe apagado com sucesso!", "success");
 
   } catch (e) {
