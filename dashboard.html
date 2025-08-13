@@ -6,9 +6,6 @@
   <meta name="description" content="Site/Aplicativo para realizar as apropriações">
   <title>Apropriação</title>
   <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <link rel="icon" type="image/png" href="./favicon/favicon-96x96.png" sizes="96x96" />
@@ -759,7 +756,6 @@ function clearCachedUID() {
 }
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
-import { deleteDoc } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 import {
   initializeFirestore,
   persistentLocalCache,
@@ -772,11 +768,22 @@ import {
   doc,
   getDoc,
   setDoc,
+  deleteDoc,
+  writeBatch,
   orderBy,
   limit,
   startAfter,
   Timestamp
 } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+
+function escapeHtml(str = '') {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
 
 // --- FUNÇÃO QUE ESTAVA FALTANDO ---
 function createShiftRowForRecord({
@@ -790,26 +797,27 @@ function createShiftRowForRecord({
   customLocal = "",
   details = ""
 }) {
+
   const div = document.createElement("div");
   div.className = "form-row";
   div.style.position = "relative";
 
-  // Define valor final de local
   const finalLocal = local === "Outros" && customLocal ? customLocal : local;
 
+  // usa escapeHtml para evitar quebra/XSS
   div.innerHTML = `
-    <input type="text" class="shiftName" value="${name}" readonly />
-    <input type="text" class="shiftMatricula" value="${memberMatricula}" readonly />
-    <input type="text" class="shiftBlock" value="${block}" placeholder="Bloco" />
-    <input type="text" class="shiftVessel" value="${vessel}" placeholder="Embarcação" />
+    <input type="text" class="shiftName" value="${escapeHtml(name)}" readonly />
+    <input type="text" class="shiftMatricula" value="${escapeHtml(memberMatricula)}" readonly />
+    <input type="text" class="shiftBlock" value="${escapeHtml(block)}" placeholder="Bloco" />
+    <input type="text" class="shiftVessel" value="${escapeHtml(vessel)}" placeholder="Embarcação" />
     <select class="shiftTurno">
       <option value="">Selecione Turno</option>
       <option value="Diurno" ${shift === "Diurno" ? "selected" : ""}>Diurno</option>
       <option value="Noturno" ${shift === "Noturno" ? "selected" : ""}>Noturno</option>
     </select>
-    <input type="text" class="shiftLocal" value="${finalLocal}" readonly />
-    <input type="hidden" class="shiftDetails" value="${details}" />
-    <input type="text" class="shiftObservations" placeholder="Observações" value="${observations}" />
+    <input type="text" class="shiftLocal" value="${escapeHtml(finalLocal)}" readonly />
+    <input type="hidden" class="shiftDetails" value="${escapeHtml(details)}" />
+    <input type="text" class="shiftObservations" placeholder="Observações" value="${escapeHtml(observations)}" />
   `;
   return div;
 }
@@ -840,40 +848,65 @@ const TEAMS_CACHE_TTL_MS = 1000 * 60 * 60 * 24; // 24 horas (ajuste se quiser)
 
 const teamsCache = new Map();
 
-// Converte Map -> objeto serializável e grava no localStorage com timestamp
-function saveTeamsCacheToLocalStorage() {
-  try {
-    const entries = [];
-    teamsCache.forEach((value, key) => entries.push([key, value]));
-    const payload = {
-      ts: Date.now(),
-      entries
-    };
-    localStorage.setItem(TEAMS_CACHE_KEY, JSON.stringify(payload));
-  } catch (e) {
-    console.warn('Erro ao salvar teamsCache no localStorage', e);
-  }
+function normalizeTeam(raw = {}) {
+  return {
+    name: raw.name || '',
+    shift: raw.shift || '',
+    ownerUid: raw.ownerUid || '',
+    members: (raw.members || []).map(m => ({
+      name: m.name || '',
+      matricula: m.matricula || '',
+      block: m.block || '',
+      vessel: m.vessel || '',
+      local: m.local || '',
+      customLocal: m.customLocal || '',
+      details: m.details || ''
+    }))
+  };
 }
 
-// Tenta carregar do localStorage; retorna true se carregou com sucesso
+// Converte Map -> objeto serializável e grava no localStorage com timestamp
+function serializeTeamsCache() {
+  const entries = [];
+  teamsCache.forEach((value, key) => {
+    // constrói um objeto "plain" apenas com campos primitivos
+    const safeValue = {
+      name: value.name || '',
+      shift: value.shift || '',
+      ownerUid: value.ownerUid || '',
+      members: (value.members || []).map(m => ({
+        name: m.name || '',
+        matricula: m.matricula || '',
+        block: m.block || '',
+        vessel: m.vessel || '',
+        local: m.local || '',
+        customLocal: m.customLocal || '',
+        details: m.details || ''
+      }))
+    };
+    entries.push([key, safeValue]);
+  });
+  const payload = { ts: Date.now(), entries };
+  try {
+  localStorage.setItem(TEAMS_CACHE_KEY, JSON.stringify(payload));
+} catch (err) {
+  console.warn('Falha ao gravar teams cache no localStorage', err);
+  // opcional: fallback — não fazemos nada, cache apenas em memória
+}
+}
+
 function loadTeamsCacheFromLocalStorage() {
   try {
     const raw = localStorage.getItem(TEAMS_CACHE_KEY);
     if (!raw) return false;
     const payload = JSON.parse(raw);
     if (!payload || !payload.ts || !payload.entries) return false;
-
-    // validar TTL
     if (Date.now() - payload.ts > TEAMS_CACHE_TTL_MS) {
-      // expirado
       localStorage.removeItem(TEAMS_CACHE_KEY);
       return false;
     }
-
     teamsCache.clear();
-    for (const [id, data] of payload.entries) {
-      teamsCache.set(id, data);
-    }
+    for (const [id, data] of payload.entries) teamsCache.set(id, data);
     return true;
   } catch (e) {
     console.warn('Erro ao ler teamsCache do localStorage', e);
@@ -896,15 +929,35 @@ function rebuildTeamSelectsFromCache() {
   const teamSelect = document.getElementById("teamSelect");
   const teamSelectManage = document.getElementById("teamSelectManage");
   if (!teamSelect || !teamSelectManage) return;
-  teamSelect.innerHTML = '<option value="">Selecione uma equipe</option>';
-  teamSelectManage.innerHTML = '<option value="">-- Nenhuma selecionada --</option>';
+
+  teamSelect.innerHTML = ''; // limpa
+  teamSelectManage.innerHTML = '';
+
+  const defaultOpt = document.createElement('option');
+  defaultOpt.value = '';
+  defaultOpt.textContent = 'Selecione uma equipe';
+  teamSelect.appendChild(defaultOpt);
+
+  const defaultOpt2 = document.createElement('option');
+  defaultOpt2.value = '';
+  defaultOpt2.textContent = '-- Nenhuma selecionada --';
+  teamSelectManage.appendChild(defaultOpt2);
+
+  const frag1 = document.createDocumentFragment();
+  const frag2 = document.createDocumentFragment();
+
   teamsCache.forEach((data, id) => {
-    const opt = document.createElement("option");
+    const opt = document.createElement('option');
     opt.value = id;
-    opt.textContent = data.name;
-    teamSelect.appendChild(opt);
-    teamSelectManage.appendChild(opt.cloneNode(true));
+    opt.textContent = data.name || id;
+    frag1.appendChild(opt);
+
+    const opt2 = opt.cloneNode(true);
+    frag2.appendChild(opt2);
   });
+
+  teamSelect.appendChild(frag1);
+  teamSelectManage.appendChild(frag2);
 }
 
 async function loadTeamsOnce() {
@@ -921,12 +974,13 @@ async function loadTeamsOnce() {
     const snap = await getDocs(q);
 
     teamsCache.clear();
-    snap.forEach(docSnap => {
-      teamsCache.set(docSnap.id, docSnap.data());
-    });
+snap.forEach(docSnap => {
+  const d = docSnap.data() || {};
+  teamsCache.set(docSnap.id, normalizeTeam(d));
+});
 
     // salva para uso futuro e atualiza UI
-    saveTeamsCacheToLocalStorage();
+    serializeTeamsCache();
     rebuildTeamSelectsFromCache();
   } catch (e) {
     console.error('Erro ao carregar teams do Firestore', e);
@@ -973,72 +1027,34 @@ function setDateToday() {
   document.getElementById("dateInput").value = `${yyyy}-${mm}-${dd}`;
 }
 
-// async function loadTeams() {
-//   const q = query(collection(db, "teams"), where("ownerUid", "==", currentUser.uid));
-//   const snap = await getDocs(q);
-//   const select = document.getElementById("teamSelect");
-//   select.innerHTML = '<option value="">Selecione uma equipe</option>';
-//   snap.forEach((doc) => {
-//     const t = doc.data();
-//     const opt = document.createElement("option");
-//     opt.value = doc.id;
-//     opt.textContent = t.name;
-//     select.appendChild(opt);
-//   });
-// }
-
-// document.getElementById("teamSelect").addEventListener("change", async function () {
-//   const teamId = this.value;
-//   const shiftsContainer = document.getElementById("shiftsContainer");
-//   shiftsContainer.innerHTML = "";
-//   if (!teamId) return;
-//   const teamDoc = await getDoc(doc(db, "teams", teamId));
-//   if (!teamDoc.exists()) return;
-//   const teamData = teamDoc.data();
-//   if (!teamData.members || teamData.members.length === 0) return;
-//   const turnoPadrao = teamData.shift || "";
-//   teamData.members.forEach((member) => {
-//   shiftsContainer.appendChild(
-//     createShiftRowForRecord({
-//       name: member.name,
-//       memberMatricula: member.matricula,
-//       block: member.block || "",
-//       vessel: member.vessel || "",
-//       shift: turnoPadrao,
-//       observations: "",
-//       local: member.local || "",
-//       customLocal: member.customLocal || "",
-//       details: member.details
-//     })
-//   );
-// });
-// });
-
 document.getElementById("teamSelect").addEventListener("change", function () {
   const teamId = this.value;
   const shiftsContainer = document.getElementById("shiftsContainer");
-  shiftsContainer.innerHTML = "";
+  shiftsContainer.innerHTML = ""; // limpa de uma vez
   if (!teamId) return;
 
   const teamData = teamsCache.get(teamId);
   if (!teamData || !teamData.members || teamData.members.length === 0) return;
 
   const turnoPadrao = teamData.shift || "";
-  teamData.members.forEach((member) => {
-    shiftsContainer.appendChild(
-      createShiftRowForRecord({
-        name: member.name,
-        memberMatricula: member.matricula,
-        block: member.block || "",
-        vessel: member.vessel || "",
-        shift: turnoPadrao,
-        observations: "",
-        local: member.local || "",
-        customLocal: member.customLocal || "",
-        details: member.details
-      })
-    );
-  });
+
+  // usa DocumentFragment para inserir todas as linhas de uma vez
+  const frag = document.createDocumentFragment();
+  for (const member of teamData.members) {
+    const row = createShiftRowForRecord({
+      name: member.name,
+      memberMatricula: member.matricula,
+      block: member.block || "",
+      vessel: member.vessel || "",
+      shift: turnoPadrao,
+      observations: "",
+      local: member.local || "",
+      customLocal: member.customLocal || "",
+      details: member.details || ""
+    });
+    frag.appendChild(row);
+  }
+  shiftsContainer.appendChild(frag);
 });
 
 
@@ -1046,11 +1062,12 @@ function createMemberRow(member = { name: "", matricula: "", block: "", vessel: 
   const div = document.createElement("div");
   div.className = "form-row";
   div.style.position = "relative";
+
   div.innerHTML = `
-    <input type="text" class="memberName" placeholder="Nome" value="${member.name}" />
-    <input type="text" class="memberMatricula" placeholder="Matrícula" value="${member.matricula}" />
-    <input type="text" class="memberBlock" placeholder="Bloco" value="${member.block}" />
-    <input type="text" class="memberVessel" placeholder="Embarcação" value="${member.vessel}" />
+    <input type="text" class="memberName" placeholder="Nome" value="${escapeHtml(member.name)}" />
+    <input type="text" class="memberMatricula" placeholder="Matrícula" value="${escapeHtml(member.matricula)}" />
+    <input type="text" class="memberBlock" placeholder="Bloco" value="${escapeHtml(member.block)}" />
+    <input type="text" class="memberVessel" placeholder="Embarcação" value="${escapeHtml(member.vessel)}" />
     <select class="memberLocalSelect">
       <option value="">Selecione Local</option>
       <option value="Montagem" ${member.local === "Montagem" ? "selected" : ""}>Montagem</option>
@@ -1058,14 +1075,8 @@ function createMemberRow(member = { name: "", matricula: "", block: "", vessel: 
       <option value="Edificação" ${member.local === "Edificação" ? "selected" : ""}>Edificação</option>
       <option value="Outros" ${member.local === "Outros" ? "selected" : ""}>Outros</option>
     </select>
-    <input type="text" class="memberCustomLocalInput" placeholder="Informe outro local" value="${member.customLocal || ''}" style="display: none; margin-left: 5px; flex: 1;" />
-    <input
-  type="text"
-  class="memberDetailsInput"
-  placeholder="Detalhes (Perfilado, Barras, Anteparas)"
-  value="${member.details}"
-  required
-/>
+    <input type="text" class="memberCustomLocalInput" placeholder="Informe outro local" value="${escapeHtml(member.customLocal || '')}" style="display: none; margin-left: 5px; flex: 1;" />
+    <input type="text" class="memberDetailsInput" placeholder="Detalhes (Perfilado, Barras, Anteparas)" value="${escapeHtml(member.details || '')}" required />
     <button class="btn removeMemberBtn"><i class="fas fa-trash" style="margin-left: 5px;"></i></button>
   `;
 
@@ -1089,6 +1100,7 @@ function createMemberRow(member = { name: "", matricula: "", block: "", vessel: 
 
 const membersContainer = document.getElementById("membersContainer");
 const addMemberBtn = document.getElementById("addMemberBtn");
+const cancelEditBtn = document.getElementById("cancelEditBtn");
 
 addMemberBtn.addEventListener("click", () => {
   membersContainer.appendChild(createMemberRow());
@@ -1149,15 +1161,15 @@ if (!detailsInput.value.trim()) {
 
     try {
     if (editingTeamId) {
-      await setDoc(doc(db, "teams", editingTeamId), teamData);
-      teamsCache.set(editingTeamId, teamData);
-    } else {
-      const ref = await addDoc(collection(db, "teams"), teamData);
-      teamsCache.set(ref.id, teamData);
-    }
+  await setDoc(doc(db, "teams", editingTeamId), teamData);
+  teamsCache.set(editingTeamId, normalizeTeam(teamData));
+} else {
+  const ref = await addDoc(collection(db, "teams"), teamData);
+  teamsCache.set(ref.id, normalizeTeam(teamData));
+}
 
     // persiste cache e atualiza selects
-    saveTeamsCacheToLocalStorage();
+    serializeTeamsCache();
     rebuildTeamSelectsFromCache();
 
     editingTeamId = null;
@@ -1193,17 +1205,39 @@ async function sendRecord() {
   const teamId = teamSelect.value;
   const teamName = teamSelect.options[teamSelect.selectedIndex].text;
 
-  const teamDoc = await getDoc(doc(db, "teams", teamId));
-  const teamData = teamDoc.data();
-
+  // Validações básicas primeiro
   const dateStr = document.getElementById("dateInput").value;
- const galpao = document.getElementById("galpaoSelect").value;
-
-
+  const galpao = document.getElementById("galpaoSelect").value;
   if (!dateStr || !galpao || !teamId) {
     showNotification("Preencha todos os campos para enviar a apropriação.", "warning");
     return;
   }
+
+  // ------------- USE O CACHE PRIMEIRO (evita leituras no Firestore) -------------
+  let teamData = teamsCache.get(teamId);
+
+  // Se não houver no cache, busca do Firestore só nessa situação
+  if (!teamData) {
+    try {
+      const teamDoc = await getDoc(doc(db, "teams", teamId));
+      if (!teamDoc.exists()) {
+        showNotification("Equipe selecionada não encontrada.", "warning");
+        return;
+      }
+      teamData = normalizeTeam(teamDoc.data() || {});
+      // opcional: atualiza cache local para próximas ações
+      teamsCache.set(teamId, teamData);
+      serializeTeamsCache();
+      rebuildTeamSelectsFromCache(); // opcional: atualiza selects se quiser
+    } catch (e) {
+      console.error("Erro ao buscar equipe:", e);
+      showNotification("Erro ao acessar os dados da equipe.", "error");
+      return;
+    }
+  }
+  // -----------------------------------------------------------------------------
+
+  // A partir daqui, teamData está garantido (vindo do cache ou Firestore)
   const shiftsContainer = document.getElementById("shiftsContainer");
   const shiftRows = shiftsContainer.querySelectorAll(".form-row");
   if (shiftRows.length === 0) {
@@ -1253,15 +1287,39 @@ const local = (memberOriginal?.local === "Outros")
   }
 
   try {
-    for (const rec of records) {
-  const now = new Date();
-  const dateStr = `${String(now.getDate()).padStart(2, '0')}-${String(now.getMonth() + 1).padStart(2, '0')}-${now.getFullYear()}`;
-  const safeName = rec.name.replace(/[/\\#.%$[\]]/g, "-"); // remove caracteres inválidos
-  const docId = `${safeName}, ${rec.memberMatricula} - ${dateStr}`;
+  const BATCH_LIMIT = 400;
+  let batch = writeBatch(db);
+  let ops = 0;
 
-  await setDoc(doc(db, "records", docId), rec);
+  for (const rec of records) {
+    // obtém a data do input (YYYY-MM-DD) e converte para DD-MM-YYYY para o ID
+const dateInputVal = document.getElementById('dateInput').value; // 'YYYY-MM-DD'
+let dateStrForId;
+if (dateInputVal) {
+  const [yyyy, mm, dd] = dateInputVal.split('-');
+  dateStrForId = `${dd}-${mm}-${yyyy}`;
+} else {
+  const now = new Date();
+  dateStrForId = `${String(now.getDate()).padStart(2, '0')}-${String(now.getMonth() + 1).padStart(2, '0')}-${now.getFullYear()}`;
 }
-    showNotification("Apropriações enviadas com sucesso!", "success");
+const safeName = rec.name.replace(/[/\\#.%$[\]]/g, "-");
+const docId = `${safeName}, ${rec.memberMatricula} - ${dateStrForId}`;
+
+    batch.set(doc(db, "records", docId), rec);
+    ops++;
+
+    if (ops >= BATCH_LIMIT) {
+      await batch.commit();
+      batch = writeBatch(db);
+      ops = 0;
+    }
+  }
+
+  if (ops > 0) {
+    await batch.commit();
+  }
+
+  showNotification("Apropriações enviadas com sucesso!", "success");
     document.getElementById("galpaoSelect").selectedIndex = 0;
     document.getElementById("teamSelect").selectedIndex = 0;
     document.getElementById("shiftsContainer").innerHTML = "";
@@ -1291,37 +1349,46 @@ async function loadRecords(initial = false) {
     q = query(q, startAfter(lastVisibleRecord));
   }
 
-  const snap = await getDocs(q);
-
-  if (!snap.empty) {
-    lastVisibleRecord = snap.docs[snap.docs.length - 1];
-    snap.forEach((doc) => {
-      recordsCache.push(doc.data());
-    });
-    renderRecords(recordsCache);
+  try {
+    const snap = await getDocs(q);
+    if (!snap.empty) {
+      lastVisibleRecord = snap.docs[snap.docs.length - 1];
+      const newDocs = [];
+      snap.forEach(docSnap => newDocs.push(docSnap.data()));
+      recordsCache = recordsCache.concat(newDocs);
+      renderRecords(recordsCache);
+    }
+  } catch (e) {
+    console.error('Erro ao carregar records', e);
+  } finally {
+    isFetchingRecords = false;
   }
-
-  isFetchingRecords = false;
 }
 
   function renderRecords(records) {
   const tbody = document.querySelector("#recordsTable tbody");
-  tbody.innerHTML = "";
-  records.forEach((r) => {
-    const tr = document.createElement("tr");
+  if (!tbody) return;
+
+  // monta HTML de uma vez
+  const rowsHtml = records.map((r) => {
     const date = r.date?.toDate?.() || new Date();
     const dateStr = date.toLocaleString("pt-BR", {
       day: '2-digit', month: '2-digit', year: 'numeric',
       hour: '2-digit', minute: '2-digit'
     });
-    tr.innerHTML = `
+    const galp = (r.galpao || "").replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const team = (r.teamName || r.teamId || "").replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const user = (r.userName || "").replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+    return `<tr>
       <td>${dateStr}</td>
-      <td>${r.galpao || ""}</td>
-      <td>${r.teamName || r.teamId || ""}</td>
-      <td>${r.userName || ""}</td>
-    `;
-    tbody.appendChild(tr);
-  });
+      <td>${galp}</td>
+      <td>${team}</td>
+      <td>${user}</td>
+    </tr>`;
+  }).join('');
+
+  tbody.innerHTML = rowsHtml;
 }
 
 const tableWrapper = document.querySelector("#recordsTable").parentElement;
@@ -1331,24 +1398,6 @@ tableWrapper.addEventListener("scroll", () => {
     loadRecords(); // próximo lote
   }
 });
-
-// async function loadTeamsManage() {
-//   const teamSelect = document.getElementById("teamSelectManage");
-//   teamSelect.innerHTML = '<option value="">-- Nenhuma selecionada --</option>';
-
-//   const q = query(collection(db, "teams"), where("ownerUid", "==", currentUser.uid));
-//   const snap = await getDocs(q);
-
-//   snap.forEach(doc => {
-//     const data = doc.data();
-//     const opt = document.createElement("option");
-//     opt.value = doc.id;
-//     opt.textContent = data.name;
-//     teamSelect.appendChild(opt);
-//   });
-// }
-
-
 
 // Menu hamburger
 const toggleMenuBtn = document.getElementById("toggleMenu");
@@ -1405,35 +1454,29 @@ const editTeamBtn      = document.getElementById("editTeamBtn");
 editTeamBtn.addEventListener("click", async () => {
   const teamId = teamSelectManage.value;
 
-  // 1) Se não selecionou, notifica e sai sem tocar no Firebase
   if (!teamId) {
     showNotification("Selecione uma equipe para editar.", "warning");
     return;
   }
 
-  // 2) Só aqui você faz a leitura no Firestore
-  let teamDoc;
-  try {
-    teamDoc = await getDoc(doc(db, "teams", teamId));
-  } catch (e) {
-    console.error(e);
-    showNotification("Erro ao acessar o banco de dados.", "error");
-    return;
-  }
-
+  let teamData = teamsCache.get(teamId);
+if (!teamData) {
+  // só busca no Firestore se não tiver no cache
+  const teamDoc = await getDoc(doc(db, "teams", teamId));
   if (!teamDoc.exists()) {
-    showNotification("Equipe não encontrada.", "info");
+    showNotification("Equipe selecionada não encontrada.", "warning");
     return;
   }
+  teamData = normalizeTeam(teamDoc.data() || {});
+}
 
-  // 3) Agora sim: pega os dados
-  const data = teamDoc.data();
+  // agora preenche o formulário com teamData (sempre definido aqui)
+  document.getElementById("teamName").value = teamData.name || "";
+  const radio = document.querySelector(`input[name="teamShift"][value="${teamData.shift}"]`);
+  if (radio) radio.checked = true;
 
-  // Preenche o form diretamente (já visível)
-  document.getElementById("teamName").value = data.name;
-  document.querySelector(`input[name="teamShift"][value="${data.shift}"]`).checked = true;
   membersContainer.innerHTML = "";
-  data.members.forEach(m => membersContainer.appendChild(createMemberRow(m)));
+  (teamData.members || []).forEach(m => membersContainer.appendChild(createMemberRow(m)));
 
   editingTeamId = teamId;
   saveTeamBtn.innerHTML = '<i class="fas fa-rotate"></i>Atualizar Equipe';
@@ -1466,27 +1509,48 @@ confirmNoBtn.addEventListener("click", () => {
   confirmModal.style.display = "none";
 });
 
+// --- deleteRecordsByTeamInBatches: exclui records em lotes seguros ---
+async function deleteRecordsByTeamInBatches(teamId) {
+  const BATCH_SIZE = 400; // seguro < 500 (limite do writeBatch)
+  const recordsRef = collection(db, "records");
+
+  while (true) {
+    const q = query(recordsRef, where("teamId", "==", teamId), limit(BATCH_SIZE));
+    const snap = await getDocs(q);
+    if (snap.empty) break;
+
+    const wb = writeBatch(db); // usa writeBatch importado no topo do módulo
+    snap.docs.forEach(docSnap => {
+      wb.delete(doc(db, "records", docSnap.id));
+    });
+
+    await wb.commit();
+
+    // se trouxe menos que o tamanho do lote, terminou
+    if (snap.size < BATCH_SIZE) break;
+    // caso contrário, loop continua (os docs deletados não aparecem mais)
+  }
+}
+
 // Se clicar em SIM, procede à exclusão
 confirmYesBtn.addEventListener("click", async () => {
   const teamId = teamSelectManage.value;
 
+  if (!teamId) {
+    showNotification("Selecione uma equipe para excluir.", "warning");
+    return;
+  }
+
   try {
-    // 1) Apaga todos os registros (records) vinculados a esta equipe
-    const recordsQ = query(
-      collection(db, "records"),
-      where("teamId", "==", teamId)
-    );
-    const recordsSnap = await getDocs(recordsQ);
-    for (const docSnap of recordsSnap.docs) {
-      await deleteDoc(doc(db, "records", docSnap.id));
-    }
+    // 1) Apaga todos os registros vinculados a esta equipe (em lotes)
+    await deleteRecordsByTeamInBatches(teamId);
 
     // 2) Apaga o documento da equipe
     await deleteDoc(doc(db, "teams", teamId));
 
     // 3) Atualiza cache local e interface (sem nova leitura)
     teamsCache.delete(teamId);
-    saveTeamsCacheToLocalStorage();
+    serializeTeamsCache();
     rebuildTeamSelectsFromCache();
 
     confirmModal.style.display = "none";
@@ -1499,7 +1563,6 @@ confirmYesBtn.addEventListener("click", async () => {
     showNotification("Erro ao excluir equipe.", "error");
   }
 });
-
 
 (function(){
     if (localStorage.getItem('dark') === '1') {
