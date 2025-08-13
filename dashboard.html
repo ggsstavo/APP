@@ -970,7 +970,10 @@ async function loadTeamsOnce() {
 
   // senão, lê do Firestore e popula cache/localStorage
   try {
-    const q = query(collection(db, "teams"), where("ownerUid", "==", currentUser.uid));
+    const q = query(
+  collection(db, "teams"),
+  where("ownerUid", "==", currentUser.uid),
+  where("deleted", "==", false));
     const snap = await getDocs(q);
 
     teamsCache.clear();
@@ -1157,6 +1160,7 @@ if (!detailsInput.value.trim()) {
     shift,
     members,
     ownerUid: currentUser.uid,
+    deleted: false,
   };
 
     try {
@@ -1217,24 +1221,22 @@ async function sendRecord() {
   let teamData = teamsCache.get(teamId);
 
   // Se não houver no cache, busca do Firestore só nessa situação
-  if (!teamData) {
-    try {
-      const teamDoc = await getDoc(doc(db, "teams", teamId));
-      if (!teamDoc.exists()) {
-        showNotification("Equipe selecionada não encontrada.", "warning");
-        return;
-      }
-      teamData = normalizeTeam(teamDoc.data() || {});
-      // opcional: atualiza cache local para próximas ações
-      teamsCache.set(teamId, teamData);
-      serializeTeamsCache();
-      rebuildTeamSelectsFromCache(); // opcional: atualiza selects se quiser
-    } catch (e) {
-      console.error("Erro ao buscar equipe:", e);
-      showNotification("Erro ao acessar os dados da equipe.", "error");
+  // substituição: tenta recarregar cache inteiro antes de getDoc isolado
+if (!teamData) {
+  try {
+    // recarrega todos os times do Firestore em 1 única consulta
+    await loadTeamsOnce(); // já popula teamsCache
+    teamData = teamsCache.get(teamId);
+    if (!teamData) {
+      showNotification("Equipe selecionada não encontrada.", "warning");
       return;
     }
+  } catch (e) {
+    console.error("Erro ao recarregar equipes:", e);
+    showNotification("Erro ao acessar os dados da equipe.", "error");
+    return;
   }
+}
   // -----------------------------------------------------------------------------
 
   // A partir daqui, teamData está garantido (vindo do cache ou Firestore)
@@ -1393,10 +1395,14 @@ async function loadRecords(initial = false) {
 
 const tableWrapper = document.querySelector("#recordsTable").parentElement;
 
+let scrollTimeout;
 tableWrapper.addEventListener("scroll", () => {
-  if (tableWrapper.scrollTop + tableWrapper.clientHeight >= tableWrapper.scrollHeight - 50) {
-    loadRecords(); // próximo lote
-  }
+  clearTimeout(scrollTimeout);
+  scrollTimeout = setTimeout(() => {
+    if (tableWrapper.scrollTop + tableWrapper.clientHeight >= tableWrapper.scrollHeight - 50) {
+      loadRecords(); // próximo lote
+    }
+  }, 120); // 120ms debounce (ajuste se quiser)
 });
 
 // Menu hamburger
@@ -1460,14 +1466,21 @@ editTeamBtn.addEventListener("click", async () => {
   }
 
   let teamData = teamsCache.get(teamId);
+// substituição: tenta recarregar cache inteiro antes de getDoc isolado
 if (!teamData) {
-  // só busca no Firestore se não tiver no cache
-  const teamDoc = await getDoc(doc(db, "teams", teamId));
-  if (!teamDoc.exists()) {
-    showNotification("Equipe selecionada não encontrada.", "warning");
+  try {
+    // recarrega todos os times do Firestore em 1 única consulta
+    await loadTeamsOnce(); // já popula teamsCache
+    teamData = teamsCache.get(teamId);
+    if (!teamData) {
+      showNotification("Equipe selecionada não encontrada.", "warning");
+      return;
+    }
+  } catch (e) {
+    console.error("Erro ao recarregar equipes:", e);
+    showNotification("Erro ao acessar os dados da equipe.", "error");
     return;
   }
-  teamData = normalizeTeam(teamDoc.data() || {});
 }
 
   // agora preenche o formulário com teamData (sempre definido aqui)
@@ -1542,25 +1555,26 @@ confirmYesBtn.addEventListener("click", async () => {
   }
 
   try {
-    // 1) Apaga todos os registros vinculados a esta equipe (em lotes)
-    await deleteRecordsByTeamInBatches(teamId);
+    // marca o documento como deletado (merge para não sobrescrever os campos)
+    await setDoc(doc(db, "teams", teamId), {
+      deleted: true,
+      deletedAt: Timestamp.now(),
+      deletedBy: currentUser.uid
+    }, { merge: true });
 
-    // 2) Apaga o documento da equipe
-    await deleteDoc(doc(db, "teams", teamId));
-
-    // 3) Atualiza cache local e interface (sem nova leitura)
-    teamsCache.delete(teamId);
+    // atualiza cache local e interface
+    teamsCache.delete(teamId); // opcional: se quiser remover imediatamente
     serializeTeamsCache();
     rebuildTeamSelectsFromCache();
 
     confirmModal.style.display = "none";
     clearTeamForm();
-    showNotification("Equipe apagado com sucesso!", "success");
+    showNotification("Equipe marcada como apagada com sucesso!", "success");
 
   } catch (e) {
     console.error(e);
     confirmModal.style.display = "none";
-    showNotification("Erro ao excluir equipe.", "error");
+    showNotification("Erro ao marcar equipe como apagada.", "error");
   }
 });
 
