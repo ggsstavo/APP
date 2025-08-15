@@ -587,7 +587,7 @@ input[type="date"].select-like {
   </a>
 </li>
   <li>
-    <a href="#">
+    <a href="../configurações/configuracao.html">
       <i class="fas fa-cog"></i> Configurações
     </a>
   </li>
@@ -806,48 +806,235 @@ function renderPreview() {
   }).join('');
 }
 
-downloadBtn.addEventListener('click', () => {
-  // Verifica data selecionada
-  if (!dateSelect || !dateSelect.value) {
+// ------ INÍCIO DO BLOCO SUBSTITUTO (cole aqui) ------
+
+// caminho do template (imagem do formulário). Ajuste se necessário.
+// ------ INÍCIO DO BLOCO SUBSTITUTO ------
+
+// caminho do template (ajuste o nome/rota se necessário)
+const templateUrl = './diario.jpg';
+
+// helper: carrega a imagem como dataURL (com fallback)
+async function loadImageAsDataURL(url) {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const blob = await res.blob();
+    return await new Promise((resolve, reject) => {
+      const fr = new FileReader();
+      fr.onload = () => resolve(fr.result);
+      fr.onerror = reject;
+      fr.readAsDataURL(blob);
+    });
+  } catch (err) {
+    console.warn('loadImageAsDataURL falhou:', err);
+    return null;
+  }
+}
+
+// função que gera o PDF a partir do objeto `daily` (mantive a lógica anterior)
+async function generatePdfFromDaily(daily, { debugMode = false } = {}) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+
+  // tenta carregar a imagem (se não existir, imgData será null e usamos fallback)
+  const imgData = await loadImageAsDataURL(templateUrl);
+
+  // valores calibrados (ajuste se necessário)
+  const marginLeft = 45;
+  const headerY = 75;            // topo onde escreve Galpão / Data
+  const yTableStart = 135;       // início da lista de matrícula+nome
+  const rowHeight = 18;          // altura "virtual" por linha
+  const rowsPerColumn = 20;      // quantas linhas cabem por coluna
+  const xLeft = marginLeft + 8;  // coluna esquerda (início do texto)
+  const xRight = (pageW / 2) + 8; // coluna direita (início do texto)
+  const matriculaWidth = 52;     // largura reservada para matrícula
+  const nameColPadding = 8;      // espaçamento entre matrícula e nome
+  const nameColWidth = (pageW / 2) - marginLeft - matriculaWidth - 32; // largura para o nome dentro da coluna
+  const yObsStart = 520;         // onde começa as observações diárias
+  const obsLineHeight = 14;
+
+  function drawTemplate() {
+    if (imgData) {
+      try {
+        doc.addImage(imgData, 'JPEG', 0, 0, pageW, pageH);
+      } catch (e) {
+        // fallback: fundo branco
+        doc.setFillColor(255,255,255);
+        doc.rect(0,0,pageW,pageH,'F');
+      }
+    } else {
+      // sem template: fundo branco
+      doc.setFillColor(255,255,255);
+      doc.rect(0,0,pageW,pageH,'F');
+    }
+  }
+
+  // formatação base
+  doc.setFont('Helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.setTextColor(0,0,0);
+
+  // primeira página
+  drawTemplate();
+  doc.setFontSize(11);
+  doc.text(`${daily.galpao || '-'}`, marginLeft, headerY);
+  doc.text(`${daily.dateOnly || '-'}`, pageW - marginLeft - 120, headerY);
+  doc.setFontSize(10);
+
+  // tabela de matrícula + nome em duas colunas
+  let col = 0, rowIndex = 0, y = yTableStart;
+  for (let i=0; i < (daily.members || []).length; i++){
+    const m = daily.members[i];
+    const targetX = (col === 0) ? xLeft : xRight;
+    const matriculaText = String(m.matricula || '-');
+    const nameText = String(m.name || '-');
+
+    // Faz quebra no nome se necessário
+    const nameLines = doc.splitTextToSize(nameText, nameColWidth);
+
+    // Se não cabe mais no espaço vertical, passa coluna/página
+    if (rowIndex >= rowsPerColumn) {
+      if (col === 0) { col = 1; rowIndex = 0; y = yTableStart; }
+      else {
+        doc.addPage();
+        drawTemplate();
+        doc.setFontSize(11);
+        doc.text(`Galpão: ${daily.galpao || '-'}`, marginLeft, headerY);
+        doc.text(`Data: ${daily.dateOnly || '-'}`, pageW - marginLeft - 120, headerY);
+        doc.setFontSize(10);
+        if (debugMode) drawDebugGuides();
+        col = 0; rowIndex = 0; y = yTableStart;
+      }
+    }
+
+    // altura reservada para a linha (mesmo que nameLines tenha 2+ linhas, ocupamos rowHeight)
+    const baseY = y;
+
+    // escrever matrícula (horizontalmente alinhada)
+    doc.setFontSize(10);
+    doc.text(matriculaText, targetX, baseY + 3); // +3 para ajuste vertical fino
+
+    // escrever nome (pode quebrar em várias linhas dentro da célula)
+    // a coordenada x do nome é targetX + matriculaWidth + padding
+    const nameX = targetX + matriculaWidth + nameColPadding;
+    for (let li = 0; li < nameLines.length; li++) {
+      const lineY = baseY + (li * (rowHeight / Math.max(1, nameLines.length)));
+      doc.text(String(nameLines[li]), nameX, lineY + 3);
+    }
+
+    // avança linha
+    y += rowHeight;
+    rowIndex++;
+  }
+
+  // OBSERVAÇÕES DIÁRIAS (nome sem matrícula + detalhes)
+  let currentYObs = yObsStart;
+  doc.setFontSize(10);
+  for (const m of (daily.members || [])) {
+    const parts = [m.name || '-'];
+    const details = [];
+    if (m.local) details.push(m.local);
+    if (m.blockShift) details.push(`Bloco: ${m.blockShift}`);
+    if (m.vesselShift) details.push(`Embarcação: ${m.vesselShift}`);
+    if (m.details) details.push(m.details);
+    if (m.obs) details.push(`Obs: ${m.obs}`);
+    if (details.length) parts.push(details.join(' — '));
+    const wrapped = doc.splitTextToSize(parts.join(' : '), pageW - marginLeft * 2);
+    const requiredHeight = wrapped.length * obsLineHeight;
+
+    if (currentYObs + requiredHeight > pageH - 40) {
+      doc.addPage();
+      drawTemplate();
+      doc.setFontSize(11);
+      doc.text(`${daily.galpao || '-'}`, marginLeft, headerY);
+      doc.text(`${daily.dateOnly || '-'}`, pageW - marginLeft - 120, headerY);
+      doc.setFontSize(10);
+      currentYObs = yObsStart;
+    }
+
+    doc.text(wrapped, marginLeft, currentYObs);
+    currentYObs += requiredHeight + 6;
+  }
+
+  const fileName = `diario_${daily.teamId || 'team'}_${daily.dateOnly || 'date'}.pdf`;
+  doc.save(fileName);
+}
+
+// Função simplificada: não tenta ler dailyRecords, monta daily a partir de currentRecords
+async function downloadDailyPdf(teamId, dateOnly, options = { debugMode: false }) {
+  if (!teamId || !dateOnly) {
+    if (typeof showNotification === 'function') showNotification('Selecione equipe e data antes de baixar.', 'warning');
+    else alert('Selecione equipe e data antes de baixar.');
+    return;
+  }
+
+  // currentRecords deve estar populado por fetchRecords() — se quiser garantir, chame fetchRecords() antes de invocar aqui
+  const members = (currentRecords || []).map(r => ({
+    name: r.name || '',
+    matricula: r.memberMatricula || r.matricula || '',
+    local: r.local || '',
+    galpao: r.galpao || '',
+    details: r.details || '',
+    blockShift: r.blockShift || r.block || '',
+    vesselShift: r.vesselShift || r.vessel || '',
+    obs: (r.obs || r.observacoes || r.comentario || '') || ''
+  }));
+
+  if (!members.length) {
+    if (typeof showNotification === 'function') showNotification('Nenhum registro encontrado para essa equipe/data.', 'info');
+    return;
+  }
+
+  const daily = {
+    teamId,
+    teamName: (document.getElementById('teamSelect').selectedOptions[0] || {}).text || '',
+    dateOnly,
+    galpao: (members[0] && members[0].galpao) || '',
+    members
+  };
+
+  await generatePdfFromDaily(daily, { debugMode: options.debugMode });
+}
+
+// listener do botão: garante que fetchRecords seja executado antes de gerar o PDF
+const downloadButton = document.getElementById('downloadBtn');
+downloadButton.addEventListener('click', async () => {
+  const teamId = (document.getElementById('teamSelect') || {}).value;
+  const dateOnly = (document.getElementById('dateSelect') || {}).value; // YYYY-MM-DD
+
+  if (!teamId) {
+    showNotification('Por favor selecione uma equipe antes de baixar o PDF.', 'warning');
+    return;
+  }
+  if (!dateOnly) {
     showNotification('Por favor selecione uma data antes de baixar o PDF.', 'warning');
     return;
   }
-  if (!currentTeamId || !currentRecords.length) return;
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ unit: 'pt', format: 'letter' });
-  doc.setFontSize(18);
-  doc.setTextColor('#c0392b');
-  doc.text('Diário de Obra', 40, 40);
-  let y = 60;
-  doc.setFontSize(12);
-  doc.setTextColor('#333');
 
-  currentRecords.forEach(r => {
-    const date = r.date && r.date.seconds ? new Date(r.date.seconds * 1000).toLocaleString() : (r.date || '-');
-    const obs = getObservation(r);
-    let textBlock = 
-`Data: ${date}
-Nome: ${r.name || '-'} (Matrícula: ${r.memberMatricula || '-'})
-Local: ${r.local || '-'}
-Galpão: ${r.galpao || '-'}
-Detalhes: ${r.details || '-'}
-Bloco: ${r.blockShift || '-'}
-Embarcação: ${r.vesselShift || '-'}
-`;
-    if (obs) textBlock += `Obs: ${obs}\n\n`;
+  // Atualiza currentRecords de acordo com team+date (fetchRecords já usa dateSelect)
+  await fetchRecords();
 
-    const lines = doc.splitTextToSize(textBlock, 500);
-    const lineHeight = 14;
-    if (y + lines.length * lineHeight > doc.internal.pageSize.height - 40) {
-      doc.addPage();
-      y = 40;
-    }
-    doc.text(lines, 40, y);
-    y += lines.length * lineHeight + 10;
-  });
-
-  doc.save('diario_de_obra.pdf');
+  // Gera o PDF a partir do currentRecords
+  await downloadDailyPdf(teamId, dateOnly, { debugMode: false });
 });
+
+// ------ FIM DO BLOCO SUBSTITUTO ------
+
+// substitui o listener antigo do botão de download
+// --- Listener correto para o botão de download (não clonar/substituir o elemento) ---
+
+// Garante que o botão visível seja habilitado/desabilitado corretamente
+teamSelect.addEventListener('change', () => {
+  currentTeamId = teamSelect.value;
+  downloadButton.disabled = !currentTeamId;
+  notification.style.display = currentTeamId ? 'none' : 'block';
+  fetchRecords();
+});
+
+// ------ FIM DO BLOCO SUBSTITUTO ------
 
     // Menu hamburger
 const toggleMenuBtn = document.getElementById("toggleMenu");
