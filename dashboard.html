@@ -564,6 +564,41 @@
   }
 }
 
+.absentLabel input[type="checkbox"] {
+  appearance: none;
+  width: 10px;
+  height: 10px;
+  border: 2px solid #9ca3af;
+  border-radius: 4px;
+  background-color: white;
+  position: relative;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
+.absentLabel input[type="checkbox"]::after {
+  content: "";
+  position: absolute;
+  top: 1px;
+  left: 5px;
+  width: 4px;
+  height: 8px;
+  border-right: 2px solid white;
+  border-bottom: 2px solid white;
+  transform: rotate(45deg);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.absentLabel input[type="checkbox"]:checked {
+  background-color: var(--accent); /* Cor do checkbox marcado */
+  border-color: var(--accent-hover);
+}
+
+.absentLabel input[type="checkbox"]:checked::after {
+  opacity: 1;
+}
 
   </style>
 </head>
@@ -795,7 +830,10 @@ function createShiftRowForRecord({
   observations = "",
   local = "",
   customLocal = "",
-  details = ""
+  details = "",
+  absent = false,
+  abono = 'VERIFICAR',
+  absenceReason = ''
 }) {
 
   const div = document.createElement("div");
@@ -804,21 +842,41 @@ function createShiftRowForRecord({
 
   const finalLocal = local === "Outros" && customLocal ? customLocal : local;
 
-  // usa escapeHtml para evitar quebra/XSS
-  div.innerHTML = `
-    <input type="text" class="shiftName" value="${escapeHtml(name)}" readonly />
-    <input type="text" class="shiftMatricula" value="${escapeHtml(memberMatricula)}" readonly />
-    <input type="text" class="shiftBlock" value="${escapeHtml(block)}" placeholder="Bloco" />
-    <input type="text" class="shiftVessel" value="${escapeHtml(vessel)}" placeholder="Embarcação" />
-    <select class="shiftTurno">
-      <option value="">Selecione Turno</option>
-      <option value="Diurno" ${shift === "Diurno" ? "selected" : ""}>Diurno</option>
-      <option value="Noturno" ${shift === "Noturno" ? "selected" : ""}>Noturno</option>
-    </select>
-    <input type="text" class="shiftLocal" value="${escapeHtml(finalLocal)}" readonly />
-    <input type="hidden" class="shiftDetails" value="${escapeHtml(details)}" />
-    <input type="text" class="shiftObservations" placeholder="Observações" value="${escapeHtml(observations)}" />
-  `;
+  if (absent) {
+    // linha simplificada para ausência: só nome/matrícula + campo abono e motivo
+    div.innerHTML = `
+      <input type="text" class="shiftName" value="${escapeHtml(name)}" readonly />
+      <input type="text" class="shiftMatricula" value="${escapeHtml(memberMatricula)}" readonly />
+      <input type="hidden" class="shiftBlock" value="${escapeHtml(block)}" />
+      <input type="hidden" class="shiftVessel" value="${escapeHtml(vessel)}" />
+      <input type="hidden" class="shiftTurno" value="FALTA" />
+      <input type="hidden" class="shiftLocal" value="${escapeHtml(finalLocal)}" />
+      <input type="hidden" class="shiftDetails" value="${escapeHtml(details)}" />
+      <textarea class="shiftAbsenceReason" placeholder="Motivo da falta" rows="2" aria-label="Motivo da falta">${escapeHtml(absenceReason)}</textarea>
+<select class="shiftAbono" aria-label="Abono DSR">
+  <option value="VERIFICAR" ${abono === 'VERIFICAR' ? 'selected' : ''}>VERIFICAR</option>
+  <option value="SIM" ${abono === 'SIM' ? 'selected' : ''}>SIM</option>
+  <option value="NAO" ${abono === 'NAO' ? 'selected' : ''}>NÃO</option>
+</select>
+    `;
+  } else {
+    // linha normal (presente)
+    div.innerHTML = `
+      <input type="text" class="shiftName" value="${escapeHtml(name)}" readonly />
+      <input type="text" class="shiftMatricula" value="${escapeHtml(memberMatricula)}" readonly />
+      <input type="text" class="shiftBlock" value="${escapeHtml(block)}" placeholder="Bloco" />
+      <input type="text" class="shiftVessel" value="${escapeHtml(vessel)}" placeholder="Embarcação" />
+      <select class="shiftTurno">
+        <option value="">Selecione Turno</option>
+        <option value="Diurno" ${shift === "Diurno" ? "selected" : ""}>Diurno</option>
+        <option value="Noturno" ${shift === "Noturno" ? "selected" : ""}>Noturno</option>
+      </select>
+      <input type="text" class="shiftLocal" value="${escapeHtml(finalLocal)}" readonly />
+      <input type="hidden" class="shiftDetails" value="${escapeHtml(details)}" />
+      <input type="text" class="shiftObservations" placeholder="Observações" value="${escapeHtml(observations)}" />
+    `;
+  }
+
   return div;
 }
 
@@ -860,7 +918,11 @@ function normalizeTeam(raw = {}) {
       vessel: m.vessel || '',
       local: m.local || '',
       customLocal: m.customLocal || '',
-      details: m.details || ''
+      details: m.details || '',
+      // novos campos para falta/abono:
+      absent: !!m.absent, // true se marcado como falta
+      abono: m.abono || 'VERIFICAR', // VERIFICAR|SIM|NÃO
+      absenceReason: m.absenceReason || '' // texto explicativo da falta
     }))
   };
 }
@@ -875,14 +937,18 @@ function serializeTeamsCache() {
       shift: value.shift || '',
       ownerUid: value.ownerUid || '',
       members: (value.members || []).map(m => ({
-        name: m.name || '',
-        matricula: m.matricula || '',
-        block: m.block || '',
-        vessel: m.vessel || '',
-        local: m.local || '',
-        customLocal: m.customLocal || '',
-        details: m.details || ''
-      }))
+  name: m.name || '',
+  matricula: m.matricula || '',
+  block: m.block || '',
+  vessel: m.vessel || '',
+  local: m.local || '',
+  customLocal: m.customLocal || '',
+  details: m.details || '',
+  absent: !!m.absent,
+  abono: m.abono || 'VERIFICAR',
+  absenceReason: m.absenceReason || ''
+}))
+
     };
     entries.push([key, safeValue]);
   });
@@ -1045,30 +1111,37 @@ document.getElementById("teamSelect").addEventListener("change", function () {
   const frag = document.createDocumentFragment();
   for (const member of teamData.members) {
     const row = createShiftRowForRecord({
-      name: member.name,
-      memberMatricula: member.matricula,
-      block: member.block || "",
-      vessel: member.vessel || "",
-      shift: turnoPadrao,
-      observations: "",
-      local: member.local || "",
-      customLocal: member.customLocal || "",
-      details: member.details || ""
-    });
+  name: member.name,
+  memberMatricula: member.matricula,
+  block: member.block || "",
+  vessel: member.vessel || "",
+  shift: turnoPadrao,
+  observations: "",
+  local: member.local || "",
+  customLocal: member.customLocal || "",
+  details: member.details || "",
+  absent: !!member.absent,
+  abono: member.abono || 'VERIFICAR',
+  absenceReason: member.absenceReason || ''
+});
     frag.appendChild(row);
   }
   shiftsContainer.appendChild(frag);
 });
 
 
-function createMemberRow(member = { name: "", matricula: "", block: "", vessel: "", local: "", customLocal: "", details: "" }) {
+function createMemberRow(member = { name: "", matricula: "", block: "", vessel: "", local: "", customLocal: "", details: "", absent: false, abono: 'VERIFICAR', absenceReason: '' }) {
   const div = document.createElement("div");
   div.className = "form-row";
   div.style.position = "relative";
 
+  // gera um id curto único para inputs radio/labels se necessário (não usado aqui, mas útil)
+  const uid = 'm' + Math.random().toString(36).slice(2,8);
+
   div.innerHTML = `
     <input type="text" class="memberName" placeholder="Nome" value="${escapeHtml(member.name)}" />
     <input type="text" class="memberMatricula" placeholder="Matrícula" value="${escapeHtml(member.matricula)}" />
+
     <input type="text" class="memberBlock" placeholder="Bloco" value="${escapeHtml(member.block)}" />
     <input type="text" class="memberVessel" placeholder="Embarcação" value="${escapeHtml(member.vessel)}" />
     <select class="memberLocalSelect">
@@ -1079,12 +1152,30 @@ function createMemberRow(member = { name: "", matricula: "", block: "", vessel: 
       <option value="Outros" ${member.local === "Outros" ? "selected" : ""}>Outros</option>
     </select>
     <input type="text" class="memberCustomLocalInput" placeholder="Informe outro local" value="${escapeHtml(member.customLocal || '')}" style="display: none; margin-left: 5px; flex: 1;" />
-    <input type="text" class="memberDetailsInput" placeholder="Detalhes (Perfilado, Barras, Anteparas)" value="${escapeHtml(member.details || '')}" required />
+    <input type="text" class="memberDetailsInput" placeholder="Detalhes (Perfilado, Barras, Anteparas)" value="${escapeHtml(member.details || '')}" />
+
+    <!-- campos exibidos somente quando marcado como Falta -->
+    <input type="text" class="memberAbsenceReasonInput" placeholder="Motivo da falta / Observações" value="${escapeHtml(member.absenceReason || '')}" style="display:none; flex: 1;" />
+    <select class="memberAbonoSelect" style="display:none;">
+      <option value="VERIFICAR">VERIFICAR</option>
+      <option value="SIM">SIM</option>
+      <option value="NAO">NÃO</option>
+    </select>
+    <label class="absentLabel">
+      <input type="checkbox" class="memberAbsentCheckbox" ${member.absent ? 'checked' : ''}/> Falta
+    </label>
+
     <button class="btn removeMemberBtn"><i class="fas fa-trash" style="margin-left: 5px;"></i></button>
   `;
 
+  // referências
   const localSelect = div.querySelector(".memberLocalSelect");
   const customLocalInput = div.querySelector(".memberCustomLocalInput");
+  const absentCheckbox = div.querySelector(".memberAbsentCheckbox");
+  const absenceReasonInput = div.querySelector(".memberAbsenceReasonInput");
+  const abonoSelect = div.querySelector(".memberAbonoSelect");
+  const detailsInput = div.querySelector(".memberDetailsInput");
+  const removeBtn = div.querySelector(".removeMemberBtn");
 
   function toggleCustomLocal() {
     if (localSelect.value === "Outros") {
@@ -1094,8 +1185,31 @@ function createMemberRow(member = { name: "", matricula: "", block: "", vessel: 
       customLocalInput.value = "";
     }
   }
+
+  function toggleAbsentMode() {
+  const isAbsent = absentCheckbox.checked;
+  const toToggle = [div.querySelector(".memberBlock"), div.querySelector(".memberVessel"), localSelect, customLocalInput, detailsInput];
+  if (isAbsent) {
+    toToggle.forEach(el => { if (el) el.style.display = "none"; });
+    absenceReasonInput.style.display = "block";
+    abonoSelect.style.display = "inline-block";
+    // NÃO desabilitar o botão de remover — apenas removemos a obrigatoriedade visual
+    if (member.abono) abonoSelect.value = member.abono;
+    setTimeout(() => { absenceReasonInput.focus(); }, 50);
+  } else {
+    toToggle.forEach(el => { if (el) el.style.display = ""; });
+    absenceReasonInput.style.display = "none";
+    abonoSelect.style.display = "none";
+  }
+}
+
+  // eventos
   localSelect.addEventListener("change", toggleCustomLocal);
+  absentCheckbox.addEventListener("change", toggleAbsentMode);
+
+  // inicializa visibilidade conforme member.absent
   toggleCustomLocal();
+  if (member.absent) toggleAbsentMode();
 
   div.querySelector(".removeMemberBtn").onclick = () => div.remove();
   return div;
@@ -1125,30 +1239,36 @@ async function saveTeam() {
   const members = [];
   const memberRows = membersContainer.querySelectorAll(".form-row");
   for (const row of memberRows) {
-    const nameInput = row.querySelector(".memberName");
-    const matriculaInput = row.querySelector(".memberMatricula");
-    const blockInput = row.querySelector(".memberBlock");
-    const vesselInput = row.querySelector(".memberVessel");
-    if (!nameInput.value.trim() || !matriculaInput.value.trim()) {
-      showNotification("Todos os membros devem ter nome e matrícula preenchidos.", "warning");
-      return;
-    }
-    const detailsInput = row.querySelector(".memberDetailsInput");
+  const nameInput = row.querySelector(".memberName");
+  const matriculaInput = row.querySelector(".memberMatricula");
+  const blockInput = row.querySelector(".memberBlock");
+  const vesselInput = row.querySelector(".memberVessel");
+  if (!nameInput.value.trim() || !matriculaInput.value.trim()) {
+    showNotification("Todos os membros devem ter nome e matrícula preenchidos.", "warning");
+    return;
+  }
 
-// Validação de campo obrigatório
-if (!detailsInput.value.trim()) {
-  showNotification("O campo Detalhes é obrigatório para todos os membros.", "warning");
-  return;
-}
-    members.push({
-      name: nameInput.value.trim(),
-      matricula: matriculaInput.value.trim(),
-      block: blockInput.value.trim(),
-      vessel: vesselInput.value.trim(),
-      local: row.querySelector(".memberLocalSelect").value,
-      customLocal: row.querySelector(".memberCustomLocalInput").value.trim(),
-      details:   detailsInput.value.trim()
-    });
+  const detailsInput = row.querySelector(".memberDetailsInput");
+  const isAbsent = !!row.querySelector(".memberAbsentCheckbox")?.checked;
+
+  // Validação de campo obrigatório: só exige 'Detalhes' quando o membro NÃO está ausente
+  if (!isAbsent && !detailsInput.value.trim()) {
+    showNotification("O campo Detalhes é obrigatório para membros presentes.", "warning");
+    return;
+  }
+
+  members.push({
+    name: nameInput.value.trim(),
+    matricula: matriculaInput.value.trim(),
+    block: blockInput.value.trim(),
+    vessel: vesselInput.value.trim(),
+    local: row.querySelector(".memberLocalSelect").value,
+    customLocal: row.querySelector(".memberCustomLocalInput").value.trim(),
+    details: detailsInput.value.trim(),
+    absent: isAbsent,
+    abono: (row.querySelector(".memberAbonoSelect")?.value) || 'VERIFICAR',
+    absenceReason: (row.querySelector(".memberAbsenceReasonInput")?.value || '').trim()
+  });
   }
   if (members.length === 0) {
     showNotification("Adicione pelo menos um membro na equipe.", "warning");
@@ -1249,44 +1369,58 @@ if (!teamData) {
 
   const records = [];
   for (const row of shiftRows) {
-    const name = row.querySelector(".shiftName").value.trim();
-    const memberMatricula = row.querySelector(".shiftMatricula").value.trim();
-    const vesselShift = row.querySelector(".shiftVessel").value.trim();
-    const blockShift = row.querySelector(".shiftBlock").value.trim();
-    const shift = row.querySelector(".shiftTurno").value;
-    const observations = row.querySelector(".shiftObservations").value.trim();
-    const details      = row.querySelector(".shiftDetails").value;
-    const memberOriginal = teamData.members.find(
-  m => m.name === name && m.matricula === memberMatricula
-);
+  const name = row.querySelector(".shiftName").value.trim();
+  const memberMatricula = row.querySelector(".shiftMatricula").value.trim();
+  const vesselShift = row.querySelector(".shiftVessel")?.value?.trim() || "";
+  const blockShift = row.querySelector(".shiftBlock")?.value?.trim() || "";
+  const shift = row.querySelector(".shiftTurno")?.value || ""; // se ausência, vale "FALTA"
+  const observations = row.querySelector(".shiftObservations")?.value?.trim() || "";
+  const details      = row.querySelector(".shiftDetails")?.value || "";
+  // detecta ausência: presença do select de abono na linha (ou turno explicitamente "FALTA")
+const hasAbonoSelect = !!row.querySelector(".shiftAbono");
+const turnoValue = row.querySelector(".shiftTurno")?.value || "";
+const isAbsent = hasAbonoSelect || turnoValue === 'FALTA';
 
-// Pegar o local correto
-const local = (memberOriginal?.local === "Outros")
-  ? memberOriginal?.customLocal
-  : memberOriginal?.local || "";
+const absenceReason = row.querySelector(".shiftAbsenceReason")?.value?.trim() || "";
+const abono = row.querySelector(".shiftAbono")?.value || 'VERIFICAR';
 
-    if (!shift) {
-      showNotification(`Preencha o turno do membro: ${name}`);
-      return;
-    }
-    records.push({
-      date: Timestamp.now(),
-      galpao,
-      teamId,
-      teamName,
-      userId: currentUser.uid,
-      userName: currentUser.displayName || currentUser.email,
-      name,
-      memberMatricula,
-      vesselShift,
-      blockShift,
-      shift,
-      observations,
-      local,
-      details,
-      createdBy: currentUser.uid,
-    });
+  const memberOriginal = teamData.members.find(
+    m => m.name === name && m.matricula === memberMatricula
+  );
+
+  // determinar local
+  const local = (memberOriginal?.local === "Outros")
+    ? memberOriginal?.customLocal
+    : memberOriginal?.local || "";
+
+  // Se não for ausência, exige turno
+  if (!isAbsent && !shift) {
+    showNotification(`Preencha o turno do membro: ${name}`);
+    return;
   }
+
+  records.push({
+    date: Timestamp.fromDate(new Date(document.getElementById('dateInput').value)), // use data selecionada (substituir conforme implementação anterior)
+    galpao,
+    teamId,
+    teamName,
+    userId: currentUser.uid,
+    userName: currentUser.displayName || currentUser.email,
+    name,
+    memberMatricula,
+    vesselShift,
+    blockShift,
+    shift: isAbsent ? 'FALTA' : shift,
+    observations,
+    local,
+    details,
+    // novos campos para ausência
+    absent: isAbsent,
+    absenceReason,
+    abono,
+    createdBy: currentUser.uid,
+  });
+}
 
   try {
   const BATCH_LIMIT = 400;
