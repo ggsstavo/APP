@@ -600,6 +600,56 @@
   opacity: 1;
 }
 
+/* wrapper padrão: escondido e pronto para exibir em linha (label ao lado do select) */
+.form-row .abonar-wrap {
+  display: none;           /* escondido por padrão */
+  flex-direction: row;     /* desktop: lado a lado */
+  align-items: center;
+  gap: 8px;
+}
+
+/* quando precisar mostrar, ativamos a classe .visible */
+.form-row .abonar-wrap.visible {
+  display: flex !important; /* !important para garantir sobreposição de inline styles */
+}
+
+/* mobile: empilha verticalmente (texto em cima do select) */
+@media (max-width: 600px) {
+  .form-row .abonar-wrap,
+  .form-row .abonar-wrap.visible {
+    flex-direction: column;    /* empilha label em cima do select */
+    align-items: flex-start;
+    gap: 4px;
+  }
+  .abonar-dsr {
+    margin: 0;
+    font-size: 13px;
+  }
+.form-row .abonar-wrap select {
+    width: 100% !important;     /* ocupa toda a largura do .form-row */
+    min-width: 0;               /* remove min-width que impediria encolher em telas pequenas */
+    flex: 1 1 auto;
+  }
+
+  /* opcional: uniformizar paddings/margens com os outros inputs */
+  .form-row .abonar-wrap select,
+  .form-row input,
+  .form-row select,
+  .form-row textarea {
+    box-sizing: border-box;
+  }
+
+}
+
+/* estilo do label (texto) */
+.abonar-dsr {
+  display: block;
+  font-size: 13px;
+  color: var(--text);
+  margin-right: 4px; /* quando em row, cria espaçamento entre label e select */
+}
+
+
   </style>
 </head>
 <body>
@@ -840,10 +890,10 @@ function createShiftRowForRecord({
   div.className = "form-row";
   div.style.position = "relative";
 
+  const uid = 's' + Math.random().toString(36).slice(2,8);
   const finalLocal = local === "Outros" && customLocal ? customLocal : local;
 
   if (absent) {
-    // linha simplificada para ausência: só nome/matrícula + campo abono e motivo
     div.innerHTML = `
       <input type="text" class="shiftName" value="${escapeHtml(name)}" readonly />
       <input type="text" class="shiftMatricula" value="${escapeHtml(memberMatricula)}" readonly />
@@ -853,14 +903,20 @@ function createShiftRowForRecord({
       <input type="hidden" class="shiftLocal" value="${escapeHtml(finalLocal)}" />
       <input type="hidden" class="shiftDetails" value="${escapeHtml(details)}" />
       <textarea class="shiftAbsenceReason" placeholder="Motivo da falta" rows="2" aria-label="Motivo da falta">${escapeHtml(absenceReason)}</textarea>
-<select class="shiftAbono" aria-label="Abono DSR">
-  <option value="VERIFICAR" ${abono === 'VERIFICAR' ? 'selected' : ''}>VERIFICAR</option>
-  <option value="SIM" ${abono === 'SIM' ? 'selected' : ''}>SIM</option>
-  <option value="NAO" ${abono === 'NAO' ? 'selected' : ''}>NÃO</option>
-</select>
+
+      <div class="abonar-wrap">
+        <label class="abonar-dsr" for="shiftAbono-${uid}">Abonar DSR</label>
+        <select id="shiftAbono-${uid}" class="shiftAbono">
+          <option value="VERIFICAR" ${abono === 'VERIFICAR' ? 'selected' : ''}>VERIFICAR</option>
+          <option value="SIM" ${abono === 'SIM' ? 'selected' : ''}>SIM</option>
+          <option value="NAO" ${abono === 'NAO' ? 'selected' : ''}>NÃO</option>
+        </select>
+      </div>
     `;
+    // mostra o wrapper (se for falta)
+    const abWrap = div.querySelector('.abonar-wrap');
+    if (abWrap) abWrap.classList.add('visible');
   } else {
-    // linha normal (presente)
     div.innerHTML = `
       <input type="text" class="shiftName" value="${escapeHtml(name)}" readonly />
       <input type="text" class="shiftMatricula" value="${escapeHtml(memberMatricula)}" readonly />
@@ -1135,7 +1191,6 @@ function createMemberRow(member = { name: "", matricula: "", block: "", vessel: 
   div.className = "form-row";
   div.style.position = "relative";
 
-  // gera um id curto único para inputs radio/labels se necessário (não usado aqui, mas útil)
   const uid = 'm' + Math.random().toString(36).slice(2,8);
 
   div.innerHTML = `
@@ -1154,28 +1209,30 @@ function createMemberRow(member = { name: "", matricula: "", block: "", vessel: 
     <input type="text" class="memberCustomLocalInput" placeholder="Informe outro local" value="${escapeHtml(member.customLocal || '')}" style="display: none; margin-left: 5px; flex: 1;" />
     <input type="text" class="memberDetailsInput" placeholder="Detalhes (Perfilado, Barras, Anteparas)" value="${escapeHtml(member.details || '')}" />
 
-    <!-- campos exibidos somente quando marcado como Falta -->
     <input type="text" class="memberAbsenceReasonInput" placeholder="Motivo da falta / Observações" value="${escapeHtml(member.absenceReason || '')}" style="display:none; flex: 1;" />
-    <select class="memberAbonoSelect" style="display:none;">
-      <option value="VERIFICAR">VERIFICAR</option>
-      <option value="SIM">SIM</option>
-      <option value="NAO">NÃO</option>
-    </select>
-    <label class="absentLabel">
+    <div class="abonar-wrap">
+      <label class="abonar-dsr" for="memberAbono-${uid}">Abonar DSR</label>
+      <select id="memberAbono-${uid}" class="memberAbonoSelect">
+        <option value="VERIFICAR" ${member.abono === 'VERIFICAR' ? 'selected' : ''}>VERIFICAR</option>
+        <option value="SIM" ${member.abono === 'SIM' ? 'selected' : ''}>SIM</option>
+        <option value="NAO" ${member.abono === 'NAO' ? 'selected' : ''}>NÃO</option>
+      </select>
+    </div>
+
+    <label class="absentLabel" style="margin-left:8px;">
       <input type="checkbox" class="memberAbsentCheckbox" ${member.absent ? 'checked' : ''}/> Falta
     </label>
 
     <button class="btn removeMemberBtn"><i class="fas fa-trash" style="margin-left: 5px;"></i></button>
   `;
 
-  // referências
   const localSelect = div.querySelector(".memberLocalSelect");
   const customLocalInput = div.querySelector(".memberCustomLocalInput");
   const absentCheckbox = div.querySelector(".memberAbsentCheckbox");
   const absenceReasonInput = div.querySelector(".memberAbsenceReasonInput");
   const abonoSelect = div.querySelector(".memberAbonoSelect");
   const detailsInput = div.querySelector(".memberDetailsInput");
-  const removeBtn = div.querySelector(".removeMemberBtn");
+  const abonoWrap = div.querySelector(".abonar-wrap");
 
   function toggleCustomLocal() {
     if (localSelect.value === "Outros") {
@@ -1187,27 +1244,27 @@ function createMemberRow(member = { name: "", matricula: "", block: "", vessel: 
   }
 
   function toggleAbsentMode() {
-  const isAbsent = absentCheckbox.checked;
-  const toToggle = [div.querySelector(".memberBlock"), div.querySelector(".memberVessel"), localSelect, customLocalInput, detailsInput];
-  if (isAbsent) {
-    toToggle.forEach(el => { if (el) el.style.display = "none"; });
-    absenceReasonInput.style.display = "block";
-    abonoSelect.style.display = "inline-block";
-    // NÃO desabilitar o botão de remover — apenas removemos a obrigatoriedade visual
-    if (member.abono) abonoSelect.value = member.abono;
-    setTimeout(() => { absenceReasonInput.focus(); }, 50);
-  } else {
-    toToggle.forEach(el => { if (el) el.style.display = ""; });
-    absenceReasonInput.style.display = "none";
-    abonoSelect.style.display = "none";
-  }
-}
+    const isAbsent = absentCheckbox.checked;
+    const toToggle = [div.querySelector(".memberBlock"), div.querySelector(".memberVessel"), localSelect, customLocalInput, detailsInput];
 
-  // eventos
+    if (isAbsent) {
+      toToggle.forEach(el => { if (el) el.style.display = "none"; });
+      absenceReasonInput.style.display = "block";
+      if (abonoWrap) abonoWrap.classList.add("visible");
+      if (member.abono && abonoSelect) abonoSelect.value = member.abono;
+      setTimeout(() => { absenceReasonInput.focus(); }, 50);
+    } else {
+      toToggle.forEach(el => { if (el) el.style.display = ""; });
+      absenceReasonInput.style.display = "none";
+      if (abonoWrap) abonoWrap.classList.remove("visible");
+      if (abonoSelect) abonoSelect.value = "VERIFICAR";
+    }
+  }
+
   localSelect.addEventListener("change", toggleCustomLocal);
   absentCheckbox.addEventListener("change", toggleAbsentMode);
 
-  // inicializa visibilidade conforme member.absent
+  // inicializa
   toggleCustomLocal();
   if (member.absent) toggleAbsentMode();
 
