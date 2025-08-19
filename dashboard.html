@@ -895,41 +895,40 @@ function createShiftRowForRecord({
 
   if (absent) {
     div.innerHTML = `
-      <input type="text" class="shiftName" value="${escapeHtml(name)}" readonly />
-      <input type="text" class="shiftMatricula" value="${escapeHtml(memberMatricula)}" readonly />
-      <input type="hidden" class="shiftBlock" value="${escapeHtml(block)}" />
-      <input type="hidden" class="shiftVessel" value="${escapeHtml(vessel)}" />
-      <input type="hidden" class="shiftTurno" value="FALTA" />
-      <input type="hidden" class="shiftLocal" value="${escapeHtml(finalLocal)}" />
-      <input type="hidden" class="shiftDetails" value="${escapeHtml(details)}" />
-      <textarea class="shiftAbsenceReason" placeholder="Motivo da falta" rows="2" aria-label="Motivo da falta">${escapeHtml(absenceReason)}</textarea>
+      <input type="text" id="shiftName-${uid}" name="shiftName[]" class="shiftName" value="${escapeHtml(name)}" readonly autocomplete="off" />
+      <input type="text" id="shiftMatricula-${uid}" name="shiftMatricula[]" class="shiftMatricula" value="${escapeHtml(memberMatricula)}" readonly autocomplete="off" />
+      <input type="hidden" id="shiftBlock-${uid}" name="shiftBlock[]" class="shiftBlock" value="" />
+      <input type="hidden" id="shiftVessel-${uid}" name="shiftVessel[]" class="shiftVessel" value="" />
+      <input type="hidden" id="shiftTurno-${uid}" name="shiftTurno[]" class="shiftTurno" value="FALTA" />
+      <input type="hidden" id="shiftLocal-${uid}" name="shiftLocal[]" class="shiftLocal" value="" />
+      <input type="hidden" id="shiftDetails-${uid}" name="shiftDetails[]" class="shiftDetails" value="" />
+      <textarea id="shiftAbsenceReason-${uid}" name="shiftAbsenceReason[]" class="shiftAbsenceReason" placeholder="Motivo da falta" rows="2" aria-label="Motivo da falta">${escapeHtml(absenceReason)}</textarea>
 
       <div class="abonar-wrap">
         <label class="abonar-dsr" for="shiftAbono-${uid}">Abonar DSR</label>
-        <select id="shiftAbono-${uid}" class="shiftAbono">
+        <select id="shiftAbono-${uid}" name="shiftAbono[]" class="shiftAbono">
           <option value="VERIFICAR" ${abono === 'VERIFICAR' ? 'selected' : ''}>VERIFICAR</option>
           <option value="SIM" ${abono === 'SIM' ? 'selected' : ''}>SIM</option>
           <option value="NAO" ${abono === 'NAO' ? 'selected' : ''}>NÃO</option>
         </select>
       </div>
     `;
-    // mostra o wrapper (se for falta)
     const abWrap = div.querySelector('.abonar-wrap');
     if (abWrap) abWrap.classList.add('visible');
   } else {
     div.innerHTML = `
-      <input type="text" class="shiftName" value="${escapeHtml(name)}" readonly />
-      <input type="text" class="shiftMatricula" value="${escapeHtml(memberMatricula)}" readonly />
-      <input type="text" class="shiftBlock" value="${escapeHtml(block)}" placeholder="Bloco" />
-      <input type="text" class="shiftVessel" value="${escapeHtml(vessel)}" placeholder="Embarcação" />
-      <select class="shiftTurno">
+      <input type="text" id="shiftName-${uid}" name="shiftName[]" class="shiftName" value="${escapeHtml(name)}" readonly autocomplete="off" />
+      <input type="text" id="shiftMatricula-${uid}" name="shiftMatricula[]" class="shiftMatricula" value="${escapeHtml(memberMatricula)}" readonly autocomplete="off" />
+      <input type="text" id="shiftBlock-${uid}" name="shiftBlock[]" class="shiftBlock" value="${escapeHtml(block)}" placeholder="Bloco" autocomplete="off" />
+      <input type="text" id="shiftVessel-${uid}" name="shiftVessel[]" class="shiftVessel" value="${escapeHtml(vessel)}" placeholder="Embarcação" autocomplete="off" />
+      <select id="shiftTurno-${uid}" name="shiftTurno[]" class="shiftTurno">
         <option value="">Selecione Turno</option>
         <option value="Diurno" ${shift === "Diurno" ? "selected" : ""}>Diurno</option>
         <option value="Noturno" ${shift === "Noturno" ? "selected" : ""}>Noturno</option>
       </select>
-      <input type="text" class="shiftLocal" value="${escapeHtml(finalLocal)}" readonly />
-      <input type="hidden" class="shiftDetails" value="${escapeHtml(details)}" />
-      <input type="text" class="shiftObservations" placeholder="Observações" value="${escapeHtml(observations)}" />
+      <input type="text" id="shiftLocal-${uid}" name="shiftLocal[]" class="shiftLocal" value="${escapeHtml(finalLocal)}" readonly autocomplete="off" />
+      <input type="hidden" id="shiftDetails-${uid}" name="shiftDetails[]" class="shiftDetails" value="${escapeHtml(details)}" />
+      <input type="text" id="shiftObservations-${uid}" name="shiftObservations[]" class="shiftObservations" placeholder="Observações" value="${escapeHtml(observations)}" autocomplete="off" />
     `;
   }
 
@@ -1194,25 +1193,25 @@ function createMemberRow(member = { name: "", matricula: "", block: "", vessel: 
   const uid = 'm' + Math.random().toString(36).slice(2,8);
 
   div.innerHTML = `
-    <input type="text" class="memberName" placeholder="Nome" value="${escapeHtml(member.name)}" />
-    <input type="text" class="memberMatricula" placeholder="Matrícula" value="${escapeHtml(member.matricula)}" />
+    <input type="text" id="memberName-${uid}" name="memberName[]" class="memberName" placeholder="Nome" value="${escapeHtml(member.name)}" autocomplete="off" />
+    <input type="text" id="memberMatricula-${uid}" name="memberMatricula[]" class="memberMatricula" placeholder="Matrícula" value="${escapeHtml(member.matricula)}" autocomplete="off" />
 
-    <input type="text" class="memberBlock" placeholder="Bloco" value="${escapeHtml(member.block)}" />
-    <input type="text" class="memberVessel" placeholder="Embarcação" value="${escapeHtml(member.vessel)}" />
-    <select class="memberLocalSelect">
+    <input type="text" id="memberBlock-${uid}" name="memberBlock[]" class="memberBlock" placeholder="Bloco" value="${escapeHtml(member.block)}" autocomplete="off" />
+    <input type="text" id="memberVessel-${uid}" name="memberVessel[]" class="memberVessel" placeholder="Embarcação" value="${escapeHtml(member.vessel)}" autocomplete="off" />
+    <select id="memberLocalSelect-${uid}" name="memberLocal[]" class="memberLocalSelect">
       <option value="">Selecione Local</option>
       <option value="Montagem" ${member.local === "Montagem" ? "selected" : ""}>Montagem</option>
       <option value="Sub Montagem" ${member.local === "Sub Montagem" ? "selected" : ""}>Sub Montagem</option>
       <option value="Edificação" ${member.local === "Edificação" ? "selected" : ""}>Edificação</option>
       <option value="Outros" ${member.local === "Outros" ? "selected" : ""}>Outros</option>
     </select>
-    <input type="text" class="memberCustomLocalInput" placeholder="Informe outro local" value="${escapeHtml(member.customLocal || '')}" style="display: none; margin-left: 5px; flex: 1;" />
-    <input type="text" class="memberDetailsInput" placeholder="Detalhes (Perfilado, Barras, Anteparas)" value="${escapeHtml(member.details || '')}" />
+    <input type="text" id="memberCustomLocalInput-${uid}" name="memberCustomLocal[]" class="memberCustomLocalInput" placeholder="Informe outro local" value="${escapeHtml(member.customLocal || '')}" style="display: none; margin-left: 5px; flex: 1;" autocomplete="off" />
+    <input type="text" id="memberDetailsInput-${uid}" name="memberDetails[]" class="memberDetailsInput" placeholder="Detalhes (Perfilado, Barras, Anteparas)" value="${escapeHtml(member.details || '')}" autocomplete="off" />
 
-    <input type="text" class="memberAbsenceReasonInput" placeholder="Motivo da falta / Observações" value="${escapeHtml(member.absenceReason || '')}" style="display:none; flex: 1;" />
+    <input type="text" id="memberAbsenceReasonInput-${uid}" name="memberAbsenceReason[]" class="memberAbsenceReasonInput" placeholder="Motivo da falta / Observações" value="${escapeHtml(member.absenceReason || '')}" style="display:none; flex: 1;" autocomplete="off" />
     <div class="abonar-wrap">
       <label class="abonar-dsr" for="memberAbono-${uid}">Abonar DSR</label>
-      <select id="memberAbono-${uid}" class="memberAbonoSelect">
+      <select id="memberAbono-${uid}" name="memberAbono[]" class="memberAbonoSelect">
         <option value="VERIFICAR" ${member.abono === 'VERIFICAR' ? 'selected' : ''}>VERIFICAR</option>
         <option value="SIM" ${member.abono === 'SIM' ? 'selected' : ''}>SIM</option>
         <option value="NAO" ${member.abono === 'NAO' ? 'selected' : ''}>NÃO</option>
@@ -1220,10 +1219,10 @@ function createMemberRow(member = { name: "", matricula: "", block: "", vessel: 
     </div>
 
     <label class="absentLabel" style="margin-left:8px;">
-      <input type="checkbox" class="memberAbsentCheckbox" ${member.absent ? 'checked' : ''}/> Falta
+      <input type="checkbox" id="memberAbsentCheckbox-${uid}" name="memberAbsent[]" class="memberAbsentCheckbox" ${member.absent ? 'checked' : ''}/> Falta
     </label>
 
-    <button class="btn removeMemberBtn"><i class="fas fa-trash" style="margin-left: 5px;"></i></button>
+    <button class="btn removeMemberBtn" type="button"><i class="fas fa-trash" style="margin-left: 5px;"></i></button>
   `;
 
   const localSelect = div.querySelector(".memberLocalSelect");
@@ -1428,36 +1427,58 @@ if (!teamData) {
   for (const row of shiftRows) {
   const name = row.querySelector(".shiftName").value.trim();
   const memberMatricula = row.querySelector(".shiftMatricula").value.trim();
-  const vesselShift = row.querySelector(".shiftVessel")?.value?.trim() || "";
-  const blockShift = row.querySelector(".shiftBlock")?.value?.trim() || "";
-  const shift = row.querySelector(".shiftTurno")?.value || ""; // se ausência, vale "FALTA"
-  const observations = row.querySelector(".shiftObservations")?.value?.trim() || "";
-  const details      = row.querySelector(".shiftDetails")?.value || "";
-  // detecta ausência: presença do select de abono na linha (ou turno explicitamente "FALTA")
-const hasAbonoSelect = !!row.querySelector(".shiftAbono");
-const turnoValue = row.querySelector(".shiftTurno")?.value || "";
-const isAbsent = hasAbonoSelect || turnoValue === 'FALTA';
 
-const absenceReason = row.querySelector(".shiftAbsenceReason")?.value?.trim() || "";
-const abono = row.querySelector(".shiftAbono")?.value || 'VERIFICAR';
-
+  // determina membro original (para locais que vieram do teamData)
   const memberOriginal = teamData.members.find(
     m => m.name === name && m.matricula === memberMatricula
   );
 
-  // determinar local
-  const local = (memberOriginal?.local === "Outros")
-    ? memberOriginal?.customLocal
-    : memberOriginal?.local || "";
+  // detecta ausência: presença do select de abono na linha (ou turno explicitamente "FALTA")
+  const hasAbonoSelect = !!row.querySelector(".shiftAbono");
+  const turnoValue = row.querySelector(".shiftTurno")?.value || "";
+  const isAbsent = hasAbonoSelect || turnoValue === 'FALTA';
+
+  // Motivo da falta / abono
+  const absenceReason = row.querySelector(".shiftAbsenceReason")?.value?.trim() || "";
+  const abono = row.querySelector(".shiftAbono")?.value || 'VERIFICAR';
+
+  // Se for ausência, ZERA explicitamente os campos que não devem ir pro Firestore
+  let vesselShift = "";
+  let blockShift  = "";
+  let details     = "";
+  let local       = "";
+
+  if (!isAbsent) {
+    // só ler valores visíveis/úteis quando NÃO for falta
+    vesselShift = row.querySelector(".shiftVessel")?.value?.trim() || "";
+    blockShift  = row.querySelector(".shiftBlock")?.value?.trim() || "";
+    details     = row.querySelector(".shiftDetails")?.value?.trim() || "";
+
+    // tenta ler input de local (quando houver), senão usa dados originais do membro
+    const localInput = row.querySelector(".shiftLocal");
+    if (localInput && localInput.value != null) {
+      local = localInput.value.trim() || "";
+    } else {
+      local = (memberOriginal?.local === "Outros")
+        ? (memberOriginal?.customLocal || "")
+        : (memberOriginal?.local || "");
+    }
+  } else {
+    // isAbsent === true -> garante que tudo relacionado a local/bloco/embarcação/detalhes vá vazio
+    vesselShift = "";
+    blockShift  = "";
+    details     = "";
+    local       = "";
+  }
 
   // Se não for ausência, exige turno
-  if (!isAbsent && !shift) {
+  if (!isAbsent && ! (row.querySelector(".shiftTurno")?.value) ) {
     showNotification(`Preencha o turno do membro: ${name}`);
     return;
   }
 
   records.push({
-    date: Timestamp.fromDate(new Date(document.getElementById('dateInput').value)), // use data selecionada (substituir conforme implementação anterior)
+    date: Timestamp.fromDate(new Date(document.getElementById('dateInput').value)),
     galpao,
     teamId,
     teamName,
@@ -1467,11 +1488,10 @@ const abono = row.querySelector(".shiftAbono")?.value || 'VERIFICAR';
     memberMatricula,
     vesselShift,
     blockShift,
-    shift: isAbsent ? 'FALTA' : shift,
-    observations,
+    shift: isAbsent ? 'FALTA' : (row.querySelector(".shiftTurno")?.value || ""),
+    observations: row.querySelector(".shiftObservations")?.value?.trim() || "",
     local,
     details,
-    // novos campos para ausência
     absent: isAbsent,
     absenceReason,
     abono,
