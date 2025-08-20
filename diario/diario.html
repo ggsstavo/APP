@@ -637,464 +637,446 @@ input[type="date"].select-like {
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script>
-    // Firebase config
-    const firebaseConfig = {
-  apiKey: "AIzaSyDtnzixicBYAQkuoeB5tgCGpDLt1lByMZo",
-  authDomain: "apropriacao-estrutura.firebaseapp.com",
-  projectId: "apropriacao-estrutura",
-  storageBucket: "apropriacao-estrutura.appspot.com",
-  messagingSenderId: "155266586257",
-  appId: "1:155266586257:web:6d70edc967cdbfc56e5130",
-};
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
+  // ===== FIREBASE =====
+  const firebaseConfig = {
+    apiKey: "AIzaSyDtnzixicBYAQkuoeB5tgCGpDLt1lByMZo",
+    authDomain: "apropriacao-estrutura.firebaseapp.com",
+    projectId: "apropriacao-estrutura",
+    storageBucket: "apropriacao-estrutura.appspot.com",
+    messagingSenderId: "155266586257",
+    appId: "1:155266586257:web:6d70edc967cdbfc56e5130",
+  };
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
 
-    let currentTeamId = '';
-    let currentRecords = [];
+  // ===== ESTADO =====
+  let currentTeamId = '';
+  let currentRecords = [];
 
-    const teamSelect = document.getElementById('teamSelect');
-    const downloadBtn = document.getElementById('downloadBtn');
-    const notification = document.getElementById('notification');
-    const previewContent = document.getElementById('previewContent');
+  // ===== ELEMENTOS =====
+  const teamSelect = document.getElementById('teamSelect');
+  const downloadBtn = document.getElementById('downloadBtn');
+  const notification = document.getElementById('notification');
+  const previewContent = document.getElementById('previewContent');
+  const dateSelect = document.getElementById('dateSelect');
+  const clearDateBtn = document.getElementById('clearDateBtn');
 
-    auth.onAuthStateChanged(user => {
-      if (!user) return window.location.href = './index.html';
-      loadTeams(user.uid);
+  // ===== AUTENTICAÇÃO =====
+  auth.onAuthStateChanged(user => {
+    if (!user) return window.location.href = './index.html';
+    loadTeams(user.uid);
+  });
+
+  // ===== CARREGA EQUIPES (select) =====
+  async function loadTeams(uid) {
+    const snapshot = await db.collection('teams')
+      .where('ownerUid', '==', uid)
+      .get();
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      const option = document.createElement('option');
+      option.value = doc.id;
+      option.textContent = data.name || doc.id;
+      teamSelect.appendChild(option);
     });
-
-    async function loadTeams(uid) {
-      const snapshot = await db.collection('teams')
-        .where('ownerUid', '==', uid)
-        .get();
-      snapshot.forEach(doc => {
-        const data = doc.data();
-        const option = document.createElement('option');
-        option.value = doc.id;
-        option.textContent = data.name;
-        teamSelect.appendChild(option);
-      });
-    }
-
-    const dateSelect = document.getElementById('dateSelect');
-const clearDateBtn = document.getElementById('clearDateBtn');
-
-// chama fetch quando time ou date mudarem
-teamSelect.addEventListener('change', () => {
-  currentTeamId = teamSelect.value;
-  downloadBtn.disabled = !currentTeamId;
-  notification.style.display = currentTeamId ? 'none' : 'block';
-  fetchRecords();
-});
-dateSelect.addEventListener('change', () => {
-  fetchRecords();
-});
-clearDateBtn.addEventListener('click', () => {
-  dateSelect.value = '';
-  fetchRecords();
-});
-
-// função que busca os registros considerando team + date (se preenchida)
-async function fetchRecords() {
-  if (!auth.currentUser) return;
-  if (!currentTeamId) {
-    currentRecords = [];
-    renderPreview();
-    return;
   }
 
-  let query = db.collection('records')
-    .where('teamId', '==', currentTeamId)
-    .where('createdBy', '==', auth.currentUser.uid);
+  // ===== EVENTOS =====
+  teamSelect.addEventListener('change', () => {
+    currentTeamId = teamSelect.value;
+    downloadBtn.disabled = !currentTeamId;
+    notification.style.display = currentTeamId ? 'none' : 'block';
+    fetchRecords();
+  });
 
-  const selectedDate = dateSelect.value; // formato YYYY-MM-DD ou '' se vazio
+  dateSelect.addEventListener('change', fetchRecords);
 
-  if (selectedDate) {
-    // Preferência: se existir 'dateOnly' no banco, usamos igualdade (mais simples)
-    // Do contrário, fazemos consulta por range no campo Timestamp `date`.
-    // Vamos detectar dinamicamente: tentar consultar por 'dateOnly' primeiro
-    const snapshotDateOnly = await db.collection('records')
+  if (clearDateBtn) {
+    clearDateBtn.addEventListener('click', () => {
+      dateSelect.value = '';
+      fetchRecords();
+    });
+  }
+
+  // ===== BUSCA REGISTROS (com suporte a dateOnly ou range) =====
+  async function fetchRecords() {
+    if (!auth.currentUser) return;
+    if (!currentTeamId) {
+      currentRecords = [];
+      renderPreview();
+      return;
+    }
+
+    let query = db.collection('records')
       .where('teamId', '==', currentTeamId)
-      .where('createdBy', '==', auth.currentUser.uid)
-      .where('dateOnly', '==', selectedDate)
-      .limit(1)
-      .get();
+      .where('createdBy', '==', auth.currentUser.uid);
 
-    if (!snapshotDateOnly.empty) {
-      // Há registros com dateOnly: usamos esse campo (igualdade)
-      query = db.collection('records')
+    const selectedDate = dateSelect.value; // formato YYYY-MM-DD ou ''
+
+    if (selectedDate) {
+      // tenta dateOnly primeiro
+      const snapshotDateOnly = await db.collection('records')
         .where('teamId', '==', currentTeamId)
         .where('createdBy', '==', auth.currentUser.uid)
         .where('dateOnly', '==', selectedDate)
-        .orderBy('date', 'desc')
-        .limit(100);
-    } else {
-      // Não há dateOnly — vamos criar range para a data selecionada (start/end do dia)
-      const d = new Date(selectedDate + 'T00:00:00'); // local timezone
-      const start = new Date(d);
-      start.setHours(0,0,0,0);
-      const end = new Date(d);
-      end.setHours(23,59,59,999);
-      const startTs = firebase.firestore.Timestamp.fromDate(start);
-      const endTs = firebase.firestore.Timestamp.fromDate(end);
+        .limit(1)
+        .get();
 
+      if (!snapshotDateOnly.empty) {
+        query = db.collection('records')
+          .where('teamId', '==', currentTeamId)
+          .where('createdBy', '==', auth.currentUser.uid)
+          .where('dateOnly', '==', selectedDate)
+          .orderBy('date', 'desc')
+          .limit(200);
+      } else {
+        // range do dia
+        const d = new Date(selectedDate + 'T00:00:00');
+        const start = new Date(d); start.setHours(0,0,0,0);
+        const end = new Date(d); end.setHours(23,59,59,999);
+        const startTs = firebase.firestore.Timestamp.fromDate(start);
+        const endTs = firebase.firestore.Timestamp.fromDate(end);
+
+        query = db.collection('records')
+          .where('teamId', '==', currentTeamId)
+          .where('createdBy', '==', auth.currentUser.uid)
+          .where('date', '>=', startTs)
+          .where('date', '<=', endTs)
+          .orderBy('date', 'desc')
+          .limit(200);
+      }
+    } else {
+      // sem data: últimos registros
       query = db.collection('records')
         .where('teamId', '==', currentTeamId)
         .where('createdBy', '==', auth.currentUser.uid)
-        .where('date', '>=', startTs)
-        .where('date', '<=', endTs)
         .orderBy('date', 'desc')
-        .limit(100);
+        .limit(200);
     }
-  } else {
-    // nenhuma data selecionada: pega últimos 100 registros da equipe
-    query = db.collection('records')
-      .where('teamId', '==', currentTeamId)
-      .where('createdBy', '==', auth.currentUser.uid)
-      .orderBy('date', 'desc')
-      .limit(100);
+
+    const snapshot = await query.get();
+    currentRecords = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderPreview();
   }
 
-  const snapshot = await query.get();
-  currentRecords = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-  renderPreview();
-}
-
-
-    // helpers: evita XSS e preserva quebras de linha no preview
-function escapeHtml(str = '') {
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
-}
-function nl2br(str = '') {
-  return escapeHtml(str).replace(/\n/g, '<br>');
-}
-
-// pega o campo de observação em possíveis nomes usados no banco
-function getObservation(r) {
-  return (r.obs || r.observacoes || r.observations || r.comentario || '').toString().trim();
-}
-
-function renderPreview() {
-  if (!currentRecords.length) {
-    previewContent.innerHTML = '<i class="fas fa-info-circle"></i> Nenhum registro encontrado.';
-    return;
+  // ===== HELPERS PREVIEW =====
+  function escapeHtml(str = '') {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+  function nl2br(str = '') {
+    return escapeHtml(str).replace(/\n/g, '<br>');
+  }
+  function getObservation(r) {
+    return (r.obs || r.observacoes || r.observations || r.comentario || '').toString().trim();
   }
 
-  previewContent.innerHTML = currentRecords.map(r => {
-    const date = r.date && r.date.seconds ? new Date(r.date.seconds * 1000).toLocaleString() : (r.date || '-');
-    const obs = getObservation(r);
-    return `
-      <div class="preview-entry">
-        <div class="info">
-          <div><i class="fas fa-calendar-day"></i> ${escapeHtml(date)}</div>
-          <div><i class="fas fa-user"></i> ${escapeHtml(r.name || '-')}</div>
-          <div><i class="fas fa-id-badge"></i> ${escapeHtml(r.memberMatricula || '-')}</div>
-          <div><i class="fas fa-map-marker-alt"></i> ${escapeHtml(r.local || '-')}</div>
-          <div><i class="fas fa-warehouse"></i> ${escapeHtml(r.galpao || '-')}</div>
-          <div><i class="fas fa-stream"></i> ${escapeHtml(r.details || '-')}</div>
-          <div><i class="fas fa-layer-group"></i> ${escapeHtml(r.blockShift || '-')}</div>
-          <div><i class="fas fa-ship"></i> ${escapeHtml(r.vesselShift || '-')}</div>
-          ${obs ? `<div><i class="fas fa-clipboard"></i> ${nl2br(obs)}</div>` : ''}
+  // ===== RENDER PREVIEW (mantém compatibilidade com seu HTML) =====
+  function renderPreview() {
+    if (!currentRecords.length) {
+      previewContent.innerHTML = '<i class="fas fa-info-circle"></i> Nenhum registro encontrado.';
+      return;
+    }
+
+    previewContent.innerHTML = currentRecords.map(r => {
+      const date = r.date && r.date.seconds ? new Date(r.date.seconds * 1000).toLocaleString() : (r.date || '-');
+      const obs = getObservation(r);
+      return `
+        <div class="preview-entry">
+          <div class="info">
+            <div><i class="fas fa-calendar-day"></i> ${escapeHtml(date)}</div>
+            <div><i class="fas fa-user"></i> ${escapeHtml(r.name || '-')}</div>
+            <div><i class="fas fa-id-badge"></i> ${escapeHtml(r.memberMatricula || '-')}</div>
+            <div><i class="fas fa-map-marker-alt"></i> ${escapeHtml(r.local || '-')}</div>
+            <div><i class="fas fa-warehouse"></i> ${escapeHtml(r.galpao || '-')}</div>
+            <div><i class="fas fa-stream"></i> ${escapeHtml(r.details || '-')}</div>
+            <div><i class="fas fa-layer-group"></i> ${escapeHtml(r.blockShift || '-')}</div>
+            <div><i class="fas fa-ship"></i> ${escapeHtml(r.vesselShift || '-')}</div>
+            ${obs ? `<div style="margin-top:6px"><i class="fas fa-clipboard"></i> ${nl2br(obs)}</div>` : ''}
+          </div>
         </div>
-      </div>
-    `;
-  }).join('');
-}
-
-// ------ INÍCIO DO BLOCO SUBSTITUTO (cole aqui) ------
-
-// caminho do template (imagem do formulário). Ajuste se necessário.
-// ------ INÍCIO DO BLOCO SUBSTITUTO ------
-
-// caminho do template (ajuste o nome/rota se necessário)
-const templateUrl = './diario.jpg';
-
-// helper: carrega a imagem como dataURL (com fallback)
-async function loadImageAsDataURL(url) {
-  try {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const blob = await res.blob();
-    return await new Promise((resolve, reject) => {
-      const fr = new FileReader();
-      fr.onload = () => resolve(fr.result);
-      fr.onerror = reject;
-      fr.readAsDataURL(blob);
-    });
-  } catch (err) {
-    console.warn('loadImageAsDataURL falhou:', err);
-    return null;
+      `;
+    }).join('');
   }
-}
 
-// função que gera o PDF a partir do objeto `daily` (mantive a lógica anterior)
-async function generatePdfFromDaily(daily, { debugMode = false } = {}) {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ unit: 'pt', format: 'a4' });
-  const pageW = doc.internal.pageSize.getWidth();
-  const pageH = doc.internal.pageSize.getHeight();
+  // ===== TEMPLATE PARA O PDF =====
+  const templateUrl = './diario.jpg'; // coloque a imagem neste caminho ou ajuste
 
-  // tenta carregar a imagem (se não existir, imgData será null e usamos fallback)
-  const imgData = await loadImageAsDataURL(templateUrl);
-
-  // valores calibrados (ajuste se necessário)
-  const marginLeft = 45;
-  const headerY = 75;            // topo onde escreve Galpão / Data
-  const yTableStart = 135;       // início da lista de matrícula+nome
-  const rowHeight = 18;          // altura "virtual" por linha
-  const rowsPerColumn = 20;      // quantas linhas cabem por coluna
-  const xLeft = marginLeft + 8;  // coluna esquerda (início do texto)
-  const xRight = (pageW / 2) + 8; // coluna direita (início do texto)
-  const matriculaWidth = 52;     // largura reservada para matrícula
-  const nameColPadding = 8;      // espaçamento entre matrícula e nome
-  const nameColWidth = (pageW / 2) - marginLeft - matriculaWidth - 32; // largura para o nome dentro da coluna
-  const yObsStart = 520;         // onde começa as observações diárias
-  const obsLineHeight = 14;
-
-  function drawTemplate() {
-    if (imgData) {
-      try {
-        doc.addImage(imgData, 'JPEG', 0, 0, pageW, pageH);
-      } catch (e) {
-        // fallback: fundo branco
-        doc.setFillColor(255,255,255);
-        doc.rect(0,0,pageW,pageH,'F');
-      }
-    } else {
-      // sem template: fundo branco
-      doc.setFillColor(255,255,255);
-      doc.rect(0,0,pageW,pageH,'F');
+  async function loadImageAsDataURL(url) {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const blob = await res.blob();
+      return await new Promise((resolve, reject) => {
+        const fr = new FileReader();
+        fr.onload = () => resolve(fr.result);
+        fr.onerror = reject;
+        fr.readAsDataURL(blob);
+      });
+    } catch (err) {
+      console.warn('loadImageAsDataURL falhou:', err);
+      return null;
     }
   }
 
-  // formatação base
-  doc.setFont('Helvetica', 'normal');
-  doc.setFontSize(10);
-  doc.setTextColor(0,0,0);
+  // ===== GERAÇÃO DO PDF (ALINHADO AO TEMPLATE) =====
+  async function generatePdfFromDaily(daily, { debugMode = false } = {}) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+    const pageW = doc.internal.pageSize.getWidth();
+    const pageH = doc.internal.pageSize.getHeight();
 
-  // primeira página
-  drawTemplate();
+    // carrega imagem do template
+    const imgData = await loadImageAsDataURL(templateUrl);
+
+    // ------ parâmetros calibrados (ajuste se necessário) ------
+    const marginLeft = 44;
+    const headerY = 76;
+    const galpaoX = 180;               // posição 'Galpão' (x)
+    const dateX = pageW - 180;         // posição 'Data' (x)
+    const dateY = headerY - 11;        // posição 'Data' (y)
+    const yTableStart = 134;           // início da tabela de matrícula/nome
+    const rowHeight = 12;              // altura fixa entre linhas (mantém alinhamento)
+    const rowsPerColumn = 28;          // linhas por coluna antes de ir pra direita/página nova
+    const leftMatX = 60;
+    const leftNameX = leftMatX + 58;
+    const rightMatX = Math.round(pageW / 2) + 8;
+    const rightNameX = rightMatX + 58;
+    const nameColWidth = Math.round((pageW / 2) - (leftNameX - marginLeft) - 40);
+    const yObsStart = 400;
+    const obsLineHeight = 8;
+
+    function drawTemplate() {
+      if (imgData) {
+        try { doc.addImage(imgData, 'JPEG', 0, 0, pageW, pageH); }
+        catch (e) { doc.setFillColor(255,255,255); doc.rect(0,0,pageW,pageH,'F'); }
+      } else {
+        doc.setFillColor(255,255,255); doc.rect(0,0,pageW,pageH,'F');
+      }
+    }
+
+    function getSingleLineName(text, maxWidth){
+      const arr = doc.splitTextToSize(String(text || ''), maxWidth);
+      if (!arr.length) return '-';
+      let first = arr[0];
+      if (arr.length > 1) {
+        while (doc.getTextWidth(first + '…') > maxWidth && first.length > 0) first = first.slice(0, -1);
+        first = first + '…';
+      }
+      return first;
+    }
+
+    // formatação inicial
+    doc.setFont('Helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.setTextColor(0,0,0);
+
+    // primeira página com template
+    drawTemplate();
+
+    let displayDate = (daily.dateOnly || '');
+  if (/^\d{4}-\d{2}-\d{2}$/.test(displayDate)) {
+    const [y, m, d] = displayDate.split('-');
+    displayDate = `${d}/${m}/${y}`;
+  } else if (!displayDate && daily.date && typeof daily.date === 'object' && (daily.date.seconds || daily.date._seconds)) {
+    const seconds = daily.date.seconds || daily.date._seconds;
+    const dt = new Date(seconds * 1000);
+    displayDate = dt.toLocaleDateString('pt-BR');
+  } else if (displayDate && displayDate.includes('-') && displayDate.split('-')[0].length === 4) {
+    const parts = displayDate.split('-').map(p => p.padStart(2,'0'));
+    if (parts.length >= 3) displayDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+  }
+  if (!displayDate) displayDate = '-';
+
+  // escreve Galpão (usa headerY) e Data (usa dateY)
   doc.setFontSize(11);
-  doc.text(`${daily.galpao || '-'}`, marginLeft, headerY);
-  doc.text(`${daily.dateOnly || '-'}`, pageW - marginLeft - 120, headerY);
+  doc.text(String(daily.galpao || '-'), galpaoX, headerY);
+  doc.text(String(displayDate), dateX, dateY);
   doc.setFontSize(10);
 
-  // tabela de matrícula + nome em duas colunas
-  let col = 0, rowIndex = 0, y = yTableStart;
-  for (let i=0; i < (daily.members || []).length; i++){
-    const m = daily.members[i];
-    const targetX = (col === 0) ? xLeft : xRight;
-    const matriculaText = String(m.matricula || '-');
-    const nameText = String(m.name || '-');
+    // Preenche tabela em duas colunas (uma linha por registro para manter grade)
+    let col = 0, rowIndex = 0, y = yTableStart;
+    for (let i = 0; i < (daily.members || []).length; i++) {
+      const m = daily.members[i];
+      const targetMatX = (col === 0) ? leftMatX : rightMatX;
+      const targetNameX = (col === 0) ? leftNameX : rightNameX;
 
-    // Faz quebra no nome se necessário
-    const nameLines = doc.splitTextToSize(nameText, nameColWidth);
+      if (rowIndex >= rowsPerColumn) {
+        if (col === 0) { col = 1; rowIndex = 0; y = yTableStart; }
+        else {
+          doc.addPage();
+          drawTemplate();
+          doc.setFontSize(11);
+          doc.text(String(daily.galpao || '-'), galpaoX, headerY);
+          doc.text(String(daily.dateOnly || '-'), dateX, headerY);
+          doc.setFontSize(10);
+          col = 0; rowIndex = 0; y = yTableStart;
+        }
+      }
 
-    // Se não cabe mais no espaço vertical, passa coluna/página
-    if (rowIndex >= rowsPerColumn) {
-      if (col === 0) { col = 1; rowIndex = 0; y = yTableStart; }
-      else {
+      const matText = String(m.matricula || m.memberMatricula || '-');
+      const nameText = getSingleLineName(m.name || '-', nameColWidth);
+
+      doc.setFontSize(10);
+      doc.text(matText, targetMatX, y + 3);
+      doc.text(nameText, targetNameX, y + 3);
+
+      y += rowHeight;
+      rowIndex++;
+    }
+
+    // OBSERVAÇÕES DIÁRIAS: cada observação numerada em sua própria entrada
+    let currentYObs = yObsStart;
+    doc.setFontSize(10);
+
+    const observations = [];
+    for (let i = 0; i < (daily.members || []).length; i++) {
+      const m = daily.members[i];
+      const parts = [];
+      if (m.name) parts.push(m.name);
+      if (m.matricula) parts.push(`Mat: ${m.matricula}`);
+      if (m.local) parts.push(m.local);
+      const details = [];
+      if (m.blockShift) details.push(`Bloco: ${m.blockShift}`);
+      if (m.vesselShift) details.push(`Embarcação: ${m.vesselShift}`);
+      if (m.details) details.push(m.details);
+      if (m.obs) details.push(m.obs);
+      if (details.length) parts.push(details.join(' — '));
+      const txt = parts.join(' / ').trim();
+      if (txt) observations.push(txt);
+    }
+
+    for (let idx = 0; idx < observations.length; idx++) {
+      const raw = observations[idx];
+      const wrapped = doc.splitTextToSize(raw, pageW - marginLeft * 2 - 12);
+      const prefix = (idx + 1) + '. ';
+      const prefixWidth = doc.getTextWidth(prefix);
+
+      if (currentYObs + wrapped.length * obsLineHeight > pageH - 40) {
         doc.addPage();
         drawTemplate();
         doc.setFontSize(11);
-        doc.text(`Galpão: ${daily.galpao || '-'}`, marginLeft, headerY);
-        doc.text(`Data: ${daily.dateOnly || '-'}`, pageW - marginLeft - 120, headerY);
+        doc.text(String(daily.galpao || '-'), galpaoX, headerY);
+        doc.text(String(daily.dateOnly || '-'), dateX, headerY);
         doc.setFontSize(10);
-        if (debugMode) drawDebugGuides();
-        col = 0; rowIndex = 0; y = yTableStart;
+        currentYObs = yObsStart;
       }
+
+      const firstLine = wrapped[0] || '';
+      doc.text(prefix + firstLine, marginLeft, currentYObs);
+      currentYObs += obsLineHeight;
+
+      for (let j = 1; j < wrapped.length; j++) {
+        doc.text(wrapped[j], marginLeft + prefixWidth, currentYObs);
+        currentYObs += obsLineHeight;
+      }
+      currentYObs += 4;
     }
 
-    // altura reservada para a linha (mesmo que nameLines tenha 2+ linhas, ocupamos rowHeight)
-    const baseY = y;
+    const safeTeam = (daily.teamId || 'team').replace(/[^a-z0-9_-]/ig,'');
+    const safeDate = (daily.dateOnly || 'date').replace(/[^0-9_-]/g,'');
+    const fileName = `diario_${safeTeam}_${safeDate}.pdf`;
+    doc.save(fileName);
+  }
 
-    // escrever matrícula (horizontalmente alinhada)
-    doc.setFontSize(10);
-    doc.text(matriculaText, targetX, baseY + 3); // +3 para ajuste vertical fino
-
-    // escrever nome (pode quebrar em várias linhas dentro da célula)
-    // a coordenada x do nome é targetX + matriculaWidth + padding
-    const nameX = targetX + matriculaWidth + nameColPadding;
-    for (let li = 0; li < nameLines.length; li++) {
-      const lineY = baseY + (li * (rowHeight / Math.max(1, nameLines.length)));
-      doc.text(String(nameLines[li]), nameX, lineY + 3);
+  // ===== MONTA DAILY E CHAMA GERAÇÃO =====
+  async function downloadDailyPdf(teamId, dateOnly, options = { debugMode: false }) {
+    if (!teamId || !dateOnly) {
+      showNotification('Selecione equipe e data antes de baixar.', 'warning');
+      return;
     }
 
-    // avança linha
-    y += rowHeight;
-    rowIndex++;
-  }
+    // garante que as informações estejam atualizadas
+    await fetchRecords();
 
-  // OBSERVAÇÕES DIÁRIAS (nome sem matrícula + detalhes)
-  let currentYObs = yObsStart;
-  doc.setFontSize(10);
-  for (const m of (daily.members || [])) {
-    const parts = [m.name || '-'];
-    const details = [];
-    if (m.local) details.push(m.local);
-    if (m.blockShift) details.push(`Bloco: ${m.blockShift}`);
-    if (m.vesselShift) details.push(`Embarcação: ${m.vesselShift}`);
-    if (m.details) details.push(m.details);
-    if (m.obs) details.push(`Obs: ${m.obs}`);
-    if (details.length) parts.push(details.join(' — '));
-    const wrapped = doc.splitTextToSize(parts.join(' : '), pageW - marginLeft * 2);
-    const requiredHeight = wrapped.length * obsLineHeight;
+    const members = (currentRecords || []).map(r => ({
+      name: r.name || '',
+      matricula: r.memberMatricula || r.matricula || '',
+      local: r.local || '',
+      galpao: r.galpao || '',
+      details: r.details || '',
+      blockShift: r.blockShift || r.block || '',
+      vesselShift: r.vesselShift || r.vessel || '',
+      obs: (r.obs || r.observacoes || r.comentario || '') || ''
+    }));
 
-    if (currentYObs + requiredHeight > pageH - 40) {
-      doc.addPage();
-      drawTemplate();
-      doc.setFontSize(11);
-      doc.text(`${daily.galpao || '-'}`, marginLeft, headerY);
-      doc.text(`${daily.dateOnly || '-'}`, pageW - marginLeft - 120, headerY);
-      doc.setFontSize(10);
-      currentYObs = yObsStart;
+    if (!members.length) {
+      showNotification('Nenhum registro encontrado para essa equipe/data.', 'info');
+      return;
     }
 
-    doc.text(wrapped, marginLeft, currentYObs);
-    currentYObs += requiredHeight + 6;
+    const daily = {
+      teamId,
+      teamName: (document.getElementById('teamSelect').selectedOptions[0] || {}).text || '',
+      dateOnly,
+      galpao: (members[0] && members[0].galpao) || '',
+      members
+    };
+
+    await generatePdfFromDaily(daily, { debugMode: options.debugMode });
   }
 
-  const fileName = `diario_${daily.teamId || 'team'}_${daily.dateOnly || 'date'}.pdf`;
-  doc.save(fileName);
-}
+  // ===== BOTÃO DOWNLOAD =====
+  const downloadButton = document.getElementById('downloadBtn');
+  downloadButton.addEventListener('click', async () => {
+    const teamId = (document.getElementById('teamSelect') || {}).value;
+    const dateOnly = (document.getElementById('dateSelect') || {}).value;
 
-// Função simplificada: não tenta ler dailyRecords, monta daily a partir de currentRecords
-async function downloadDailyPdf(teamId, dateOnly, options = { debugMode: false }) {
-  if (!teamId || !dateOnly) {
-    if (typeof showNotification === 'function') showNotification('Selecione equipe e data antes de baixar.', 'warning');
-    else alert('Selecione equipe e data antes de baixar.');
-    return;
-  }
+    if (!teamId) { showNotification('Por favor selecione uma equipe antes de baixar o PDF.', 'warning'); return; }
+    if (!dateOnly) { showNotification('Por favor selecione uma data antes de baixar o PDF.', 'warning'); return; }
 
-  // currentRecords deve estar populado por fetchRecords() — se quiser garantir, chame fetchRecords() antes de invocar aqui
-  const members = (currentRecords || []).map(r => ({
-    name: r.name || '',
-    matricula: r.memberMatricula || r.matricula || '',
-    local: r.local || '',
-    galpao: r.galpao || '',
-    details: r.details || '',
-    blockShift: r.blockShift || r.block || '',
-    vesselShift: r.vesselShift || r.vessel || '',
-    obs: (r.obs || r.observacoes || r.comentario || '') || ''
-  }));
-
-  if (!members.length) {
-    if (typeof showNotification === 'function') showNotification('Nenhum registro encontrado para essa equipe/data.', 'info');
-    return;
-  }
-
-  const daily = {
-    teamId,
-    teamName: (document.getElementById('teamSelect').selectedOptions[0] || {}).text || '',
-    dateOnly,
-    galpao: (members[0] && members[0].galpao) || '',
-    members
-  };
-
-  await generatePdfFromDaily(daily, { debugMode: options.debugMode });
-}
-
-// listener do botão: garante que fetchRecords seja executado antes de gerar o PDF
-const downloadButton = document.getElementById('downloadBtn');
-downloadButton.addEventListener('click', async () => {
-  const teamId = (document.getElementById('teamSelect') || {}).value;
-  const dateOnly = (document.getElementById('dateSelect') || {}).value; // YYYY-MM-DD
-
-  if (!teamId) {
-    showNotification('Por favor selecione uma equipe antes de baixar o PDF.', 'warning');
-    return;
-  }
-  if (!dateOnly) {
-    showNotification('Por favor selecione uma data antes de baixar o PDF.', 'warning');
-    return;
-  }
-
-  // Atualiza currentRecords de acordo com team+date (fetchRecords já usa dateSelect)
-  await fetchRecords();
-
-  // Gera o PDF a partir do currentRecords
-  await downloadDailyPdf(teamId, dateOnly, { debugMode: false });
-});
-
-// ------ FIM DO BLOCO SUBSTITUTO ------
-
-// substitui o listener antigo do botão de download
-// --- Listener correto para o botão de download (não clonar/substituir o elemento) ---
-
-// Garante que o botão visível seja habilitado/desabilitado corretamente
-teamSelect.addEventListener('change', () => {
-  currentTeamId = teamSelect.value;
-  downloadButton.disabled = !currentTeamId;
-  notification.style.display = currentTeamId ? 'none' : 'block';
-  fetchRecords();
-});
-
-// ------ FIM DO BLOCO SUBSTITUTO ------
-
-    // Menu hamburger
-const toggleMenuBtn = document.getElementById("toggleMenu");
-const menuList = document.getElementById("menuList");
-
-toggleMenuBtn.addEventListener("click", () => {
-  menuList.classList.toggle("active");
-});
-
-(function(){
-    if (localStorage.getItem('dark') === '1') {
-      document.documentElement.classList.add('dark');
-    }
-  })();
-  window.addEventListener('storage', e => {
-    if (e.key === 'dark') {
-      document.documentElement.classList.toggle('dark', e.newValue === '1');
-    }
+    await fetchRecords();
+    await downloadDailyPdf(teamId, dateOnly, { debugMode: false });
   });
 
-  const icons = {
-  success: '<i class="fas fa-check-circle" style="color:#28a745;"></i>',
-  error: '<i class="fas fa-times-circle" style="color:#dc3545;"></i>',
-  warning: '<i class="fas fa-exclamation-triangle" style="color:#ffc107;"></i>',
-  info: '<i class="fas fa-info-circle" style="color:#2196f3;"></i>',
-};
-
-// Substitui alert() por notificação elegante
-function showNotification(message, type = "info") {
-  const modal = document.getElementById("notificationModal");
-  const msg = document.getElementById("notificationMessage");
-  const okBtn = document.getElementById("notificationOkBtn");
-
-  msg.innerHTML = icons[type] + '<span>' + message + '</span>';
-
-  modal.style.display = "flex";
-
-  okBtn.focus();
-
-  okBtn.onclick = () => {
-    modal.style.display = "none";
-  };
-}
-
-const modal = document.getElementById("notificationModal");
-modal.addEventListener("click", (e) => {
-  if (e.target === modal) {
-    modal.style.display = "none";
-  }
-});
-
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") {
-    const modal = document.getElementById("notificationModal");
-    if (modal.style.display === "flex") {
-      modal.style.display = "none";
+  // ===== HAMBURGER / DARK MODE (compat) =====
+  try {
+    const toggleMenuBtn = document.getElementById("toggleMenu");
+    const menuList = document.getElementById("menuList");
+    if (toggleMenuBtn && menuList) {
+      toggleMenuBtn.addEventListener("click", () => menuList.classList.toggle("active"));
     }
+  } catch(e){/* não crítico */}
+
+  (function(){
+    if (localStorage.getItem('dark') === '1') document.documentElement.classList.add('dark');
+  })();
+  window.addEventListener('storage', e => {
+    if (e.key === 'dark') document.documentElement.classList.toggle('dark', e.newValue === '1');
+  });
+
+  // ===== NOTIFICAÇÕES (modal) =====
+  const icons = {
+    success: '<i class="fas fa-check-circle" style="color:#28a745;"></i>',
+    error: '<i class="fas fa-times-circle" style="color:#dc3545;"></i>',
+    warning: '<i class="fas fa-exclamation-triangle" style="color:#ffc107;"></i>',
+    info: '<i class="fas fa-info-circle" style="color:#2196f3;"></i>',
+  };
+
+  function showNotification(message, type = "info") {
+    const modal = document.getElementById("notificationModal");
+    const msg = document.getElementById("notificationMessage");
+    const okBtn = document.getElementById("notificationOkBtn");
+    if (!modal || !msg || !okBtn) { alert(message); return; }
+
+    msg.innerHTML = icons[type] + '<span style="margin-left:8px">' + message + '</span>';
+    modal.style.display = "flex";
+    okBtn.focus();
+    okBtn.onclick = () => modal.style.display = "none";
   }
-});
-  </script>
+
+  const modal = document.getElementById("notificationModal");
+  if (modal) {
+    modal.addEventListener("click", (e) => { if (e.target === modal) modal.style.display = "none"; });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape" && modal.style.display === "flex") modal.style.display = "none"; });
+  }
+</script>
+
 </body>
 
 </html>
