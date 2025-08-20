@@ -530,6 +530,50 @@ input[type="date"].select-like {
   .select-like { min-width: 140px; }
 }
 
+/* Estilo para o campo de atividade */
+
+#activityInput {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--soft);
+  border-radius: 8px;
+  font-size: 15px;
+  outline: none;
+  transition: all 0.3s ease;
+  background-color: var(--card);
+  color: var(--text);
+  box-sizing: border-box;
+  resize: none;
+  height: 40px;
+}
+
+/* Placeholder mais suave */
+#activityInput::placeholder {
+  color: var(--text-muted);
+}
+
+/* Foco com efeito suave */
+#activityInput:focus {
+  border-color: var(--accent-hover);
+  background-color: var(--hover-bg);
+  box-shadow: 0 0 5px rgba(74, 144, 226, 0.4);
+  color: var(--text);
+}
+
+/* Campo inválido (ex.: se quiser validar que não pode ficar vazio) */
+#activityInput:invalid {
+  border-color: #e74c3c;
+  background-color: var(--card);
+}
+
+/* Responsividade */
+@media (max-width: 600px) {
+  #activityInput {
+    font-size: 14px;
+    padding: 8px 12px;
+  }
+}
+
 </style>
 
 </head>
@@ -604,15 +648,20 @@ input[type="date"].select-like {
         </select>
       </div>
 
-      <div style="display:flex;flex-direction:column;">
-      <label for="dateSelect"><i class="fas fa-calendar-day"></i>Data:</label>
-      <div class="date-group" style="display:flex;gap:8px;align-items:center;">
-        <input id="dateSelect" type="date" class="select-like" />
-        <button id="clearDateBtn" class="clear-date-btn" title="Limpar data"><i class="fas fa-times"></i></button>
+      <div style="display:flex;flex-direction:column;margin-bottom: 1rem;">
+        <label for="dateSelect"><i class="fas fa-calendar-day"></i>Data:</label>
+        <div class="date-group" style="display:flex;gap:8px;align-items:center;">
+          <input id="dateSelect" type="date" class="select-like" />
+          <button id="clearDateBtn" class="clear-date-btn" title="Limpar data"><i class="fas fa-times"></i></button>
+        </div>
       </div>
-    </div>
+      <div style="min-width:300px;">
+        <label for="activityInput"><i class="fas fa-tasks"></i>Atividade:</label>
+        <textarea id="activityInput" placeholder="Descreva a atividade (Solda/Montagem)..." rows="2"></textarea>
+      </div>
       <button id="downloadBtn" class="pdf-btn" disabled><i class="fa-solid fa-download"></i> Baixar PDF</button>
-    </div>
+      </div>
+
 
     <div id="notification" class="notification" style="display:none;"><i class="fas fa-exclamation-circle"></i> Nenhuma equipe selecionada. Por favor, selecione uma para baixar o diário de obra.</div>
 
@@ -661,6 +710,7 @@ input[type="date"].select-like {
   const previewContent = document.getElementById('previewContent');
   const dateSelect = document.getElementById('dateSelect');
   const clearDateBtn = document.getElementById('clearDateBtn');
+  const activityInput = document.getElementById('activityInput');
 
   // ===== AUTENTICAÇÃO =====
   auth.onAuthStateChanged(user => {
@@ -698,6 +748,10 @@ input[type="date"].select-like {
       fetchRecords();
     });
   }
+
+  if (activityInput) {
+  activityInput.addEventListener('input', renderPreview);
+}
 
   // ===== BUSCA REGISTROS (com suporte a dateOnly ou range) =====
   async function fetchRecords() {
@@ -776,33 +830,38 @@ input[type="date"].select-like {
     return (r.obs || r.observacoes || r.observations || r.comentario || '').toString().trim();
   }
 
-  // ===== RENDER PREVIEW (mantém compatibilidade com seu HTML) =====
-  function renderPreview() {
-    if (!currentRecords.length) {
-      previewContent.innerHTML = '<i class="fas fa-info-circle"></i> Nenhum registro encontrado.';
-      return;
-    }
+  // ===== RENDER PREVIEW (inclui Atividade) =====
+function renderPreview() {
+  const activityVal = (activityInput && activityInput.value) ? escapeHtml(activityInput.value.trim()) : '';
+  const activityHtml = activityVal ? `<div style="padding:10px;border-radius:6px;background: var(--bg);margin-bottom:0.8rem; border: 1px solid #ececec;"><strong style="color: var(--text); background: color-mix(in srgb, var(--soft) 50%, transparent); padding: 5px; border-radius:6px;">Atividade:</strong> ${nl2br(activityVal)}</div>` : '';
 
-    previewContent.innerHTML = currentRecords.map(r => {
-      const date = r.date && r.date.seconds ? new Date(r.date.seconds * 1000).toLocaleString() : (r.date || '-');
-      const obs = getObservation(r);
-      return `
-        <div class="preview-entry">
-          <div class="info">
-            <div><i class="fas fa-calendar-day"></i> ${escapeHtml(date)}</div>
-            <div><i class="fas fa-user"></i> ${escapeHtml(r.name || '-')}</div>
-            <div><i class="fas fa-id-badge"></i> ${escapeHtml(r.memberMatricula || '-')}</div>
-            <div><i class="fas fa-map-marker-alt"></i> ${escapeHtml(r.local || '-')}</div>
-            <div><i class="fas fa-warehouse"></i> ${escapeHtml(r.galpao || '-')}</div>
-            <div><i class="fas fa-stream"></i> ${escapeHtml(r.details || '-')}</div>
-            <div><i class="fas fa-layer-group"></i> ${escapeHtml(r.blockShift || '-')}</div>
-            <div><i class="fas fa-ship"></i> ${escapeHtml(r.vesselShift || '-')}</div>
-            ${obs ? `<div style="margin-top:6px"><i class="fas fa-clipboard"></i> ${nl2br(obs)}</div>` : ''}
-          </div>
-        </div>
-      `;
-    }).join('');
+  if (!currentRecords.length) {
+    previewContent.innerHTML = activityHtml + '<i class="fas fa-info-circle"></i> Nenhum registro encontrado.';
+    return;
   }
+
+  const recordsHtml = currentRecords.map(r => {
+    const date = r.date && r.date.seconds ? new Date(r.date.seconds * 1000).toLocaleString() : (r.date || '-');
+    const obs = getObservation(r);
+    return `
+      <div class="preview-entry">
+        <div class="info">
+          <div><i class="fas fa-calendar-day"></i> ${escapeHtml(date)}</div>
+          <div><i class="fas fa-user"></i> ${escapeHtml(r.name || '-')}</div>
+          <div><i class="fas fa-id-badge"></i> ${escapeHtml(r.memberMatricula || '-')}</div>
+          <div><i class="fas fa-map-marker-alt"></i> ${escapeHtml(r.local || '-')}</div>
+          <div><i class="fas fa-warehouse"></i> ${escapeHtml(r.galpao || '-')}</div>
+          <div><i class="fas fa-stream"></i> ${escapeHtml(r.details || '-')}</div>
+          <div><i class="fas fa-layer-group"></i> ${escapeHtml(r.blockShift || '-')}</div>
+          <div><i class="fas fa-ship"></i> ${escapeHtml(r.vesselShift || '-')}</div>
+          ${obs ? `<div style="margin-top:6px"><i class="fas fa-clipboard"></i> ${nl2br(obs)}</div>` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  previewContent.innerHTML = activityHtml + recordsHtml;
+}
 
   // ===== TEMPLATE PARA O PDF =====
   const templateUrl = './diario.jpg'; // coloque a imagem neste caminho ou ajuste
@@ -899,8 +958,29 @@ input[type="date"].select-like {
   doc.text(String(displayDate), dateX, dateY);
   doc.setFontSize(10);
 
+  // ===== ATIVIDADE (posicione ajustando activityX e activityY) =====
+const activityX = marginLeft + 385;     // <<< ajuste horizontal aqui
+const activityY = headerY + 0;   // <<< ajuste vertical aqui (ex.: 18, 28, 40, ...)
+
+let tableStartY = yTableStart;    // começa onde sempre começava...
+
+if (daily.activity) {
+  const maxWidth = pageW - marginLeft * 2;   // largura útil
+  const lineHeight = 12;                     // altura de linha (ajuste se quiser)
+  const lines = doc.splitTextToSize(String(daily.activity), maxWidth);
+
+  // desenha a atividade
+  for (let i = 0; i < lines.length; i++) {
+    doc.text(lines[i], activityX, activityY + i * lineHeight);
+  }
+
+  // se desenhou atividade, empurra a tabela para baixo para não sobrepor
+  const activityHeight = lines.length * lineHeight;
+  tableStartY = Math.max(yTableStart, activityY + activityHeight + 8); // 8 = respiro
+}
+
     // Preenche tabela em duas colunas (uma linha por registro para manter grade)
-    let col = 0, rowIndex = 0, y = yTableStart;
+    let col = 0, rowIndex = 0, y = tableStartY;
     for (let i = 0; i < (daily.members || []).length; i++) {
       const m = daily.members[i];
       const targetMatX = (col === 0) ? leftMatX : rightMatX;
@@ -1010,13 +1090,16 @@ input[type="date"].select-like {
       return;
     }
 
-    const daily = {
-      teamId,
-      teamName: (document.getElementById('teamSelect').selectedOptions[0] || {}).text || '',
-      dateOnly,
-      galpao: (members[0] && members[0].galpao) || '',
-      members
-    };
+    const activityVal = (activityInput && activityInput.value) ? activityInput.value.trim() : '';
+
+const daily = {
+  teamId,
+  teamName: (document.getElementById('teamSelect').selectedOptions[0] || {}).text || '',
+  dateOnly,
+  galpao: (members[0] && members[0].galpao) || '',
+  activity: activityVal,   // <-- acrescentado
+  members
+};
 
     await generatePdfFromDaily(daily, { debugMode: options.debugMode });
   }
