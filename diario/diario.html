@@ -574,6 +574,62 @@ input[type="date"].select-like {
   }
 }
 
+.resp-mat-container {
+  display: flex;
+  align-items: flex-start;  /* mantém topo alinhado */
+  gap: 12px;                /* controla a distância entre os dois blocos */
+}
+
+/* cada bloco (label + input) ocupa metade */
+.resp-mat-container > div {
+  flex: 1;                  /* divide igualmente */
+  min-width: 0;             /* evita quebra estranha */
+}
+
+#responsavelInput, #matriculaInput {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--soft);
+  border-radius: 8px;
+  font-size: 15px;
+  outline: none;
+  transition: all 0.2s ease;
+  background-color: var(--card);
+  color: var(--text);
+  box-sizing: border-box;
+  height: 38px;
+}
+
+#responsavelInput:focus, #matriculaInput:focus {
+  border-color: var(--accent-hover);
+  box-shadow: 0 0 5px rgba(74,144,226,0.12);
+}
+
+/* garante que os labels vinculados aos inputs responsavel/matricula
+   mantenham ícone e texto na mesma linha e alinhados verticalmente */
+label[for="responsavelInput"],
+label[for="matriculaInput"] {
+  display: inline-flex;      /* mantém o label na linha e permite alinhamento flex */
+  align-items: center;       /* alinha ícone e texto verticalmente */
+  gap: 3px;                  /* espaço entre ícone e texto */
+  white-space: nowrap;       /* evita quebra entre ícone e texto */
+  margin-bottom: 6px;        /* reduz a margem se quiser (ajuste a gosto) */
+}
+
+/* pequeno ajuste no ícone quando usado nesses labels */
+label[for="responsavelInput"] i,
+label[for="matriculaInput"] i {
+  display: inline-block;     /* garante comportamento inline previsível */
+  line-height: 1;
+  font-size: 0.95rem;        /* ajuste tamanho do ícone se necessário */
+  vertical-align: middle;
+}
+
+@media (max-width: 640px) {
+  /* empilha inputs em telas pequenas */
+  .header > div[style] { width: 100%; }
+}
+
 </style>
 
 </head>
@@ -658,6 +714,18 @@ input[type="date"].select-like {
       <div style="min-width:300px;">
         <label for="activityInput"><i class="fas fa-tasks"></i>Atividade:</label>
         <textarea id="activityInput" placeholder="Descreva a atividade (Solda/Montagem)..." rows="2"></textarea>
+        <div style="display:flex;flex-direction:column;gap:6px;min-width:260px;">
+    <div style="display:flex;gap:8px; margin-top: 1rem;">
+      <div style="flex:1;">
+        <label for="responsavelInput"><i class="fas fa-user-check"></i>Responsável:</label>
+        <input id="responsavelInput" type="text" placeholder="Nome do responsável" />
+      </div>
+      <div style="width:140px;">
+        <label for="matriculaInput"><i class="fas fa-id-badge"></i>Matrícula:</label>
+        <input id="matriculaInput" type="text" placeholder="Matricula" />
+      </div>
+    </div>
+  </div>
       </div>
       <button id="downloadBtn" class="pdf-btn" disabled><i class="fa-solid fa-download"></i> Baixar PDF</button>
       </div>
@@ -711,6 +779,9 @@ input[type="date"].select-like {
   const dateSelect = document.getElementById('dateSelect');
   const clearDateBtn = document.getElementById('clearDateBtn');
   const activityInput = document.getElementById('activityInput');
+  const responsavelInput = document.getElementById('responsavelInput');
+const matriculaInput = document.getElementById('matriculaInput');
+
 
   // ===== AUTENTICAÇÃO =====
   auth.onAuthStateChanged(user => {
@@ -752,6 +823,14 @@ input[type="date"].select-like {
   if (activityInput) {
   activityInput.addEventListener('input', renderPreview);
 }
+
+if (responsavelInput) {
+  responsavelInput.addEventListener('input', renderPreview);
+}
+if (matriculaInput) {
+  matriculaInput.addEventListener('input', renderPreview);
+}
+
 
   // ===== BUSCA REGISTROS (com suporte a dateOnly ou range) =====
   async function fetchRecords() {
@@ -833,7 +912,11 @@ input[type="date"].select-like {
   // ===== RENDER PREVIEW (inclui Atividade) =====
 function renderPreview() {
   const activityVal = (activityInput && activityInput.value) ? escapeHtml(activityInput.value.trim()) : '';
+  const responsavelVal = (responsavelInput && responsavelInput.value) ? escapeHtml(responsavelInput.value.trim()) : '';
+  const matriculaVal = (matriculaInput && matriculaInput.value) ? escapeHtml(matriculaInput.value.trim()) : '';
   const activityHtml = activityVal ? `<div style="padding:10px;border-radius:6px;background: var(--bg);margin-bottom:0.8rem; border: 1px solid #ececec;"><strong style="color: var(--text); background: color-mix(in srgb, var(--soft) 50%, transparent); padding: 5px; border-radius:6px;">Atividade:</strong> ${nl2br(activityVal)}</div>` : '';
+
+  const respMatHtml = (responsavelVal || matriculaVal) ? `<div style="padding:8px;border-radius:6px;background: var(--bg); margin-bottom:0.6rem; border:1px solid #ececec; display:flex; gap:12px; align-items:center;"><div style="flex:1;"><strong>Responsável:</strong> ${responsavelVal || '-'}</div><div style="width:120px;"><strong>Matrícula:</strong> ${matriculaVal || '-'}</div></div>` : '';
 
   if (!currentRecords.length) {
     previewContent.innerHTML = activityHtml + '<i class="fas fa-info-circle"></i> Nenhum registro encontrado.';
@@ -860,7 +943,7 @@ function renderPreview() {
     `;
   }).join('');
 
-  previewContent.innerHTML = activityHtml + recordsHtml;
+  previewContent.innerHTML = activityHtml + respMatHtml + recordsHtml;
 }
 
   // ===== TEMPLATE PARA O PDF =====
@@ -903,7 +986,7 @@ function renderPreview() {
     const rowHeight = 12;              // altura fixa entre linhas (mantém alinhamento)
     const rowsPerColumn = 28;          // linhas por coluna antes de ir pra direita/página nova
     const leftMatX = 60;
-    const leftNameX = leftMatX + 58;
+    const leftNameX = leftMatX + 44;
     const rightMatX = Math.round(pageW / 2) + 8;
     const rightNameX = rightMatX + 58;
     const nameColWidth = Math.round((pageW / 2) - (leftNameX - marginLeft) - 40);
@@ -962,6 +1045,15 @@ function renderPreview() {
 const activityX = marginLeft + 385;     // <<< ajuste horizontal aqui
 const activityY = headerY + 0;   // <<< ajuste vertical aqui (ex.: 18, 28, 40, ...)
 
+const respX = marginLeft + 60;        // posição horizontal do responsável (ajuste)
+const respY = headerY + 12;
+const gapBetweenCols = 12;             // espaço entre coluna responsavel e matricula
+const respMaxWidth = 200;              // <<< largura máxima (px) do RESPONSÁVEL — ajuste
+const matMaxWidth = 120;               // <<< largura máxima (px) da MATRÍCULA — ajuste
+const matX = respX + respMaxWidth + gapBetweenCols; // posicionado à direita do resp
+const gap = 10;                // distância entre final do nome e início da matrícula
+const rightMargin = 44;        // margem direita (mesma que marginLeft)
+
 let tableStartY = yTableStart;    // começa onde sempre começava...
 
 if (daily.activity) {
@@ -974,9 +1066,52 @@ if (daily.activity) {
     doc.text(lines[i], activityX, activityY + i * lineHeight);
   }
 
-  // se desenhou atividade, empurra a tabela para baixo para não sobrepor
-  const activityHeight = lines.length * lineHeight;
-  tableStartY = Math.max(yTableStart, activityY + activityHeight + 8); // 8 = respiro
+  const respText = String(daily.responsavel || '');
+const matText = String(daily.matricula || '');
+
+function truncateOneLine(text, maxW) {
+  const s = String(text || '');
+  if (doc.getTextWidth(s) <= maxW) return s;
+  let out = s;
+  while (out.length > 0 && doc.getTextWidth(out + '…') > maxW) out = out.slice(0, -1);
+  return out.length ? out + '…' : '…';
+}
+
+// largura do nome (na fonte atual)
+let respWidth = doc.getTextWidth(respText);
+
+// largura disponível total até margem direita onde matrícula não pode ultrapassar
+const maxMatAnchorX = pageW - rightMargin - matMaxWidth; // X máximo onde matrícula pode começar
+
+// posição proposta da matrícula logo após o nome
+let desiredMatX = Math.ceil(respX + respWidth + gap);
+
+// clamp: matrícula não pode começar depois do max disponível
+let matX = Math.min(desiredMatX, maxMatAnchorX);
+
+// se matX foi reduzido pelo clamp, precisamos garantir que o nome caiba até matX - gap
+const respAllowedWidth = Math.max(8, matX - gap - respX);
+
+// se o nome original é maior que o permitido, trunca
+let respToDraw = respText;
+if (doc.getTextWidth(respText) > respAllowedWidth) {
+  respToDraw = truncateOneLine(respText, respAllowedWidth);
+  respWidth = doc.getTextWidth(respToDraw); // atualiza largura do que será desenhado
+  // recomputa posição da matrícula logo após o nome truncado (protege contra off-by-one)
+  desiredMatX = Math.ceil(respX + respWidth + gap);
+  matX = Math.min(desiredMatX, maxMatAnchorX);
+}
+
+// finalmente trunca a matrícula também caso ela exceda matMaxWidth
+const matToDraw = truncateOneLine(matText || '-', matMaxWidth);
+
+// desenha (uma linha cada)
+doc.text(respToDraw || '-', respX, respY);
+doc.text(matToDraw || '-', matX, respY);
+
+// atualiza altura ocupada para empurrar tabela se necessário
+const respMatHeight = lineHeight; // estamos em uma linha só
+tableStartY = Math.max(tableStartY, respY + respMatHeight + 8);
 }
 
     // Preenche tabela em duas colunas (uma linha por registro para manter grade)
@@ -1091,6 +1226,8 @@ if (daily.activity) {
     }
 
     const activityVal = (activityInput && activityInput.value) ? activityInput.value.trim() : '';
+    const responsavelVal = (responsavelInput && responsavelInput.value) ? responsavelInput.value.trim() : '';
+const matriculaVal = (matriculaInput && matriculaInput.value) ? matriculaInput.value.trim() : '';
 
 const daily = {
   teamId,
@@ -1098,6 +1235,8 @@ const daily = {
   dateOnly,
   galpao: (members[0] && members[0].galpao) || '',
   activity: activityVal,   // <-- acrescentado
+  responsavel: responsavelVal,
+  matricula: matriculaVal,
   members
 };
 
