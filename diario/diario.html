@@ -574,18 +574,6 @@ input[type="date"].select-like {
   }
 }
 
-.resp-mat-container {
-  display: flex;
-  align-items: flex-start;  /* mantém topo alinhado */
-  gap: 12px;                /* controla a distância entre os dois blocos */
-}
-
-/* cada bloco (label + input) ocupa metade */
-.resp-mat-container > div {
-  flex: 1;                  /* divide igualmente */
-  min-width: 0;             /* evita quebra estranha */
-}
-
 #responsavelInput, #matriculaInput {
   width: 100%;
   padding: 10px 12px;
@@ -628,6 +616,47 @@ label[for="matriculaInput"] i {
 @media (max-width: 640px) {
   /* empilha inputs em telas pequenas */
   .header > div[style] { width: 100%; }
+}
+
+#obsGeralInput {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--soft);
+  border-radius: 8px;
+  font-size: 15px;
+  outline: none;
+  transition: all 0.3s ease;
+  background-color: var(--card);
+  color: var(--text);
+  box-sizing: border-box;
+  resize: none !important;
+  height: 40px;
+}
+
+#obsGeralInput::placeholder {
+  color: var(--text-muted);
+}
+
+/* Foco com efeito suave */
+#obsGeralInput:focus {
+  border-color: var(--accent-hover) !important;
+  background-color: var(--hover-bg);
+  box-shadow: 0 0 5px rgba(74, 144, 226, 0.4);
+  color: var(--text);
+}
+
+/* Campo inválido (ex.: se quiser validar que não pode ficar vazio) */
+#obsGeralInput:invalid {
+  border-color: #e74c3c;
+  background-color: var(--card);
+}
+
+/* Responsividade */
+@media (max-width: 600px) {
+  #obsGeralInput {
+    font-size: 14px;
+    padding: 8px 12px;
+  }
 }
 
 </style>
@@ -715,7 +744,12 @@ label[for="matriculaInput"] i {
         <label for="activityInput"><i class="fas fa-tasks"></i>Atividade:</label>
         <textarea id="activityInput" placeholder="Descreva a atividade (Solda/Montagem)..." rows="2"></textarea>
         <div style="display:flex;flex-direction:column;gap:6px;min-width:260px;">
-    <div style="display:flex;gap:8px; margin-top: 1rem;">
+          <!-- logo abaixo do activityInput, antes do bloco responsavel/matricula -->
+<div style="margin-top:10px;">
+  <label for="obsGeralInput"><i class="fas fa-sticky-note"></i> Observações:</label>
+  <textarea id="obsGeralInput" rows="2" placeholder="Observações diárias..." style="width:100%; padding:8px; border-radius:6px; border:1px solid var(--soft); resize:vertical;"></textarea>
+</div>
+    <div style="display:flex;gap:8px; margin-top: 0.5rem;">
       <div style="flex:1;">
         <label for="responsavelInput"><i class="fas fa-user-check"></i>Responsável:</label>
         <input id="responsavelInput" type="text" placeholder="Nome do responsável" />
@@ -781,6 +815,7 @@ label[for="matriculaInput"] i {
   const activityInput = document.getElementById('activityInput');
   const responsavelInput = document.getElementById('responsavelInput');
 const matriculaInput = document.getElementById('matriculaInput');
+const obsGeralInput = document.getElementById('obsGeralInput');
 
 
   // ===== AUTENTICAÇÃO =====
@@ -829,6 +864,10 @@ if (responsavelInput) {
 }
 if (matriculaInput) {
   matriculaInput.addEventListener('input', renderPreview);
+}
+
+if (obsGeralInput) {
+  obsGeralInput.addEventListener('input', renderPreview);
 }
 
 
@@ -914,9 +953,12 @@ function renderPreview() {
   const activityVal = (activityInput && activityInput.value) ? escapeHtml(activityInput.value.trim()) : '';
   const responsavelVal = (responsavelInput && responsavelInput.value) ? escapeHtml(responsavelInput.value.trim()) : '';
   const matriculaVal = (matriculaInput && matriculaInput.value) ? escapeHtml(matriculaInput.value.trim()) : '';
+  const obsVal = (obsGeralInput && obsGeralInput.value) ? escapeHtml(obsGeralInput.value.trim()) : '';
   const activityHtml = activityVal ? `<div style="padding:10px;border-radius:6px;background: var(--bg);margin-bottom:0.8rem; border: 1px solid #ececec;"><strong style="color: var(--text); background: color-mix(in srgb, var(--soft) 50%, transparent); padding: 5px; border-radius:6px;">Atividade:</strong> ${nl2br(activityVal)}</div>` : '';
 
   const respMatHtml = (responsavelVal || matriculaVal) ? `<div style="padding:8px;border-radius:6px;background: var(--bg); margin-bottom:0.6rem; border:1px solid #ececec; display:flex; gap:12px; align-items:center;"><div style="flex:1;"><strong>Responsável:</strong> ${responsavelVal || '-'}</div><div style="width:120px;"><strong>Matrícula:</strong> ${matriculaVal || '-'}</div></div>` : '';
+
+  const obsHtml = obsVal ? `<div class="preview-entry" style="margin-bottom:0.6rem;"><strong>Observações gerais:</strong><div style="margin-top:6px">${nl2br(obsVal)}</div></div>` : '';
 
   if (!currentRecords.length) {
     previewContent.innerHTML = activityHtml + '<i class="fas fa-info-circle"></i> Nenhum registro encontrado.';
@@ -943,7 +985,7 @@ function renderPreview() {
     `;
   }).join('');
 
-  previewContent.innerHTML = activityHtml + respMatHtml + recordsHtml;
+   previewContent.innerHTML = activityHtml + respMatHtml + obsHtml + recordsHtml;
 }
 
   // ===== TEMPLATE PARA O PDF =====
@@ -1228,6 +1270,7 @@ tableStartY = Math.max(tableStartY, respY + respMatHeight + 8);
     const activityVal = (activityInput && activityInput.value) ? activityInput.value.trim() : '';
     const responsavelVal = (responsavelInput && responsavelInput.value) ? responsavelInput.value.trim() : '';
 const matriculaVal = (matriculaInput && matriculaInput.value) ? matriculaInput.value.trim() : '';
+const obsVal = (obsGeralInput && obsGeralInput.value) ? obsGeralInput.value.trim() : '';
 
 const daily = {
   teamId,
@@ -1237,6 +1280,7 @@ const daily = {
   activity: activityVal,   // <-- acrescentado
   responsavel: responsavelVal,
   matricula: matriculaVal,
+  observacoesGerais: obsVal,
   members
 };
 
