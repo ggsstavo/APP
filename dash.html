@@ -1,0 +1,1024 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Dashboard de Apropriações — Luxury</title>
+
+  <!-- Inter Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <!-- Font Awesome Icons (CSS) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <!-- GSAP -->
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.2/dist/gsap.min.js"></script>
+
+  <style>
+    :root{
+      --bg: #0b150f;
+      --card: rgba(255,255,255,0.06);
+      --glass: rgba(255,255,255,0.04);
+      --accent: #9fccb1;
+      --secondary: #39666b;
+      --text: #e1efe6;
+      --muted: rgba(225,239,230,0.6);
+      --neumo-shadow: 10px 10px 20px rgba(0,0,0,0.6), -6px -6px 16px rgba(255,255,255,0.02);
+      --radius: 14px;
+      --max-width:1200px;
+      --gap:18px;
+
+      /* botão principal gradiente (sugestão do usuário) */
+      --btn-grad: linear-gradient(135deg,#4f46e5,#7c3aed);
+      --btn-glow-grad: linear-gradient(135deg, rgba(79,70,229,0.28), rgba(124,58,237,0.28));
+      --cta-contrast: #ffffff;
+
+       --glow-hero: rgba(200,210,220,0.06);
+  --glow-panel: rgba(170,180,190,0.045);
+  --glow-feature: rgba(150,160,170,0.055);
+  --glow-activity: rgba(140,150,160,0.06);
+  --glow-stat: rgba(120,130,140,0.05);
+  --hover-ease: cubic-bezier(.15,.9,.25,1);
+    }
+
+    /* utilitário: pseudo overlay para glow (reaproveitável) */
+.card-glow {
+  position: relative;
+  transition: box-shadow 240ms var(--hover-ease), background-color 240ms var(--hover-ease);
+}
+
+/* pseudo camada que cria o halo — deixa pointer-events:none para não atrapalhar */
+.card-glow::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  pointer-events:none;
+  z-index: -1; /* fica atrás do card */
+  transition: opacity 240ms var(--hover-ease);
+  opacity:0;
+  will-change: opacity;
+}
+
+/* 1) HERO CARD — glow mais amplo, leve wash frio */
+.hero-card.card-glow::after{
+  background: radial-gradient(500px 140px at 50% 8%, var(--glow-hero), transparent 45%);
+  filter: blur(22px) saturate(102%);
+}
+.hero-card.card-glow:hover,
+.hero-card.card-glow:focus-within{
+  box-shadow: 0 28px 70px rgba(8,10,12,0.46);
+  transition: box-shadow 1s cubic-bezier(.15,.9,.25,1);
+  will-change: box-shadow;
+}
+.hero-card.card-glow:hover::after,
+.hero-card.card-glow:focus-within::after{
+  opacity:1;
+}
+
+/* 2) PANELS (ex.: .panel) — glow mais discreto e próximo ao card */
+.panel.card-glow::after{
+  background: radial-gradient(380px 120px at 50% 50%, var(--glow-panel), transparent 40%);
+  filter: blur(18px);
+}
+.panel.card-glow:hover,
+.panel.card-glow:focus-within{
+  box-shadow: 0 20px 56px rgba(6,8,10,0.44);
+}
+.panel.card-glow:hover::after,
+.panel.card-glow:focus-within::after{
+  opacity:0.98;
+}
+
+/* 3) FEATURE CARDS (expl) — glow com um pouco mais de definição */
+.feature-card.card-glow::after{
+  background: radial-gradient(360px 110px at 50% 30%, var(--glow-feature), transparent 40%);
+  filter: blur(20px);
+}
+.feature-card.card-glow:hover,
+.feature-card.card-glow:focus-within{
+  box-shadow: 0 26px 64px rgba(10,12,14,0.5);
+}
+.feature-card.card-glow:hover::after,
+.feature-card.card-glow:focus-within::after{
+  opacity:1;
+}
+
+/* 4) ACTIVITY cards (Atividades do Dia) — glow sutil perto do ícone */
+#atividades-panel .activity.card-glow::after{
+  background: radial-gradient(250px 90px at 50% 12%, var(--glow-activity), transparent 36%);
+  filter: blur(16px);
+}
+#atividades-panel .activity.card-glow:hover,
+#atividades-panel .activity.card-glow:focus-within{
+  box-shadow: 0 22px 60px rgba(8,10,12,0.5);
+}
+#atividades-panel .activity.card-glow:hover::after,
+#atividades-panel .activity.card-glow:focus-within::after{
+  opacity:1;
+}
+
+/* 5) STAT mini cards — micro glow para chamar atenção sem exagero */
+.stat.card-glow::after{
+  background: radial-gradient(180px 60px at 50% 10%, var(--glow-stat), transparent 50%);
+  filter: blur(14px);
+}
+.stat.card-glow:hover,
+.stat.card-glow:focus-within{
+  box-shadow: 0 12px 30px rgba(6,8,10,0.42);
+}
+.stat.card-glow:hover::after,
+.stat.card-glow:focus-within::after{
+  opacity:0.98;
+}
+
+/* foco acessível: quando tabbing, mostra glow também (boa prática) */
+.hero-card.card-glow:focus-within,
+.panel.card-glow:focus-within,
+.feature-card.card-glow:focus-within,
+#atividades-panel .activity.card-glow:focus-within,
+.stat.card-glow:focus-within{
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(255,255,255,0.02);
+}
+
+/* reduz movimento para quem preferir menos animação */
+@media (prefers-reduced-motion: reduce){
+  .hero-card.card-glow,
+  .panel.card-glow,
+  .feature-card.card-glow,
+  #atividades-panel .activity.card-glow,
+  .stat.card-glow {
+    transition: none;
+  }
+  .hero-card.card-glow::after,
+  .panel.card-glow::after,
+  .feature-card.card-glow::after,
+  #atividades-panel .activity.card-glow::after,
+  .stat.card-glow::after {
+    transition: none;
+    opacity: 0 !important;
+  }
+}
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    /* --- body + overlay (tons de cinza, visual calmo e moderno) --- */
+body{
+  margin:0;
+  font-family:'Inter',system-ui,Arial;
+  /* base escura neutra (cinza profundo) */
+  background-color: #0b0c0f;
+  color: var(--text);
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  line-height:1.35;
+  padding-top:72px;
+  position: relative; /* necessário para isolar overlay */
+  z-index: 0;
+}
+
+/* camada de overlay: aplicação controlada do efeito 'glass' em cinza */
+body::before{
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+
+  /* duas manchas radiais + leve gradiente linear — tudo em tons de cinza/branco suave */
+  background:
+    radial-gradient(900px 340px at 8% 12%, rgba(255,255,255,0.035), transparent 30%),
+    radial-gradient(700px 260px at 85% 78%, rgba(255,255,255,0.02), transparent 35%),
+    linear-gradient(135deg, rgba(255,255,255,0.018), rgba(200,200,200,0.008));
+
+  /* suaviza e dessatura levemente para um efeito calmo */
+  filter: blur(28px) saturate(102%);
+  opacity: 0.90;
+
+  /* soft-light dá mistura mais sutil que 'overlay' — mantém contraste nos cards */
+  mix-blend-mode: soft-light;
+}
+
+/* garante que os elementos do layout fiquem sobre o overlay */
+header, main, .panel, .hero-card, .feature-card, .tray {
+  position: relative;
+  z-index: 1;
+}
+
+/* otimização em telas pequenas (performance + intensidade menor) */
+@media (max-width: 560px) {
+  body::before{
+    filter: blur(18px) saturate(100%);
+    opacity: 0.8;
+  }
+}
+
+
+    /* ---------------- sticky navbar ---------------- */
+    header{
+      position:fixed; left:0; right:0; top:0; height:72px; display:flex; align-items:center; justify-content:space-between; padding:12px 28px; z-index:60;
+      backdrop-filter: blur(8px) saturate(120%); background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border-bottom:1px solid rgba(255,255,255,0.03);
+    }
+    .brand{display:flex;gap:14px;align-items:center}
+    .logo{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--secondary)); box-shadow: var(--neumo-shadow); display:flex;align-items:center;justify-content:center;font-weight:800}
+    .brand h1{font-size:16px;margin:0}
+    .brand p{margin:0;font-size:12px;opacity:0.75}
+
+    nav{display:flex; gap:18px; align-items:center}
+    nav a{color:var(--muted); text-decoration:none; font-weight:500; font-size:14px; padding:8px 12px; border-radius:10px}
+    nav a:hover, nav a:focus{color:var(--text); outline:none}
+
+    /* hamburger */
+    .hamburger{display:none; width:44px;height:44px;border-radius:10px;align-items:center;justify-content:center;background:var(--glass); border:1px solid rgba(255,255,255,0.02); cursor:pointer}
+    .hamburger:focus{outline:2px solid rgba(123,155,255,0.18)}
+
+    /* Container central */
+    .container{max-width:var(--max-width);margin:40px auto;padding:0 20px}
+
+    /* ---------------- Hero ---------------- */
+    .hero{display:grid; grid-template-columns: 1fr minmax(260px,420px); gap:28px; align-items:start; margin-bottom:28px}
+    .hero-card{background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02)); border-radius:18px; padding:22px; box-shadow: 0 8px 30px rgba(0,0,0,0.6); backdrop-filter: blur(6px);}
+    .hero h2{margin:0;font-size:30px;letter-spacing:-0.02em; line-height: 2.25rem; font-weight: 700;}
+    .hero p{color:rgb(152, 205, 172);margin-top:10px; font-size:16px}
+
+    @media (prefers-reduced-motion: reduce) {
+      .hero h2{
+        font-size: 1.8rem;
+      }
+      .hero p{
+        font-size: 1rem;
+      }
+    }
+
+    .cta{margin-top:18px;display:flex;gap:12px;flex-wrap:wrap}
+
+    /* ---------------- BOTÕES: estilo chamativo com gradiente ---------------- */
+    .btn-neumo{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding:10px 16px;
+      border-radius:12px;
+      background: var(--btn-grad);                /* GRADIENT */
+      color: var(--cta-contrast);                 /* texto branco */
+      border: 1px solid rgba(255,255,255,0.06);
+      box-shadow: 0 12px 40px rgba(79,70,229,0.12), inset 0 -6px 18px rgba(255,255,255,0.02);
+      cursor:pointer;
+      font-weight:700;
+      letter-spacing:0.01em;
+      transition: transform .18s ease, box-shadow .18s ease, filter .12s ease;
+    }
+    .btn-neumo i{ opacity:0.95 }
+    .btn-neumo:hover{
+      transform: translateY(-3px);
+      filter:brightness(1.08);
+      box-shadow: 0 28px 80px rgba(79,70,229,0.18), -4px -4px 10px rgba(124,58,237,0.04);
+    }
+    .btn-neumo:active{ transform: translateY(-1px) scale(.996) }
+    .btn-neumo:focus{ outline: 3px solid rgba(79,70,229,0.18); outline-offset:2px; }
+
+    /* botão "glow" (aplicar halo suave) */
+    .btn-glow{ position:relative; }
+    .btn-glow:after{
+      content:'';
+      position:absolute;
+      inset:0;
+      border-radius:12px;
+      box-shadow: 0 8px 40px rgba(79,70,229,0.14);
+      opacity:0;
+      transition:opacity .28s;
+      pointer-events:none;
+    }
+    .btn-glow:hover:after{ opacity:1; }
+
+    /* ajuste para quando precisar de versão mais escura (ex: painel direito) */
+    .btn-neumo.ghost{
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      color: var(--text);
+      border: 1px solid rgba(255,255,255,0.06);
+      box-shadow: var(--neumo-shadow);
+    }
+
+    /* ---------------- Stats grid ---------------- */
+    .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-top:18px}
+    .stat{background:var(--card); padding:14px;border-radius:12px;min-height:72px;display:flex;flex-direction:column;justify-content:center}
+    .stat small{color:var(--muted); font-size:13px}
+    .stat h3{margin:6px 0 0 0;font-size:18px}
+    .indicators .stat{
+      margin-top: 12px;
+    }
+
+    /* ---------------- Cards / Panels ---------------- */
+    .cards{display:grid;grid-template-columns:1fr minmax(260px,340px);gap:18px;align-items:start}
+    .panels{display:grid;gap:12px}
+    .panel{background:var(--glass); border-radius:12px;padding:16px;backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,0.03)}
+
+    /* Efficiency card specifics */
+    .icon-circle{ width:52px;height:52px;border-radius:14px; background:linear-gradient(135deg,#ffd54a,#ffb74d); display:flex;align-items:center;justify-content:center;color:#061008; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+    .hours-number{ font-size:16px; font-weight:700; color:var(--accent); }
+    .hours-value{ font-size:20px; font-weight:800; color:#ffd54a; margin-right:6px; }
+    .hours-label{ font-weight:600; color:var(--muted); font-size:13px; }
+
+    .progress-row{ margin-bottom:8px; }
+    .progress-meta{ display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; gap:8px; flex-wrap:wrap }
+    .progress-title{ display:flex; align-items:center; gap:8px; color:var(--muted); font-size:13px; }
+    .progress-value{ font-weight:700; font-size:13px; color:inherit; }
+
+    .icon-mini{ font-size:16px; }
+    .bar-track{ height:12px; background: rgba(255,255,255,0.02); border-radius:999px; overflow:hidden; position:relative; }
+    .bar-fill{ display:block; height:100%; width:0%; border-radius:999px; transition: width 900ms cubic-bezier(.22,.9,.3,1); box-shadow: 0 6px 18px rgba(0,0,0,0.45); }
+
+    .bar-fill.fill-manual{ background: linear-gradient(90deg,#ff5252,#ff4b4b); }
+    .bar-fill.fill-dash{ background: linear-gradient(90deg,#34d399,#10b981); }
+
+    .legend{ font-size:13px; color:var(--muted) }
+    .percent{ font-weight:800; color:var(--accent); }
+
+    .eff-right{ width:100%; min-width:220px; }
+
+    /* ---------------- Activities (Atividades do Dia) - escopado ao #atividades-panel ---------------- */
+    #atividades-panel .activities {
+      display: grid;
+      grid-template-columns: repeat(1, 1fr);
+      gap: 14px;
+      margin-top: 12px;
+      align-items: start;
+    }
+
+    /* H4 centralizado + descrição logo abaixo */
+    #atividades-panel h4 { text-align:center; margin:6px 0 6px 0; font-size:35px; background-color: rgb(9, 9, 11);margin: 0px;background-image: linear-gradient(135deg, rgb(42, 109, 244), rgb(115, 69, 161));background-clip: text;font-weight: 700;color: transparent; line-height: 2.5rem;}
+    #atividades-panel p { text-align:center; color:var(--muted); margin:0 auto 12px; max-width:760px; font-size:16px; }
+
+    @media (max-width: 768px) {
+      #atividades-panel h4{
+        font-size: 2rem;
+      }
+
+      #atividades-panel p{
+        font-size: 1rem;
+      }
+    }
+
+    /* Card individual */
+    #atividades-panel .activity {
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      text-align:center;
+      gap:14px;
+      padding:28px 18px;
+      border-radius:14px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border: 1px solid rgba(255,255,255,0.03);
+      box-shadow: 0 14px 40px rgba(0,0,0,0.55);
+      min-height:320px;
+      transition: transform .18s ease, box-shadow .18s ease;
+    }
+    #atividades-panel .activity:hover { transform: translateY(-6px); box-shadow: 0 22px 60px rgba(0,0,0,0.6); }
+
+    /* Icon top box */
+    #atividades-panel .act-icon { width:100%; display:flex; justify-content:center; align-items:center; }
+    #atividades-panel .act-icon-bg { width:72px; height:72px; border-radius:14px; display:flex; align-items:center; justify-content:center; color:white; font-size:28px; box-shadow: 0 12px 30px rgba(17,24,39,0.6), inset 0 -6px 18px rgba(0,0,0,0.06); }
+    /* variants */
+    #atividades-panel .act-icon-primary{ background: linear-gradient(135deg, rgb(42, 109, 244), rgb(115, 69, 161)); }
+    #atividades-panel .act-icon-apro{ background: linear-gradient(135deg, rgb(42, 109, 244), rgb(115, 69, 161)); }
+    #atividades-panel .act-icon-safe{ background: linear-gradient(135deg, rgb(42, 109, 244), rgb(115, 69, 161)); }
+
+    /* act body fills space to push footer to bottom */
+    #atividades-panel .act-body { display:flex; flex-direction:column; width:100%; height:100%; gap:8px; }
+
+    #atividades-panel .act-title{ font-size:20px; color:#3b82f6; font-weight:700; margin-top:4px; }
+    #atividades-panel .act-desc{ font-size:13px; color:var(--muted); margin:0 auto; max-width:340px; line-height:1.45; }
+
+    #atividades-panel .act-topics { list-style:none; padding:0; margin:8px auto 0; width:100%; max-width:320px; text-align:left; display:flex; flex-direction:column; gap:10px; }
+    #atividades-panel .act-topics li { display:flex; align-items:center; gap:12px; color:var(--text); font-size:14px;}
+    #atividades-panel .act-topics li i { width:28px; height:28px; display:flex; align-items:center; justify-content:center; border-radius:50%; color:#ffc94a; background: rgba(255,201,74,0.08); font-size:12px; box-shadow: inset 0 -2px 6px rgba(0,0,0,0.10); }
+
+    /* footer / CTA: agora com gradient chamativo */
+    #atividades-panel .act-footer { margin-top:auto; width:100%; display:flex; justify-content:center; padding-top:6px; }
+    #atividades-panel .feature-cta {
+      width:86%; max-width:320px; padding:12px 14px; border-radius:10px;
+      background: var(--btn-grad);          /* MESMO GRADIENT DO BOTAO */
+      color: var(--cta-contrast);           /* texto branco */
+      border: 1px solid rgba(255,255,255,0.06);
+      box-shadow: 0 12px 40px rgba(79,70,229,0.12), inset 0 -6px 18px rgba(255,255,255,0.02);
+      font-weight:700; cursor:pointer; transition: transform .18s ease, filter .12s;
+    }
+    #atividades-panel .feature-cta:hover{ transform: translateY(-3px); filter:brightness(1.06); box-shadow: 0 28px 80px rgba(79,70,229,0.18); }
+
+    /* Badge "Mais utilizado" com mesmo gradiente / feeling dos botões */
+.feature-card.apropriacao .tag{
+  background: var(--btn-grad);               /* usa o gradiente já declarado */
+  color: var(--cta-contrast);                /* texto branco */
+  font-weight: 800;
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow: 0 10px 30px rgba(79,70,229,0.12), inset 0 -4px 12px rgba(255,255,255,0.03);
+  display: inline-flex;
+  align-items: center;
+  z-index: 6;
+  transition: transform .16s ease, box-shadow .16s ease;
+}
+
+/* força o ícone dentro da badge a ficar legível (branco) */
+.feature-card.apropriacao .tag i{
+  color: var(--cta-contrast) !important;
+  font-size: 12px;
+  line-height: 1;
+}
+
+/* pequeno efeito no hover para destacar ainda mais */
+.feature-card.apropriacao .tag:hover{
+  transform: translateY(-2px);
+  box-shadow: 0 20px 60px rgba(79,70,229,0.18), inset 0 -4px 12px rgba(255,255,255,0.04);
+}
+
+/* em telas muito pequenas reduz o padding para caber melhor */
+@media (max-width:560px){
+  .feature-card.apropriacao .tag{
+    padding:5px 10px;
+    font-size:11px;
+  }
+}
+
+/* === Observações rápidas — estilo idêntico à imagem (sidebar) === */
+.notes-panel {
+  border-radius: 14px;
+  padding: 18px;
+  border: 1px solid rgba(255,255,255,0.03);
+  box-shadow:
+    0 18px 50px rgba(0,0,0,0.7),
+    inset 0 1px 0 rgba(255,255,255,0.01);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 220px;
+}
+
+/* topo com ícone pequeno quadrado arredondado */
+.notes-panel .notes-top {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  justify-content:center; /* icon + title centralizados visualmente */
+  margin-top:2px;
+}
+
+/* icon box amarelo quadrado arredondado */
+.notes-panel .notes-icon {
+  width:44px;
+  height:44px;
+  border-radius:10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow: 0 5px 22px rgba(180,140,36,0.14);
+  color:#ffc94a; background: rgba(255,201,74,0.08);
+  font-size:18px;
+}
+
+/* título com gradiente azul e tom chamativo (como na imagem) */
+.notes-panel .notes-title {
+  font-weight:700;
+  font-size:18px;
+  line-height:1;
+  background: linear-gradient(90deg,#2a6df4,#7345a1);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  margin:0;
+}
+
+/* descrição breve centralizada */
+.notes-panel .notes-desc{
+  color: rgba(225,239,230,0.65);
+  text-align:center;
+  font-size:13px;
+  margin: 0 6px;
+}
+
+/* caixa de exemplo — fundo ligeiramente mais escuro (inset) */
+.notes-panel .notes-example {
+  margin-top:6px;
+  background: rgba(255,255,255,0.016);
+  border-radius:10px;
+  padding:12px 14px;
+  color: rgba(225,239,230,0.78);
+  font-size:13px;
+  line-height:1.45;
+  font-style: italic;
+  box-shadow: inset 0 2px 8px rgba(0,0,0,0.55);
+  border-left: 3px solid rgba(255,255,255,0.02);
+}
+
+/* CTA alinhado e estilizado (tamanho reduzido para a coluna lateral) */
+.notes-panel .notes-cta {
+  display:block;
+  margin: 12px auto 0;
+  width:76%;
+  max-width:260px;
+  text-align:center;
+  padding:10px 12px;
+  border-radius:10px;
+  background: linear-gradient(90deg,#4f46e5,#7c3aed);
+  color: var(--cta-contrast);
+  font-weight:700;
+  border:1px solid rgba(255,255,255,0.03);
+  box-shadow: 0 10px 30px rgba(79,70,229,0.12);
+  cursor:pointer;
+  text-decoration:none;
+}
+
+/* hover do botão (leve) */
+.notes-panel .notes-cta:hover{
+  filter:brightness(1.05);
+  box-shadow: 0 16px 40px rgba(79,70,229,0.14);
+}
+
+/* manter largura / estilo responsivo */
+@media (max-width:560px){
+  .notes-panel{ padding:14px; }
+  .notes-panel .notes-title{ font-size:16px; }
+  .notes-panel .notes-icon{ width:40px; height:40px; }
+  .notes-panel .notes-cta{ width:88%; }
+}
+
+
+    /* ---------------- explanatory .expl cards ---------------- */
+    .expl { display:grid; grid-template-columns: repeat(1, 1fr); gap:14px; margin-top:18px; }
+    .feature-card{ position:relative; padding:20px; border-radius:16px; background: linear-gradient(180deg, rgba(255,255,255,0.018), rgba(255,255,255,0.01)); box-shadow: 0 10px 30px rgba(0,0,0,0.55); display:flex; flex-direction:column; align-items:center; text-align:center; gap:12px; border:1px solid rgba(255,255,255,0.03); }
+    .feature-card .tag{ position:absolute; right:14px; top:14px; background:rgba(0,0,0,0.22); padding:6px 10px; border-radius:10px; font-weight:700; font-size:12px; }
+
+    .icon-top{ margin-top:6px; }
+    .icon-bg{ width:72px; height:72px; border-radius:14px; display:flex; align-items:center; justify-content:center; background: linear-gradient(135deg,#4f46e5,#3b82f6); box-shadow: 0 12px 30px rgba(17,24,39,0.6), inset 0 -6px 18px rgba(0,0,0,0.06); color:white; font-size:28px; }
+    .feat-title{ margin:6px 0 0 0; font-size:20px; color:#3b82f6; font-weight:700; }
+    .feat-desc{ margin:6px 0 0 0; color:var(--muted); font-size:14px; line-height:1.45; padding:0 6px; }
+    .feat-list{ list-style:none; padding:0; margin-top:12px; width:100%; max-width:260px; text-align:left; }
+    .feat-list li{ display:flex; gap:12px; align-items:center; padding:8px 0; color:var(--text); font-size:14px; }
+    .feat-list li i{ color:#10b981; background: rgba(16,185,129,0.08); border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; font-size:12px; }
+
+    /* ---------------- Misc panels, responsiveness ---------------- */
+    .mission{margin-top:18px;padding:16px;border-radius:12px;background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));}
+    .badge{display:inline-block;padding:6px 10px;border-radius:999px;background:linear-gradient(90deg,var(--accent),var(--secondary));font-weight:700;font-size:12px}
+
+    /* Save button animation */
+    .save-btn{display:inline-flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;background:linear-gradient(180deg,#0f261e, #07120f);border:1px solid rgba(255,255,255,0.04);cursor:pointer}
+    .save-success{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:10px;background:linear-gradient(90deg,#103423,#082a21); color:var(--accent); border:1px solid rgba(255,255,255,0.03)}
+
+    /* Tray (mobile panel) */
+    .tray{position:fixed;top:0;right:-420px;width:380px;height:100%;background:linear-gradient(180deg, rgba(10,20,15,0.96), rgba(10,20,15,0.94));box-shadow:-20px 0 80px rgba(0,0,0,0.7);padding:22px;border-left:1px solid rgba(255,255,255,0.02);transition:right .36s cubic-bezier(.2,.9,.2,1);z-index:80}
+    .tray.open{right:0}
+    .tray .close{display:flex;justify-content:flex-end}
+
+    /* helper reveal */
+    .reveal{opacity:0;transform:translateY(8px);filter:blur(6px);transition:all 600ms cubic-bezier(.2,.9,.25,1)}
+    .reveal.in-view{opacity:1;transform:none;filter:blur(0)}
+
+    /* ---------------- Responsive breakpoints ---------------- */
+    @media (min-width:1000px){
+      .expl { grid-template-columns: repeat(3, 1fr); }
+      .activities { grid-template-columns: repeat(3,1fr); }
+    }
+
+    @media (max-width:1000px){
+      .hero{grid-template-columns: 1fr;}
+      .cards{grid-template-columns:1fr;}
+      .activities{grid-template-columns:repeat(2,1fr);}
+      .stats-grid{grid-template-columns:repeat(2,1fr)}
+      nav{display:none}
+      .hamburger{display:flex}
+      .expl { grid-template-columns: repeat(2,1fr); }
+      .feature-card{ min-height:unset; padding:18px; }
+      .tray{ width: min(420px, 85%); }
+      .hero-card{ padding:18px; }
+    }
+
+    @media (max-width:560px){
+      .expl { grid-template-columns: 1fr; gap:12px; }
+      .activities{grid-template-columns:1fr}
+      .stats-grid{grid-template-columns:1fr}
+      .badge{font-size:11px;padding:6px 10px}
+      .hero-card{padding:14px}
+      .panel{padding:12px}
+      header{padding:10px 14px}
+      .container{padding:0 14px}
+      .logo{width:40px;height:40px}
+      .act-icon-bg{ width:64px; height:64px; font-size:24px; }
+      #atividades-panel .activity { padding:20px; min-height: auto; }
+      #atividades-panel .feature-cta{ width:92%; }
+    }
+
+  </style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <div class="logo"><img src="./favicon/favicon.svg" alt="" style="width: 75%;"></div>
+    <div>
+      <h1><i class="fa-solid fa-gauge" style="margin-right:10px"></i>Dashboard de Apropriações</h1>
+      <p>Agilidade • Confiabilidade • Organização</p>
+    </div>
+  </div>
+
+  <nav>
+    <a href="#home">Visão Geral</a>
+    <a href="#atividades">Atividades</a>
+    <a href="#resumo">Resumo</a>
+    <a href="#sobre">Sobre</a>
+    <button class="btn-neumo btn-glow" id="apropriarBtn"><i class="fa-solid fa-rocket" aria-hidden="true" style="margin-right:8px"></i>Apropriar Agora</button>
+  </nav>
+
+  <button class="hamburger" id="hambBtn" aria-label="Abrir menu">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="6" width="18" height="2" rx="1" fill="currentColor" opacity="0.85"/><rect x="3" y="11" width="18" height="2" rx="1" fill="currentColor" opacity="0.6"/><rect x="3" y="16" width="18" height="2" rx="1" fill="currentColor" opacity="0.4"/></svg>
+  </button>
+</header>
+
+<!-- tray menu -->
+<aside class="tray" id="tray" aria-hidden="true">
+  <div class="close"><button id="closeTray" class="save-btn">Fechar</button></div>
+  <nav style="margin-top:22px;display:flex;flex-direction:column;gap:12px;">
+    <a href="#home">Visão Geral</a>
+    <a href="#atividades">Atividades</a>
+    <a href="#resumo">Resumo</a>
+    <a href="#sobre">Sobre</a>
+    <a href="#observacoes">Observações</a>
+  </nav>
+</aside>
+
+<main class="container">
+  <section id="home" class="hero reveal">
+    <div class="hero-card card-glow">
+      <h2>Dashboard de Apropriações</h2>
+      <p>Envio rápido do efetivo, registro de atividades, justificativas e observações gerais — tudo pensado para obras que precisam de agilidade e confiança no registro.</p>
+
+      <div class="cta">
+        <a href="./dashboard.html"><button class="btn-neumo btn-glow" id="mainApropriar"><i class="fa-solid fa-rocket"></i>Apropriar Agora</button></a>
+        <a href="./anotar/anotar.html"><button class="btn-neumo ghost" id="quickNote"><i class="fa-regular fa-note-sticky"></i>Anotações rápidas</button></a>
+      </div>
+
+      <div class="stats-grid" style="margin-top:20px">
+        <div class="stat">
+          <small>Total colaboradores (hoje)</small>
+          <h3 id="statCol">128</h3>
+        </div>
+        <div class="stat">
+          <small>Atividades registradas</small>
+          <h3 id="statAct">46</h3>
+        </div>
+        <div class="stat">
+          <small>Horas extras</small>
+          <h3 id="statHE">9</h3>
+        </div>
+        <div class="stat">
+          <small>Faltas / Justificativas</small>
+          <h3 id="statFalt">3</h3>
+        </div>
+      </div>
+    </div>
+
+    <aside style="display:flex;flex-direction:column;gap:12px">
+      <div class="hero-card" style="min-height:220px;display:flex;flex-direction:column;justify-content:space-between">
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <small style="color:var(--muted)">Registros recentes</small>
+              <h3 style="margin:6px 0 0 0"><i class="fa-regular fa-clock" style="margin-right:8px"></i>Últimas apropriações</h3>
+            </div>
+            <div class="badge">Economia: 34%</div>
+          </div>
+        </div>
+        <canvas id="recentChart" style="height:130px"></canvas>
+      </div>
+
+      <div class="panel panel-actions reveal card-glow">
+        <div class="efficiency-wrap" style="display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap">
+          <div class="eff-left" style="display:flex;gap:14px;align-items:center;min-width:200px">
+            <div class="icon-circle" aria-hidden="true">
+              <i class="fa-solid fa-clock" style="font-size:22px"></i>
+            </div>
+            <div>
+              <div class="hours-number"><span class="hours-value">4.5</span> <span class="hours-label">horas</span></div>
+              <div class="small-note" style="color:var(--muted);font-size:13px">Tempo economizado por dia com nosso sistema</div>
+            </div>
+          </div>
+
+          <div class="eff-right" style="flex:1;min-width:220px">
+            <div class="progress-row" data-label="Registro manual" data-hours="6" data-color="red">
+              <div class="progress-meta">
+                <div class="progress-title"><i class="fa-solid fa-user-clock icon-mini" style="color:#ff6b6b;"></i><span class="label-text">Registro manual</span></div>
+                <div class="progress-value" style="font-weight:700;color:#ff6b6b;font-size:13px">6h/dia</div>
+              </div>
+              <div class="bar-track"><div class="bar-fill fill-manual" data-test="manual"></div></div>
+            </div>
+
+            <div style="height:10px"></div>
+
+            <div class="progress-row" data-label="Com Dashboard" data-hours="1.5" data-color="green">
+              <div class="progress-meta">
+                <div class="progress-title"><i class="fa-solid fa-computer icon-mini" style="color:#34d399;"></i><span class="label-text">Com Dashboard</span></div>
+                <div class="progress-value" style="font-weight:700;color:#10b981;font-size:13px">1.5h/dia</div>
+              </div>
+              <div class="bar-track"><div class="bar-fill fill-dash" data-test="dash"></div></div>
+            </div>
+
+            <div style="display:flex;justify-content:flex-end;margin-top:10px;gap:10px;align-items:center">
+              <div class="legend">Economia estimada:</div>
+              <div class="percent" id="economyPercent">—%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </section>
+
+  <!-- Cards e Infos -->
+  <section id="atividades" class="cards reveal">
+    <div class="panels">
+      <div class="panel">
+        <h3><i class="fa-solid fa-gear" style="margin-right:10px"></i>Como funcionam as apropriações</h3>
+        <p style="color:var(--muted)">Registre rapidamente o efetivo de cada frente, associe atividade, responsável e local. Gere relatórios e exporte PDFs com layout padrão.</p>
+        <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn-neumo ghost">Exportar</button>
+          <button class="btn-neumo ghost">Relatórios</button>
+        </div>
+      </div>
+
+      <div class="panel reveal" id="atividades-panel">
+        <h4>Atividades do Dia</h4>
+        <p>Organize e registre todas as atividades da obra de forma simples e intuitiva</p>
+
+        <div class="activities" style="margin-top:12px">
+          <div class="activity">
+            <div class="act-icon">
+              <div class="act-icon-bg act-icon-primary"><i class="fa-solid fa-clipboard-list"></i></div>
+            </div>
+
+            <div class="act-body">
+              <div class="act-title">Registrar atividade</div>
+              <p class="act-desc">Cadastre novas atividades com descrição detalhada, responsável e estimativa de tempo</p>
+
+              <ul class="act-topics">
+                <li><i class="fa-solid fa-tag"></i> Categorização automática</li>
+                <li><i class="fa-solid fa-user-check"></i> Atribuição de responsável</li>
+                <li><i class="fa-solid fa-clock"></i> Estimativa de duração</li>
+              </ul>
+
+              <div class="act-footer"><button class="feature-cta">Nova Atividade</button></div>
+            </div>
+          </div>
+
+          <div class="activity">
+            <div class="act-icon">
+              <div class="act-icon-bg act-icon-apro"><i class="fa-solid fa-user-tie"></i></div>
+            </div>
+
+            <div class="act-body">
+              <div class="act-title">Responsável</div>
+              <p class="act-desc">Atribua responsáveis para cada atividade e acompanhe o progresso em tempo real</p>
+
+              <ul class="act-topics">
+                <li><i class="fa-solid fa-magnifying-glass"></i> Busca inteligente</li>
+                <li><i class="fa-solid fa-bell"></i> Notificações automáticas</li>
+                <li><i class="fa-solid fa-list-check"></i> Controle de carga</li>
+              </ul>
+
+              <div class="act-footer"><button class="feature-cta">Atribuir Tarefa</button></div>
+            </div>
+          </div>
+
+          <div class="activity">
+            <div class="act-icon">
+              <div class="act-icon-bg act-icon-safe"><i class="fa-solid fa-location-dot"></i></div>
+            </div>
+
+            <div class="act-body">
+              <div class="act-title">Local</div>
+              <p class="act-desc">Especifique locais de trabalho e crie zonas organizadas para melhor controle</p>
+
+              <ul class="act-topics">
+                <li><i class="fa-solid fa-map"></i> Mapeamento visual</li>
+                <li><i class="fa-solid fa-layer-group"></i> Zonas de trabalho</li>
+                <li><i class="fa-solid fa-route"></i> Otimização de rotas</li>
+              </ul>
+
+              <div class="act-footer"><button class="feature-cta">Definir Zona</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h4><i class="fa-solid fa-lightbulb" style="margin-right:10px"></i>Card criativo</h4>
+        <p style="color:var(--muted)">Exemplo: Atalho para 'Enviar lotes' com pré-validação e verificação de inconsistências antes do envio.</p>
+        <div style="margin-top:12px">
+          <button class="btn-neumo ghost" id="bulkSend"><i class="fa-solid fa-upload" style="margin-right:8px"></i>Enviar lotes</button>
+        </div>
+      </div>
+    </div>
+
+    <aside style="min-width:260px; width:100%; max-width:340px; display:flex;flex-direction:column;gap:12px">
+      <div class="panel card-glow">
+        <h4><i class="fa-solid fa-chart-pie" style="margin-right:10px"></i>Resumo geral</h4>
+        <div class="indicators">
+          <div class="stat card-glow"><small>Total colaboradores</small><h3>128</h3></div>
+          <div class="stat card-glow"><small>Atividades</small><h3>46</h3></div>
+          <div class="stat card-glow"><small>Faltas</small><h3>3</h3></div>
+        </div>
+        <div class="mission" style="margin-top:12px">
+          <strong><i class="fa-solid fa-bullseye" style="margin-right:8px"></i>Missão</strong>
+          <p style="color:var(--muted);margin:8px 0 0 0">Agilizar e padronizar o registro de efetivo, reduzindo retrabalho e aumentando a confiabilidade das informações.</p>
+        </div>
+      </div>
+
+      <div class="panel notes-panel" role="region" aria-label="Observações diárias">
+  <div class="notes-top">
+    <div class="notes-icon"><i class="fa-solid fa-note-sticky"></i></div>
+    <h4 class="notes-title">Observações diárias</h4>
+  </div>
+
+  <p class="notes-desc">Faça observações importantes durante o dia e mantenha um registro completo das ocorrências</p>
+
+  <div class="notes-example">
+    <strong style="display:block;margin-bottom:6px;font-weight:600;color:rgba(225,239,230,0.85)">Exemplo de observação:</strong>
+    "Chuva interrompeu atividades externas das 14h às 16h. Equipe redirecionada para acabamentos internos."
+  </div>
+
+  <a href="./diario/diario.html" class="notes-cta" id="quickNoteBtn" role="button" aria-pressed="false">
+    <i class="fa-solid fa-pen-to-square" style="margin-right:8px"></i>Fazer Observação
+  </a>
+</div>
+    </aside>
+  </section>
+
+  <!-- explanatory cards -->
+  <section id="resumo" class="reveal">
+    <div class="expl">
+      <!-- Efetivo -->
+      <div class="feature-card card-glow">
+        <div class="tag">Efetivo</div>
+
+        <div class="icon-top">
+          <div class="icon-bg">
+            <i class="fa-solid fa-users"></i>
+          </div>
+        </div>
+
+        <h4 class="feat-title">Efetivo</h4>
+        <p class="feat-desc">Registre rapidamente a presença de colaboradores, gerencie escalas e controle o efetivo diário com praticidade total.</p>
+
+        <ul class="feat-list">
+          <li><i class="fa-solid fa-check"></i> Registro instantâneo</li>
+          <li><i class="fa-solid fa-check"></i> Controle de escalas automático</li>
+          <li><i class="fa-solid fa-check"></i> Relatórios em tempo real</li>
+        </ul>
+      </div>
+
+      <!-- Apropriação (com selo "Mais utilizado") -->
+      <div class="feature-card apropriacao card-glow">
+        <div class="tag"><i class="fa-solid fa-star" style="margin-right:6px;color:#072117"></i>Mais utilizado</div>
+
+        <div class="icon-top">
+          <div class="icon-bg icon-bg-apro">
+            <i class="fa-solid fa-clipboard-check"></i>
+          </div>
+        </div>
+
+        <h4 class="feat-title">Apropriação</h4>
+        <p class="feat-desc">Sistema principal para registro de atividades, controle de horas e apropriação de custos por centro de trabalho.</p>
+
+        <ul class="feat-list">
+          <li><i class="fa-solid fa-check"></i> Envio com validação</li>
+          <li><i class="fa-solid fa-check"></i> Associação atividade e responsável</li>
+          <li><i class="fa-solid fa-check"></i> Histórico para auditoria</li>
+        </ul>
+      </div>
+
+      <!-- Observações & Segurança -->
+      <div class="feature-card card-glow">
+        <div class="tag"><i class="fa-solid fa-shield-halved" style="margin-right:6px"></i>Observa+</div>
+
+        <div class="icon-top">
+          <div class="icon-bg icon-bg-safe">
+            <i class="fa-solid fa-shield-halved"></i>
+          </div>
+        </div>
+
+        <h4 class="feat-title">Observações & Segurança</h4>
+        <p class="feat-desc">Módulo de segurança para observações, alertas e registro de ocorrências com total confidencialidade.</p>
+
+        <ul class="feat-list">
+          <li><i class="fa-solid fa-check"></i> Registro de ocorrências</li>
+          <li><i class="fa-solid fa-check"></i> Checklists de segurança</li>
+          <li><i class="fa-solid fa-check"></i> Ações corretivas rastreáveis</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="sobre" style="margin-top:18px" class="reveal">
+    <div class="panel">
+      <h4>Sobre o sistema</h4>
+      <p style="color:var(--muted)">Sistema pensado para profissionais de obra que precisam registrar efetivo de forma rápida e confiável. Layout minimalista, interações suaves e foco nas métricas.</p>
+    </div>
+  </section>
+
+</main>
+
+<script>
+  // tray open/close
+  const hamb = document.getElementById('hambBtn');
+  const tray = document.getElementById('tray');
+  const closeTray = document.getElementById('closeTray');
+  hamb && hamb.addEventListener('click', ()=> { tray.classList.add('open'); tray.setAttribute('aria-hidden','false'); });
+  closeTray && closeTray.addEventListener('click', ()=> { tray.classList.remove('open'); tray.setAttribute('aria-hidden','true'); });
+
+  // Save rapid animation (preserva seu comportamento anterior)
+  const saveRapid = document.getElementById('saveRapid');
+  saveRapid && saveRapid.addEventListener('click', ()=>{
+    const orig = saveRapid.innerHTML;
+    saveRapid.innerHTML = '<span style="display:inline-flex;align-items:center;gap:8px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Registrado</span>'
+    saveRapid.classList.add('save-success');
+    setTimeout(()=>{ saveRapid.classList.remove('save-success'); saveRapid.innerHTML = orig },1600);
+  })
+
+  // Save observations
+  const saveObs = document.getElementById('saveObs');
+  saveObs && saveObs.addEventListener('click', ()=>{
+    const txt = document.getElementById('obs').value;
+    saveObs.innerText = 'Salvando...';
+    setTimeout(()=>{ saveObs.innerText = 'Salvo ✓'; setTimeout(()=> saveObs.innerText = 'Salvar',1100) },900)
+  })
+
+  // Bulk send fake
+  const bulk = document.getElementById('bulkSend');
+  bulk && bulk.addEventListener('click', ()=>{
+    bulk.innerText = 'Enviando...';
+    setTimeout(()=>{ bulk.innerText = 'Enviado ✓' },900);
+  })
+
+  // Chart (preserva seu chart)
+  const ctx = document.getElementById('recentChart').getContext('2d');
+  const recentChart = new Chart(ctx, {
+    type:'bar', data:{labels:['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'], datasets:[{label:'Apropriações', data:[12,18,9,14,16,11,10], backgroundColor: 'rgba(160,200,180,0.12)', borderColor: 'rgba(160,200,180,0.6)', borderWidth:1, borderRadius:6}]}, options:{plugins:{legend:{display:false}}, scales:{y:{grid:{color:'rgba(255,255,255,0.02)'},ticks:{color:'var(--muted)'}}, x:{ticks:{color:'var(--muted)'}, grid:{display:false}}}}
+  })
+
+  // GSAP entrance (optional)
+  if(window.gsap){
+    gsap.utils.toArray('.reveal').forEach((el, i)=>{
+      gsap.fromTo(el,{opacity:0,y:12,filter:'blur(8px)'},{opacity:1,y:0,filter:'blur(0px)',delay:0.08*i,duration:0.7, ease:'power3.out'})
+    })
+  }
+
+  // IntersectionObserver for scroll reveals
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){ e.target.classList.add('in-view') }
+    })
+  },{threshold:0.12})
+  document.querySelectorAll('.reveal').forEach(el=> io.observe(el));
+
+  // close tray with Esc
+  document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') tray.classList.remove('open') })
+
+  // simulate dynamic stats update (example)
+  setTimeout(()=>{
+    document.getElementById('statCol').innerText = '132';
+    document.getElementById('statAct').innerText = '49';
+  },1600)
+
+  // animate bars / compute economy
+  document.addEventListener('DOMContentLoaded', () => {
+    const maxRef = 8;
+    const rows = document.querySelectorAll('.progress-row');
+    let manualHours = 0, dashHours = 0;
+    rows.forEach(row => {
+      const hours = parseFloat(row.getAttribute('data-hours')) || 0;
+      const label = (row.getAttribute('data-label')||'').toLowerCase();
+      if(label.includes('manual')) manualHours = hours;
+      if(label.includes('dashboard')) dashHours = hours;
+    });
+    const saved = +( (manualHours - dashHours).toFixed(1) );
+    const pct = manualHours > 0 ? Math.round((saved / manualHours)*100) : 0;
+    const hoursNode = document.querySelector('.hours-value');
+    if(hoursNode) hoursNode.textContent = saved;
+    const percentNode = document.getElementById('economyPercent');
+    if(percentNode) percentNode.textContent = pct + '%';
+    // animate fills
+    setTimeout(() => {
+      rows.forEach(row => {
+        const hours = parseFloat(row.getAttribute('data-hours')) || 0;
+        const fill = row.querySelector('.bar-fill');
+        if(!fill) return;
+        const widthPct = Math.min(100, Math.round((hours / maxRef) * 100));
+        fill.style.width = widthPct + '%';
+      });
+    }, 120);
+  });
+
+</script>
+</body>
+</html>
