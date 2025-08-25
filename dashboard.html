@@ -792,18 +792,25 @@ Enviar Apropriação</h3>
     <!-- Tabela de Registros -->
     <section class="form-section">
       <h3><i class="fas fa-history"></i>Registros Recentes</h3>
-      <div class="table-wrapper">
-      <table id="recordsTable">
-        <thead>
-          <tr>
-            <th>Data</th>
-            <th>Galpão</th>
-            <th>Equipe</th>
-            <th>Usuário</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+
+      <!-- NOVO: botão para iniciar o carregamento (carrega os 5 primeiros) -->
+      <div style="margin-bottom:12px;">
+        <button id="loadRecordsBtn" class="btn"><i class="fas fa-download"></i> Carregar Registros Recentes</button>
+        <span id="recordsStatus" style="margin-left:12px;color:var(--text);font-size:0.95rem;"></span>
+      </div>
+
+      <div class="table-wrapper" id="recordsTableWrapper" style="max-height:360px; overflow:auto;">
+        <table id="recordsTable">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Galpão</th>
+              <th>Equipe</th>
+              <th>Usuário</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
       </div>
     </section>
   </div>
@@ -829,7 +836,6 @@ Enviar Apropriação</h3>
     </div>
   </div>
 </div>
-
 <a href="./dash.html">teste</a>
 
 
@@ -1131,18 +1137,19 @@ window.addEventListener('DOMContentLoaded', () => {
     currentUser = user;
     setDateToday();
     try {
-      await loadTeamsOnce();
-      await loadRecords(true);
-    } catch (e) {
-      console.error(e);
-      showNotification('Erro ao carregar dados iniciais.', 'error');
-    }
-    } else {
-      // mismatch ou não autenticado → limpa e login
-      clearCachedUID();
-      window.location.href = './index.html';
-    }
-  });
+            // loadTeamsOnce permanece (usa cache local antes de ler Firestore)
+            await loadTeamsOnce();
+            // NOTA: removi o carregamento automático de registros aqui para só carregar ao clicar no botão
+            // await loadRecords(true); -- deixe por clique do usuário
+          } catch (e) {
+            console.error(e);
+            showNotification('Erro ao carregar dados iniciais.', 'error');
+          }
+        } else {
+          localStorage.removeItem('uid');
+          window.location.href = './index.html';
+        }
+      });
 });
 
 function setDateToday() {
@@ -1546,77 +1553,143 @@ const docId = `${safeName}, ${rec.memberMatricula} - ${dateStrForId}`;
 }
 
 let lastVisibleRecord = null;
-let isFetchingRecords = false;
-let recordsCache = [];
+    let isFetchingRecords = false;
+    let recordsCache = []; // acumula os documentos já carregados (opcional)
+    let recordsInitialized = false; // só será true após o primeiro clique do botão
+    let noMoreRecords = false; // quando não houver mais docs no servidor
 
-async function loadRecords(initial = false) {
-  if (isFetchingRecords) return;
-  isFetchingRecords = true;
+    const LOAD_BATCH_SIZE = 5;
 
-  let q = query(
-    collection(db, "records"),
-    where("createdBy", "==", currentUser.uid),
-    orderBy("date", "desc"),
-    limit(5)
-  );
+function appendRecordsToTable(newDocs) {
+      const tbody = document.querySelector("#recordsTable tbody");
+      if (!tbody) return;
+      const fragment = document.createDocumentFragment();
 
-  if (!initial && lastVisibleRecord) {
-    q = query(q, startAfter(lastVisibleRecord));
-  }
+      for (const r of newDocs) {
+        const date = r.date?.toDate?.() || new Date();
+        const dateStr = date.toLocaleString("pt-BR", {
+          day: '2-digit', month: '2-digit', year: 'numeric',
+          hour: '2-digit', minute: '2-digit'
+        });
+        const galp = (r.galpao || "").replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        const team = (r.teamName || r.teamId || "").replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        const user = (r.userName || "").replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-  try {
-    const snap = await getDocs(q);
-    if (!snap.empty) {
-      lastVisibleRecord = snap.docs[snap.docs.length - 1];
-      const newDocs = [];
-      snap.forEach(docSnap => newDocs.push(docSnap.data()));
-      recordsCache = recordsCache.concat(newDocs);
-      renderRecords(recordsCache);
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${dateStr}</td><td>${galp}</td><td>${team}</td><td>${user}</td>`;
+        fragment.appendChild(tr);
+      }
+
+      tbody.appendChild(fragment);
     }
-  } catch (e) {
-    console.error('Erro ao carregar records', e);
-  } finally {
-    isFetchingRecords = false;
-  }
-}
 
-  function renderRecords(records) {
-  const tbody = document.querySelector("#recordsTable tbody");
-  if (!tbody) return;
+    // Limpa tabela e cache (usado quando fazemos a carga inicial/reset)
+    function clearRecordsTable() {
+      const tbody = document.querySelector("#recordsTable tbody");
+      if (tbody) tbody.innerHTML = '';
+      recordsCache = [];
+      lastVisibleRecord = null;
+      noMoreRecords = false;
+    }
 
-  // monta HTML de uma vez
-  const rowsHtml = records.map((r) => {
-    const date = r.date?.toDate?.() || new Date();
-    const dateStr = date.toLocaleString("pt-BR", {
-      day: '2-digit', month: '2-digit', year: 'numeric',
-      hour: '2-digit', minute: '2-digit'
+    // Função principal para carregar registros (reset=true para carga inicial)
+    async function loadRecords(reset = false) {
+      if (isFetchingRecords) return;
+      if (noMoreRecords && !reset) return; // nada mais a buscar
+
+      isFetchingRecords = true;
+      const loadBtn = document.getElementById('loadRecordsBtn');
+      const statusSpan = document.getElementById('recordsStatus');
+      if (loadBtn) {
+        loadBtn.disabled = true;
+        loadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Carregando...';
+      }
+      if (statusSpan) statusSpan.textContent = '';
+
+      try {
+        // reset solicita limpar cache e forçar início (primeiro clique)
+        if (reset) {
+          clearRecordsTable();
+          recordsInitialized = true;
+        }
+
+        // montar query base
+        let q = query(
+          collection(db, "records"),
+          where("createdBy", "==", currentUser.uid),
+          orderBy("date", "desc"),
+          limit(LOAD_BATCH_SIZE)
+        );
+
+        if (!reset && lastVisibleRecord) {
+          q = query(q, startAfter(lastVisibleRecord));
+        }
+
+        const snap = await getDocs(q);
+
+        if (!snap.empty) {
+          // atualiza lastVisibleRecord para paginação
+          lastVisibleRecord = snap.docs[snap.docs.length - 1];
+
+          // transforma em array de dados
+          const newDocs = [];
+          snap.forEach(docSnap => newDocs.push(docSnap.data()));
+
+          // apenda na tabela
+          appendRecordsToTable(newDocs);
+
+          // atualiza cache local (se desejar reaproveitar em outras ações)
+          recordsCache = recordsCache.concat(newDocs);
+
+          // Se trouxe menos que o batch -> provavelmente acabou
+          if (snap.size < LOAD_BATCH_SIZE) {
+            noMoreRecords = true;
+            const status = document.getElementById('recordsStatus');
+            if (status) status.textContent = 'Todos os registros foram carregados.';
+          }
+        } else {
+          // query vazia: não há registros (ex: usuário novo)
+          noMoreRecords = true;
+          if (reset) {
+            const status = document.getElementById('recordsStatus');
+            if (status) status.textContent = 'Nenhum registro encontrado.';
+          }
+        }
+      } catch (e) {
+        console.error('Erro ao carregar records', e);
+        showNotification('Erro ao carregar registros recentes.', 'error');
+      } finally {
+        isFetchingRecords = false;
+        if (loadBtn) {
+          loadBtn.disabled = noMoreRecords; // desabilita se não houver mais
+          if (!noMoreRecords) loadBtn.style.display = 'none'; // após a carga inicial, escondemos o botão e deixamos o scroll carregar o resto
+          else loadBtn.innerHTML = '<i class="fas fa-check"></i> Carregado';
+        }
+      }
+    }
+
+    // Scroll listener: só ativa depois que o usuário iniciou a carga (recordsInitialized)
+    const tableWrapper = document.getElementById("recordsTableWrapper");
+    let scrollTimeout;
+    tableWrapper.addEventListener("scroll", () => {
+      if (!recordsInitialized || noMoreRecords) return;
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => {
+        if (tableWrapper.scrollTop + tableWrapper.clientHeight >= tableWrapper.scrollHeight - 50) {
+          loadRecords(false); // próximo lote
+        }
+      }, 120);
     });
-    const galp = (r.galpao || "").replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    const team = (r.teamName || r.teamId || "").replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    const user = (r.userName || "").replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-    return `<tr>
-      <td>${dateStr}</td>
-      <td>${galp}</td>
-      <td>${team}</td>
-      <td>${user}</td>
-    </tr>`;
-  }).join('');
-
-  tbody.innerHTML = rowsHtml;
-}
-
-const tableWrapper = document.querySelector("#recordsTable").parentElement;
-
-let scrollTimeout;
-tableWrapper.addEventListener("scroll", () => {
-  clearTimeout(scrollTimeout);
-  scrollTimeout = setTimeout(() => {
-    if (tableWrapper.scrollTop + tableWrapper.clientHeight >= tableWrapper.scrollHeight - 50) {
-      loadRecords(); // próximo lote
-    }
-  }, 120); // 120ms debounce (ajuste se quiser)
-});
+    // Botão de carregar registros (aperta 1 vez p/ carregar primeiros 5)
+    const loadRecordsBtn = document.getElementById('loadRecordsBtn');
+    loadRecordsBtn.addEventListener('click', async () => {
+      // se já iniciou, ignora — mas nesse fluxo, só pode iniciar uma vez
+      if (recordsInitialized) return;
+      await loadRecords(true); // reset = true -> carrega primeiros 5
+      // após carregar, deixamos o botão escondido (a menos que nãoMoreRecords === true)
+      // (essa lógica já definida no finally de loadRecords)
+    });
 
 // Menu hamburger
 const toggleMenuBtn = document.getElementById("toggleMenu");
