@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="description" content="Site/Aplicativo para realizar as apropriações">
-  <title>Apropriação</title>
+  <title>Estrutura | Apropriação</title>
   <!-- Firebase -->
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
@@ -250,7 +250,6 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 20px;
       background-color: var(--bg);
       color: var(--text2);
     }
@@ -836,1044 +835,1002 @@ Enviar Apropriação</h3>
     </div>
   </div>
 </div>
-<a href="./dash.html">teste</a>
 
 
   <script type="module">
+  // utilitários e imports
+  function getCachedUID() { return localStorage.getItem('uid'); }
+  function clearCachedUID() { localStorage.removeItem('uid'); }
 
-    function getCachedUID() {
-  return localStorage.getItem('uid');
-}
-function clearCachedUID() {
-  localStorage.removeItem('uid');
-}
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
-import {
-  initializeFirestore,
-  persistentLocalCache,
-  persistentMultipleTabManager,
-  collection,
-  query,
-  where,
-  getDocs,
-  addDoc,
-  doc,
-  getDoc,
-  setDoc,
-  deleteDoc,
-  writeBatch,
-  orderBy,
-  limit,
-  startAfter,
-  Timestamp
-} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+  import {
+    initializeFirestore,
+    persistentLocalCache,
+    persistentMultipleTabManager,
+    collection,
+    query,
+    where,
+    getDocs,
+    addDoc,
+    doc,
+    getDoc,
+    setDoc,
+    deleteDoc,
+    writeBatch,
+    orderBy,
+    limit,
+    startAfter,
+    Timestamp
+  } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 
-function escapeHtml(str = '') {
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
-
-// --- FUNÇÃO QUE ESTAVA FALTANDO ---
-function createShiftRowForRecord({
-  name,
-  memberMatricula,
-  block = "",
-  vessel = "",
-  shift = "",
-  observations = "",
-  local = "",
-  customLocal = "",
-  details = "",
-  absent = false,
-  abono = 'VERIFICAR',
-  absenceReason = ''
-}) {
-
-  const div = document.createElement("div");
-  div.className = "form-row";
-  div.style.position = "relative";
-
-  const uid = 's' + Math.random().toString(36).slice(2,8);
-  const finalLocal = local === "Outros" && customLocal ? customLocal : local;
-
-  if (absent) {
-    div.innerHTML = `
-      <input type="text" id="shiftName-${uid}" name="shiftName[]" class="shiftName" value="${escapeHtml(name)}" readonly autocomplete="off" />
-      <input type="text" id="shiftMatricula-${uid}" name="shiftMatricula[]" class="shiftMatricula" value="${escapeHtml(memberMatricula)}" readonly autocomplete="off" />
-      <input type="hidden" id="shiftBlock-${uid}" name="shiftBlock[]" class="shiftBlock" value="" />
-      <input type="hidden" id="shiftVessel-${uid}" name="shiftVessel[]" class="shiftVessel" value="" />
-      <input type="hidden" id="shiftTurno-${uid}" name="shiftTurno[]" class="shiftTurno" value="FALTA" />
-      <input type="hidden" id="shiftLocal-${uid}" name="shiftLocal[]" class="shiftLocal" value="" />
-      <input type="hidden" id="shiftDetails-${uid}" name="shiftDetails[]" class="shiftDetails" value="" />
-      <textarea id="shiftAbsenceReason-${uid}" name="shiftAbsenceReason[]" class="shiftAbsenceReason" placeholder="Motivo da falta" rows="2" aria-label="Motivo da falta">${escapeHtml(absenceReason)}</textarea>
-
-      <div class="abonar-wrap">
-        <label class="abonar-dsr" for="shiftAbono-${uid}">Abonar DSR</label>
-        <select id="shiftAbono-${uid}" name="shiftAbono[]" class="shiftAbono">
-          <option value="VERIFICAR" ${abono === 'VERIFICAR' ? 'selected' : ''}>VERIFICAR</option>
-          <option value="SIM" ${abono === 'SIM' ? 'selected' : ''}>SIM</option>
-          <option value="NAO" ${abono === 'NAO' ? 'selected' : ''}>NÃO</option>
-        </select>
-      </div>
-    `;
-    const abWrap = div.querySelector('.abonar-wrap');
-    if (abWrap) abWrap.classList.add('visible');
-  } else {
-    div.innerHTML = `
-      <input type="text" id="shiftName-${uid}" name="shiftName[]" class="shiftName" value="${escapeHtml(name)}" readonly autocomplete="off" />
-      <input type="text" id="shiftMatricula-${uid}" name="shiftMatricula[]" class="shiftMatricula" value="${escapeHtml(memberMatricula)}" readonly autocomplete="off" />
-      <input type="text" id="shiftBlock-${uid}" name="shiftBlock[]" class="shiftBlock" value="${escapeHtml(block)}" placeholder="Bloco" autocomplete="off" />
-      <input type="text" id="shiftVessel-${uid}" name="shiftVessel[]" class="shiftVessel" value="${escapeHtml(vessel)}" placeholder="Embarcação" autocomplete="off" />
-      <select id="shiftTurno-${uid}" name="shiftTurno[]" class="shiftTurno">
-        <option value="">Selecione Turno</option>
-        <option value="Diurno" ${shift === "Diurno" ? "selected" : ""}>Diurno</option>
-        <option value="Noturno" ${shift === "Noturno" ? "selected" : ""}>Noturno</option>
-      </select>
-      <input type="text" id="shiftLocal-${uid}" name="shiftLocal[]" class="shiftLocal" value="${escapeHtml(finalLocal)}" readonly autocomplete="off" />
-      <input type="hidden" id="shiftDetails-${uid}" name="shiftDetails[]" class="shiftDetails" value="${escapeHtml(details)}" />
-      <input type="text" id="shiftObservations-${uid}" name="shiftObservations[]" class="shiftObservations" placeholder="Observações" value="${escapeHtml(observations)}" autocomplete="off" />
-    `;
+  function escapeHtml(str = '') {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
   }
 
-  return div;
-}
+  // --- criação de linha (para apropriações) ---
+  function createShiftRowForRecord({
+    name, memberMatricula, block = "", vessel = "", shift = "",
+    observations = "", local = "", customLocal = "", details = "",
+    absent = false, abono = 'VERIFICAR', absenceReason = ''
+  }) {
+    const div = document.createElement("div");
+    div.className = "form-row";
+    div.style.position = "relative";
+    const uid = 's' + Math.random().toString(36).slice(2,8);
+    const finalLocal = local === "Outros" && customLocal ? customLocal : local;
 
+    if (absent) {
+      div.innerHTML = `
+        <input type="text" id="shiftName-${uid}" name="shiftName[]" class="shiftName" value="${escapeHtml(name)}" readonly autocomplete="off" />
+        <input type="text" id="shiftMatricula-${uid}" name="shiftMatricula[]" class="shiftMatricula" value="${escapeHtml(memberMatricula)}" readonly autocomplete="off" />
+        <input type="hidden" id="shiftBlock-${uid}" name="shiftBlock[]" class="shiftBlock" value="" />
+        <input type="hidden" id="shiftVessel-${uid}" name="shiftVessel[]" class="shiftVessel" value="" />
+        <input type="hidden" id="shiftTurno-${uid}" name="shiftTurno[]" class="shiftTurno" value="FALTA" />
+        <input type="hidden" id="shiftLocal-${uid}" name="shiftLocal[]" class="shiftLocal" value="" />
+        <input type="hidden" id="shiftDetails-${uid}" name="shiftDetails[]" class="shiftDetails" value="" />
+        <textarea id="shiftAbsenceReason-${uid}" name="shiftAbsenceReason[]" class="shiftAbsenceReason" placeholder="Motivo da falta" rows="2" aria-label="Motivo da falta">${escapeHtml(absenceReason)}</textarea>
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDtnzixicBYAQkuoeB5tgCGpDLt1lByMZo",
-  authDomain: "apropriacao-estrutura.firebaseapp.com",
-  projectId: "apropriacao-estrutura",
-  storageBucket: "apropriacao-estrutura.appspot.com",
-  messagingSenderId: "155266586257",
-  appId: "1:155266586257:web:6d70edc967cdbfc56e5130",
-};
+        <div class="abonar-wrap">
+          <label class="abonar-dsr" for="shiftAbono-${uid}">Abonar DSR</label>
+          <select id="shiftAbono-${uid}" name="shiftAbono[]" class="shiftAbono">
+            <option value="VERIFICAR" ${abono === 'VERIFICAR' ? 'selected' : ''}>VERIFICAR</option>
+            <option value="SIM" ${abono === 'SIM' ? 'selected' : ''}>SIM</option>
+            <option value="NAO" ${abono === 'NAO' ? 'selected' : ''}>NÃO</option>
+          </select>
+        </div>
+      `;
+      const abWrap = div.querySelector('.abonar-wrap');
+      if (abWrap) abWrap.classList.add('visible');
+    } else {
+      div.innerHTML = `
+        <input type="text" id="shiftName-${uid}" name="shiftName[]" class="shiftName" value="${escapeHtml(name)}" readonly autocomplete="off" />
+        <input type="text" id="shiftMatricula-${uid}" name="shiftMatricula[]" class="shiftMatricula" value="${escapeHtml(memberMatricula)}" readonly autocomplete="off" />
+        <input type="text" id="shiftBlock-${uid}" name="shiftBlock[]" class="shiftBlock" value="${escapeHtml(block)}" placeholder="Bloco" autocomplete="off" />
+        <input type="text" id="shiftVessel-${uid}" name="shiftVessel[]" class="shiftVessel" value="${escapeHtml(vessel)}" placeholder="Embarcação" autocomplete="off" />
+        <select id="shiftTurno-${uid}" name="shiftTurno[]" class="shiftTurno">
+          <option value="">Selecione Turno</option>
+          <option value="Diurno" ${shift === "Diurno" ? "selected" : ""}>Diurno</option>
+          <option value="Noturno" ${shift === "Noturno" ? "selected" : ""}>Noturno</option>
+        </select>
+        <input type="text" id="shiftLocal-${uid}" name="shiftLocal[]" class="shiftLocal" value="${escapeHtml(finalLocal)}" readonly autocomplete="off" />
+        <input type="hidden" id="shiftDetails-${uid}" name="shiftDetails[]" class="shiftDetails" value="${escapeHtml(details)}" />
+        <input type="text" id="shiftObservations-${uid}" name="shiftObservations[]" class="shiftObservations" placeholder="Observações" value="${escapeHtml(observations)}" autocomplete="off" />
+      `;
+    }
+    return div;
+  }
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = initializeFirestore(app, {
-  localCache: persistentLocalCache({
-    // opcional: controla persistência entre várias abas
-    tabManager: persistentMultipleTabManager()
-  })
-});
-let currentUser = null;
-let editingTeamId = null;
-
-const TEAMS_CACHE_KEY = 'teams_cache_v1'; // se mudar structure, incremente a versão
-const TEAMS_CACHE_TTL_MS = 1000 * 60 * 60 * 24; // 24 horas (ajuste se quiser)
-
-const teamsCache = new Map();
-
-function normalizeTeam(raw = {}) {
-  return {
-    name: raw.name || '',
-    shift: raw.shift || '',
-    ownerUid: raw.ownerUid || '',
-    members: (raw.members || []).map(m => ({
-      name: m.name || '',
-      matricula: m.matricula || '',
-      block: m.block || '',
-      vessel: m.vessel || '',
-      local: m.local || '',
-      customLocal: m.customLocal || '',
-      details: m.details || '',
-      // novos campos para falta/abono:
-      absent: !!m.absent, // true se marcado como falta
-      abono: m.abono || 'VERIFICAR', // VERIFICAR|SIM|NÃO
-      absenceReason: m.absenceReason || '' // texto explicativo da falta
-    }))
+  // --- firebase setup ---
+  const firebaseConfig = {
+    apiKey: "AIzaSyDtnzixicBYAQkuoeB5tgCGpDLt1lByMZo",
+    authDomain: "apropriacao-estrutura.firebaseapp.com",
+    projectId: "apropriacao-estrutura",
+    storageBucket: "apropriacao-estrutura.appspot.com",
+    messagingSenderId: "155266586257",
+    appId: "1:155266586257:web:6d70edc967cdbfc56e5130",
   };
-}
 
-// Converte Map -> objeto serializável e grava no localStorage com timestamp
-function serializeTeamsCache() {
-  const entries = [];
-  teamsCache.forEach((value, key) => {
-    // constrói um objeto "plain" apenas com campos primitivos
-    const safeValue = {
-      name: value.name || '',
-      shift: value.shift || '',
-      ownerUid: value.ownerUid || '',
-      members: (value.members || []).map(m => ({
-  name: m.name || '',
-  matricula: m.matricula || '',
-  block: m.block || '',
-  vessel: m.vessel || '',
-  local: m.local || '',
-  customLocal: m.customLocal || '',
-  details: m.details || '',
-  absent: !!m.absent,
-  abono: m.abono || 'VERIFICAR',
-  absenceReason: m.absenceReason || ''
-}))
-
-    };
-    entries.push([key, safeValue]);
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = initializeFirestore(app, {
+    localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
   });
-  const payload = { ts: Date.now(), entries };
-  try {
-  localStorage.setItem(TEAMS_CACHE_KEY, JSON.stringify(payload));
-} catch (err) {
-  console.warn('Falha ao gravar teams cache no localStorage', err);
-  // opcional: fallback — não fazemos nada, cache apenas em memória
-}
-}
 
-function loadTeamsCacheFromLocalStorage() {
-  try {
-    const raw = localStorage.getItem(TEAMS_CACHE_KEY);
-    if (!raw) return false;
-    const payload = JSON.parse(raw);
-    if (!payload || !payload.ts || !payload.entries) return false;
-    if (Date.now() - payload.ts > TEAMS_CACHE_TTL_MS) {
-      localStorage.removeItem(TEAMS_CACHE_KEY);
+  let currentUser = null;
+  let editingTeamId = null;
+
+  // --- cache keys / TTLs ---
+  const TEAMS_CACHE_KEY = 'teams_cache_v1';
+  const TEAMS_CACHE_TTL_MS = 1000 * 60 * 60 * 24; // 24h
+  const META_CHECK_TTL_MS = 5 * 60 * 1000; // 5 minutos (ajuste aqui se quiser)
+  const META_LAST_CHECK_KEY = 'teams_meta_last_check_ts';
+
+  const teamsCache = new Map();
+
+  function normalizeTeam(raw = {}) {
+    return {
+      name: raw.name || '',
+      shift: raw.shift || '',
+      ownerUid: raw.ownerUid || '',
+      members: (raw.members || []).map(m => ({
+        name: m.name || '',
+        matricula: m.matricula || '',
+        block: m.block || '',
+        vessel: m.vessel || '',
+        local: m.local || '',
+        customLocal: m.customLocal || '',
+        details: m.details || '',
+        absent: !!m.absent,
+        abono: m.abono || 'VERIFICAR',
+        absenceReason: m.absenceReason || ''
+      }))
+    };
+  }
+
+  // serialize / persist teams cache
+  function serializeTeamsCache() {
+    const entries = [];
+    teamsCache.forEach((value, key) => {
+      const safeValue = {
+        name: value.name || '',
+        shift: value.shift || '',
+        ownerUid: value.ownerUid || '',
+        members: (value.members || []).map(m => ({
+          name: m.name || '',
+          matricula: m.matricula || '',
+          block: m.block || '',
+          vessel: m.vessel || '',
+          local: m.local || '',
+          customLocal: m.customLocal || '',
+          details: m.details || '',
+          absent: !!m.absent,
+          abono: m.abono || 'VERIFICAR',
+          absenceReason: m.absenceReason || ''
+        }))
+      };
+      entries.push([key, safeValue]);
+    });
+    const payload = { ts: Date.now(), entries };
+    try {
+      localStorage.setItem(TEAMS_CACHE_KEY, JSON.stringify(payload));
+    } catch (err) {
+      console.warn('Falha ao gravar teams cache no localStorage', err);
+    }
+  }
+
+  function loadTeamsCacheFromLocalStorage() {
+    try {
+      const raw = localStorage.getItem(TEAMS_CACHE_KEY);
+      if (!raw) return false;
+      const payload = JSON.parse(raw);
+      if (!payload || !payload.ts || !payload.entries) return false;
+      if (Date.now() - payload.ts > TEAMS_CACHE_TTL_MS) {
+        localStorage.removeItem(TEAMS_CACHE_KEY);
+        return false;
+      }
+      teamsCache.clear();
+      for (const [id, data] of payload.entries) teamsCache.set(id, data);
+      return true;
+    } catch (e) {
+      console.warn('Erro ao ler teamsCache do localStorage', e);
       return false;
     }
-    teamsCache.clear();
-    for (const [id, data] of payload.entries) teamsCache.set(id, data);
-    return true;
-  } catch (e) {
-    console.warn('Erro ao ler teamsCache do localStorage', e);
-    return false;
-  }
-}
-
-function clearTeamsCacheLocalStorage() {
-  try {
-    localStorage.removeItem(TEAMS_CACHE_KEY);
-  } catch (e) {
-    console.warn('Erro ao limpar teams cache', e);
-  }
-}
-
-
-
-// Reconstrói visualmente os selects a partir do teamsCache (use ao atualizar cache)
-function rebuildTeamSelectsFromCache() {
-  const teamSelect = document.getElementById("teamSelect");
-  const teamSelectManage = document.getElementById("teamSelectManage");
-  if (!teamSelect || !teamSelectManage) return;
-
-  teamSelect.innerHTML = ''; // limpa
-  teamSelectManage.innerHTML = '';
-
-  const defaultOpt = document.createElement('option');
-  defaultOpt.value = '';
-  defaultOpt.textContent = 'Selecione uma equipe';
-  teamSelect.appendChild(defaultOpt);
-
-  const defaultOpt2 = document.createElement('option');
-  defaultOpt2.value = '';
-  defaultOpt2.textContent = '-- Nenhuma selecionada --';
-  teamSelectManage.appendChild(defaultOpt2);
-
-  const frag1 = document.createDocumentFragment();
-  const frag2 = document.createDocumentFragment();
-
-  teamsCache.forEach((data, id) => {
-    const opt = document.createElement('option');
-    opt.value = id;
-    opt.textContent = data.name || id;
-    frag1.appendChild(opt);
-
-    const opt2 = opt.cloneNode(true);
-    frag2.appendChild(opt2);
-  });
-
-  teamSelect.appendChild(frag1);
-  teamSelectManage.appendChild(frag2);
-}
-
-async function loadTeamsOnce() {
-  // tenta carregar do localStorage primeiro (rápido, sem leitura Firestore)
-  const loadedFromLocal = loadTeamsCacheFromLocalStorage();
-  if (loadedFromLocal) {
-    rebuildTeamSelectsFromCache();
-    return;
   }
 
-  // senão, lê do Firestore e popula cache/localStorage
-  try {
-    const q = query(
-  collection(db, "teams"),
-  where("ownerUid", "==", currentUser.uid),
-  where("deleted", "==", false));
-    const snap = await getDocs(q);
-
-    teamsCache.clear();
-snap.forEach(docSnap => {
-  const d = docSnap.data() || {};
-  teamsCache.set(docSnap.id, normalizeTeam(d));
-});
-
-    // salva para uso futuro e atualiza UI
-    serializeTeamsCache();
-    rebuildTeamSelectsFromCache();
-  } catch (e) {
-    console.error('Erro ao carregar teams do Firestore', e);
-    // relança se quiser que o caller (onAuthStateChanged) entre no catch
-    throw e;
-  }
-}
-
-window.addEventListener('DOMContentLoaded', () => {
-  const cachedUid = getCachedUID();
-
-  // Se não tiver UID em cache, força o login
-  if (!cachedUid) {
-    clearCachedUID();
-    window.location.href = './index.html';
-    return;
+  function clearTeamsCacheLocalStorage() {
+    try { localStorage.removeItem(TEAMS_CACHE_KEY); } catch (e) { console.warn('Erro ao limpar teams cache', e); }
   }
 
-  // Se tiver, só confirme com o Firebase que continua autenticado
-  onAuthStateChanged(auth, async (user) => {
-  if (user && user.uid === cachedUid) {
-    currentUser = user;
-    setDateToday();
-    try {
-            // loadTeamsOnce permanece (usa cache local antes de ler Firestore)
-            await loadTeamsOnce();
-            // NOTA: removi o carregamento automático de registros aqui para só carregar ao clicar no botão
-            // await loadRecords(true); -- deixe por clique do usuário
-          } catch (e) {
-            console.error(e);
-            showNotification('Erro ao carregar dados iniciais.', 'error');
-          }
-        } else {
-          localStorage.removeItem('uid');
-          window.location.href = './index.html';
-        }
-      });
-});
+  // rebuild selects from cache
+  function rebuildTeamSelectsFromCache() {
+    const teamSelect = document.getElementById("teamSelect");
+    const teamSelectManage = document.getElementById("teamSelectManage");
+    if (!teamSelect || !teamSelectManage) return;
 
-function setDateToday() {
-  const today = new Date();
-  const yyyy = today.getFullYear();
-  const mm = String(today.getMonth() + 1).padStart(2, '0');
-  const dd = String(today.getDate()).padStart(2, '0');
-  document.getElementById("dateInput").value = `${yyyy}-${mm}-${dd}`;
-}
+    teamSelect.innerHTML = '';
+    teamSelectManage.innerHTML = '';
 
-document.getElementById("teamSelect").addEventListener("change", function () {
-  const teamId = this.value;
-  const shiftsContainer = document.getElementById("shiftsContainer");
-  shiftsContainer.innerHTML = ""; // limpa de uma vez
-  if (!teamId) return;
+    const defaultOpt = document.createElement('option');
+    defaultOpt.value = '';
+    defaultOpt.textContent = 'Selecione uma equipe';
+    teamSelect.appendChild(defaultOpt);
 
-  const teamData = teamsCache.get(teamId);
-  if (!teamData || !teamData.members || teamData.members.length === 0) return;
+    const defaultOpt2 = document.createElement('option');
+    defaultOpt2.value = '';
+    defaultOpt2.textContent = '-- Nenhuma selecionada --';
+    teamSelectManage.appendChild(defaultOpt2);
 
-  const turnoPadrao = teamData.shift || "";
+    const frag1 = document.createDocumentFragment();
+    const frag2 = document.createDocumentFragment();
 
-  // usa DocumentFragment para inserir todas as linhas de uma vez
-  const frag = document.createDocumentFragment();
-  for (const member of teamData.members) {
-    const row = createShiftRowForRecord({
-  name: member.name,
-  memberMatricula: member.matricula,
-  block: member.block || "",
-  vessel: member.vessel || "",
-  shift: turnoPadrao,
-  observations: "",
-  local: member.local || "",
-  customLocal: member.customLocal || "",
-  details: member.details || "",
-  absent: !!member.absent,
-  abono: member.abono || 'VERIFICAR',
-  absenceReason: member.absenceReason || ''
-});
-    frag.appendChild(row);
-  }
-  shiftsContainer.appendChild(frag);
-});
+    teamsCache.forEach((data, id) => {
+      const opt = document.createElement('option');
+      opt.value = id;
+      opt.textContent = data.name || id;
+      frag1.appendChild(opt);
 
+      const opt2 = opt.cloneNode(true);
+      frag2.appendChild(opt2);
+    });
 
-function createMemberRow(member = { name: "", matricula: "", block: "", vessel: "", local: "", customLocal: "", details: "", absent: false, abono: 'VERIFICAR', absenceReason: '' }) {
-  const div = document.createElement("div");
-  div.className = "form-row";
-  div.style.position = "relative";
-
-  const uid = 'm' + Math.random().toString(36).slice(2,8);
-
-  div.innerHTML = `
-    <input type="text" id="memberName-${uid}" name="memberName[]" class="memberName" placeholder="Nome" value="${escapeHtml(member.name)}" autocomplete="off" />
-    <input type="text" id="memberMatricula-${uid}" name="memberMatricula[]" class="memberMatricula" placeholder="Matrícula" value="${escapeHtml(member.matricula)}" autocomplete="off" />
-
-    <input type="text" id="memberBlock-${uid}" name="memberBlock[]" class="memberBlock" placeholder="Bloco" value="${escapeHtml(member.block)}" autocomplete="off" />
-    <input type="text" id="memberVessel-${uid}" name="memberVessel[]" class="memberVessel" placeholder="Embarcação" value="${escapeHtml(member.vessel)}" autocomplete="off" />
-    <select id="memberLocalSelect-${uid}" name="memberLocal[]" class="memberLocalSelect">
-      <option value="">Selecione Local</option>
-      <option value="Montagem" ${member.local === "Montagem" ? "selected" : ""}>Montagem</option>
-      <option value="Sub Montagem" ${member.local === "Sub Montagem" ? "selected" : ""}>Sub Montagem</option>
-      <option value="Edificação" ${member.local === "Edificação" ? "selected" : ""}>Edificação</option>
-      <option value="Outros" ${member.local === "Outros" ? "selected" : ""}>Outros</option>
-    </select>
-    <input type="text" id="memberCustomLocalInput-${uid}" name="memberCustomLocal[]" class="memberCustomLocalInput" placeholder="Informe outro local" value="${escapeHtml(member.customLocal || '')}" style="display: none; margin-left: 5px; flex: 1;" autocomplete="off" />
-    <input type="text" id="memberDetailsInput-${uid}" name="memberDetails[]" class="memberDetailsInput" placeholder="Detalhes (Perfilado, Barras, Anteparas)" value="${escapeHtml(member.details || '')}" autocomplete="off" />
-
-    <input type="text" id="memberAbsenceReasonInput-${uid}" name="memberAbsenceReason[]" class="memberAbsenceReasonInput" placeholder="Motivo da falta / Observações" value="${escapeHtml(member.absenceReason || '')}" style="display:none; flex: 1;" autocomplete="off" />
-    <div class="abonar-wrap">
-      <label class="abonar-dsr" for="memberAbono-${uid}">Abonar DSR</label>
-      <select id="memberAbono-${uid}" name="memberAbono[]" class="memberAbonoSelect">
-        <option value="VERIFICAR" ${member.abono === 'VERIFICAR' ? 'selected' : ''}>VERIFICAR</option>
-        <option value="SIM" ${member.abono === 'SIM' ? 'selected' : ''}>SIM</option>
-        <option value="NAO" ${member.abono === 'NAO' ? 'selected' : ''}>NÃO</option>
-      </select>
-    </div>
-
-    <label class="absentLabel" style="margin-left:8px;">
-      <input type="checkbox" id="memberAbsentCheckbox-${uid}" name="memberAbsent[]" class="memberAbsentCheckbox" ${member.absent ? 'checked' : ''}/> Falta
-    </label>
-
-    <button class="btn removeMemberBtn" type="button"><i class="fas fa-trash" style="margin-left: 5px;"></i></button>
-  `;
-
-  const localSelect = div.querySelector(".memberLocalSelect");
-  const customLocalInput = div.querySelector(".memberCustomLocalInput");
-  const absentCheckbox = div.querySelector(".memberAbsentCheckbox");
-  const absenceReasonInput = div.querySelector(".memberAbsenceReasonInput");
-  const abonoSelect = div.querySelector(".memberAbonoSelect");
-  const detailsInput = div.querySelector(".memberDetailsInput");
-  const abonoWrap = div.querySelector(".abonar-wrap");
-
-  function toggleCustomLocal() {
-    if (localSelect.value === "Outros") {
-      customLocalInput.style.display = "block";
-    } else {
-      customLocalInput.style.display = "none";
-      customLocalInput.value = "";
-    }
+    teamSelect.appendChild(frag1);
+    teamSelectManage.appendChild(frag2);
   }
 
-  function toggleAbsentMode() {
-    const isAbsent = absentCheckbox.checked;
-    const toToggle = [div.querySelector(".memberBlock"), div.querySelector(".memberVessel"), localSelect, customLocalInput, detailsInput];
-
-    if (isAbsent) {
-      toToggle.forEach(el => { if (el) el.style.display = "none"; });
-      absenceReasonInput.style.display = "block";
-      if (abonoWrap) abonoWrap.classList.add("visible");
-      if (member.abono && abonoSelect) abonoSelect.value = member.abono;
-      setTimeout(() => { absenceReasonInput.focus(); }, 50);
-    } else {
-      toToggle.forEach(el => { if (el) el.style.display = ""; });
-      absenceReasonInput.style.display = "none";
-      if (abonoWrap) abonoWrap.classList.remove("visible");
-      if (abonoSelect) abonoSelect.value = "VERIFICAR";
-    }
-  }
-
-  localSelect.addEventListener("change", toggleCustomLocal);
-  absentCheckbox.addEventListener("change", toggleAbsentMode);
-
-  // inicializa
-  toggleCustomLocal();
-  if (member.absent) toggleAbsentMode();
-
-  div.querySelector(".removeMemberBtn").onclick = () => div.remove();
-  return div;
-}
-
-const membersContainer = document.getElementById("membersContainer");
-const addMemberBtn = document.getElementById("addMemberBtn");
-const cancelEditBtn = document.getElementById("cancelEditBtn");
-
-addMemberBtn.addEventListener("click", () => {
-  membersContainer.appendChild(createMemberRow());
-});
-
-const saveTeamBtn = document.getElementById("saveTeamBtn");
-saveTeamBtn.addEventListener("click", saveTeam);
-
-async function saveTeam() {
-  const name = document.getElementById("teamName").value.trim();
-  if (!name) {
-    showNotification("Por favor, informe o nome da equipe para continuar.", "info");
-    return;
-  }
-
-  const shiftRadio = document.querySelector('input[name="teamShift"]:checked');
-  const shift = shiftRadio ? shiftRadio.value : "Diurno";
-
-  const members = [];
-  const memberRows = membersContainer.querySelectorAll(".form-row");
-  for (const row of memberRows) {
-  const nameInput = row.querySelector(".memberName");
-  const matriculaInput = row.querySelector(".memberMatricula");
-  const blockInput = row.querySelector(".memberBlock");
-  const vesselInput = row.querySelector(".memberVessel");
-  if (!nameInput.value.trim() || !matriculaInput.value.trim()) {
-    showNotification("Todos os membros devem ter nome e matrícula preenchidos.", "warning");
-    return;
-  }
-
-  const detailsInput = row.querySelector(".memberDetailsInput");
-  const isAbsent = !!row.querySelector(".memberAbsentCheckbox")?.checked;
-
-  // Validação de campo obrigatório: só exige 'Detalhes' quando o membro NÃO está ausente
-  if (!isAbsent && !detailsInput.value.trim()) {
-    showNotification("O campo Detalhes é obrigatório para membros presentes.", "warning");
-    return;
-  }
-
-  members.push({
-    name: nameInput.value.trim(),
-    matricula: matriculaInput.value.trim(),
-    block: blockInput.value.trim(),
-    vessel: vesselInput.value.trim(),
-    local: row.querySelector(".memberLocalSelect").value,
-    customLocal: row.querySelector(".memberCustomLocalInput").value.trim(),
-    details: detailsInput.value.trim(),
-    absent: isAbsent,
-    abono: (row.querySelector(".memberAbonoSelect")?.value) || 'VERIFICAR',
-    absenceReason: (row.querySelector(".memberAbsenceReasonInput")?.value || '').trim()
-  });
-  }
-  if (members.length === 0) {
-    showNotification("Adicione pelo menos um membro na equipe.", "warning");
-    return;
-  }
-
-  const teamData = {
-    name,
-    shift,
-    members,
-    ownerUid: currentUser.uid,
-    deleted: false,
-  };
-
-    try {
-    if (editingTeamId) {
-  await setDoc(doc(db, "teams", editingTeamId), teamData);
-  teamsCache.set(editingTeamId, normalizeTeam(teamData));
-} else {
-  const ref = await addDoc(collection(db, "teams"), teamData);
-  teamsCache.set(ref.id, normalizeTeam(teamData));
-}
-
-    // persiste cache e atualiza selects
-    serializeTeamsCache();
-    rebuildTeamSelectsFromCache();
-
-    editingTeamId = null;
-    document.getElementById("cancelEditBtn").style.display = "none";
-    saveTeamBtn.textContent = "Salvar Equipe";
-
-    showNotification("Equipe salva com sucesso!", "success");
-    clearTeamForm();
-  } catch (e) {
-    console.error(e);
-    showNotification("Erro ao salvar equipe.", "error");
-  }
-}
-
-function clearTeamForm() {
-  document.getElementById("teamName").value = "";
-  document.querySelector('input[name="teamShift"][value="Diurno"]').checked = true;
-  membersContainer.innerHTML = "";
-}
-
-cancelEditBtn.addEventListener("click", () => {
-  clearTeamForm();
-  editingTeamId = null;
-  cancelEditBtn.style.display = "none";
-  saveTeamBtn.textContent = "Salvar Equipe";
-});
-
-const submitRecordBtn = document.getElementById("submitRecordBtn");
-submitRecordBtn.addEventListener("click", sendRecord);
-
-async function sendRecord() {
-  const teamSelect = document.getElementById("teamSelect");
-  const teamId = teamSelect.value;
-  const teamName = teamSelect.options[teamSelect.selectedIndex].text;
-
-  // Validações básicas primeiro
-  const dateStr = document.getElementById("dateInput").value;
-  const galpao = document.getElementById("galpaoSelect").value;
-  if (!dateStr || !galpao || !teamId) {
-    showNotification("Preencha todos os campos para enviar a apropriação.", "warning");
-    return;
-  }
-
-  // ------------- USE O CACHE PRIMEIRO (evita leituras no Firestore) -------------
-  let teamData = teamsCache.get(teamId);
-
-  // Se não houver no cache, busca do Firestore só nessa situação
-  // substituição: tenta recarregar cache inteiro antes de getDoc isolado
-if (!teamData) {
-  try {
-    // recarrega todos os times do Firestore em 1 única consulta
-    await loadTeamsOnce(); // já popula teamsCache
-    teamData = teamsCache.get(teamId);
-    if (!teamData) {
-      showNotification("Equipe selecionada não encontrada.", "warning");
+  // reads teams from Firestore once and populates cache
+  async function loadTeamsOnce() {
+    // try localStorage first
+    const loadedFromLocal = loadTeamsCacheFromLocalStorage();
+    if (loadedFromLocal) {
+      rebuildTeamSelectsFromCache();
       return;
     }
-  } catch (e) {
-    console.error("Erro ao recarregar equipes:", e);
-    showNotification("Erro ao acessar os dados da equipe.", "error");
-    return;
-  }
-}
-  // -----------------------------------------------------------------------------
 
-  // A partir daqui, teamData está garantido (vindo do cache ou Firestore)
-  const shiftsContainer = document.getElementById("shiftsContainer");
-  const shiftRows = shiftsContainer.querySelectorAll(".form-row");
-  if (shiftRows.length === 0) {
-    showNotification("Selecione uma equipe com membros para apropriar.", "warning");
-    return;
-  }
+    // otherwise fetch from server
+    try {
+      const q = query(collection(db, "teams"),
+        where("ownerUid", "==", currentUser.uid),
+        where("deleted", "==", false));
+      const snap = await getDocs(q);
 
-  const records = [];
-  for (const row of shiftRows) {
-  const name = row.querySelector(".shiftName").value.trim();
-  const memberMatricula = row.querySelector(".shiftMatricula").value.trim();
+      teamsCache.clear();
+      snap.forEach(docSnap => {
+        const d = docSnap.data() || {};
+        teamsCache.set(docSnap.id, normalizeTeam(d));
+      });
 
-  // determina membro original (para locais que vieram do teamData)
-  const memberOriginal = teamData.members.find(
-    m => m.name === name && m.matricula === memberMatricula
-  );
-
-  // detecta ausência: presença do select de abono na linha (ou turno explicitamente "FALTA")
-  const hasAbonoSelect = !!row.querySelector(".shiftAbono");
-  const turnoValue = row.querySelector(".shiftTurno")?.value || "";
-  const isAbsent = hasAbonoSelect || turnoValue === 'FALTA';
-
-  // Motivo da falta / abono
-  const absenceReason = row.querySelector(".shiftAbsenceReason")?.value?.trim() || "";
-  const abono = row.querySelector(".shiftAbono")?.value || 'VERIFICAR';
-
-  // Se for ausência, ZERA explicitamente os campos que não devem ir pro Firestore
-  let vesselShift = "";
-  let blockShift  = "";
-  let details     = "";
-  let local       = "";
-
-  if (!isAbsent) {
-    // só ler valores visíveis/úteis quando NÃO for falta
-    vesselShift = row.querySelector(".shiftVessel")?.value?.trim() || "";
-    blockShift  = row.querySelector(".shiftBlock")?.value?.trim() || "";
-    details     = row.querySelector(".shiftDetails")?.value?.trim() || "";
-
-    // tenta ler input de local (quando houver), senão usa dados originais do membro
-    const localInput = row.querySelector(".shiftLocal");
-    if (localInput && localInput.value != null) {
-      local = localInput.value.trim() || "";
-    } else {
-      local = (memberOriginal?.local === "Outros")
-        ? (memberOriginal?.customLocal || "")
-        : (memberOriginal?.local || "");
+      serializeTeamsCache();
+      rebuildTeamSelectsFromCache();
+    } catch (e) {
+      console.error('Erro ao carregar teams do Firestore', e);
+      throw e;
     }
-  } else {
-    // isAbsent === true -> garante que tudo relacionado a local/bloco/embarcação/detalhes vá vazio
-    vesselShift = "";
-    blockShift  = "";
-    details     = "";
-    local       = "";
   }
 
-  // Se não for ausência, exige turno
-  if (!isAbsent && ! (row.querySelector(".shiftTurno")?.value) ) {
-    showNotification(`Preencha o turno do membro: ${name}`);
-    return;
+  // --- META check with TTL: decide whether to refresh teams from server ---
+  async function shouldRefreshTeamsFromServer() {
+    try {
+      // check last local check
+      const lastCheckRaw = localStorage.getItem(META_LAST_CHECK_KEY);
+      const lastCheck = lastCheckRaw ? parseInt(lastCheckRaw, 10) : 0;
+      const now = Date.now();
+
+      if (lastCheck && (now - lastCheck) < META_CHECK_TTL_MS) {
+        // checado recentemente -> não ler o Firestore
+        return false;
+      }
+
+      // mark immediately to avoid concurrent triggers
+      localStorage.setItem(META_LAST_CHECK_KEY, String(now));
+
+      // read meta doc
+      const metaRef = doc(db, "meta", "teams");
+      const metaSnap = await getDoc(metaRef);
+
+      if (!metaSnap.exists()) return true; // sem meta -> recarregar
+
+      const serverTs = metaSnap.data().updatedAt?.toMillis?.() ?? 0;
+      const raw = localStorage.getItem(TEAMS_CACHE_KEY);
+      if (!raw) return true;
+      const payload = JSON.parse(raw);
+      const localTs = payload.ts || 0;
+
+      return serverTs > localTs;
+    } catch (e) {
+      // **AQUI**: não silenciamos permission-denied.
+      // Se for permission-denied, relançamos para que apareça no console e você saiba.
+      if (e?.code === 'permission-denied' || (e?.message && e.message.toLowerCase().includes('permission'))) {
+        throw e; // relança — assim você verá erro no console
+      }
+      // para outros erros transientes, apenas logamos e não forçamos refresh
+      console.warn('Erro checando meta teams (silenciado):', e);
+      return false;
+    }
   }
 
-  records.push({
-    date: Timestamp.fromDate(new Date(document.getElementById('dateInput').value)),
-    galpao,
-    teamId,
-    teamName,
-    userId: currentUser.uid,
-    userName: currentUser.displayName || currentUser.email,
-    name,
-    memberMatricula,
-    vesselShift,
-    blockShift,
-    shift: isAbsent ? 'FALTA' : (row.querySelector(".shiftTurno")?.value || ""),
-    observations: row.querySelector(".shiftObservations")?.value?.trim() || "",
-    local,
-    details,
-    absent: isAbsent,
-    absenceReason,
-    abono,
-    createdBy: currentUser.uid,
+  // SWR-style loader: decide if fetch from server is needed, otherwise use cache
+  let loadTeamsInProgress = false;
+  async function loadTeamsWithSWR(force = false) {
+    if (loadTeamsInProgress) return;
+    loadTeamsInProgress = true;
+    try {
+      if (force) {
+        // force server fetch
+        await loadTeamsOnce();
+        return;
+      }
+
+      // Only fetch server if meta indicates newer or no local cache
+      const localLoaded = loadTeamsCacheFromLocalStorage();
+      if (!localLoaded) {
+        await loadTeamsOnce();
+        return;
+      }
+
+      const shouldRefresh = await shouldRefreshTeamsFromServer();
+      if (shouldRefresh) {
+        await loadTeamsOnce();
+      } else {
+        // local cache is fresh enough -> rebuild UI from cache
+        rebuildTeamSelectsFromCache();
+      }
+    } catch (e) {
+      console.warn('loadTeamsWithSWR warning:', e);
+      // keep UI using cached items if any
+      rebuildTeamSelectsFromCache();
+      // note: permission errors from shouldRefreshTeamsFromServer will bubble up here and be visible in console
+    } finally {
+      loadTeamsInProgress = false;
+    }
+  }
+
+  // --- DOMContentLoaded auth init ---
+  window.addEventListener('DOMContentLoaded', () => {
+    const cachedUid = getCachedUID();
+    if (!cachedUid) {
+      clearCachedUID();
+      window.location.href = './index.html';
+      return;
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+      if (user && user.uid === cachedUid) {
+        currentUser = user;
+        setDateToday();
+        try {
+          // use SWR to decide fetching (will use cache/local first)
+          await loadTeamsWithSWR();
+          // Registro: loadRecords is loaded by user clicking the load button (no auto)
+        } catch (e) {
+          console.error('Erro iniciais:', e);
+          showNotification('Erro ao carregar dados iniciais.', 'error');
+        }
+      } else {
+        clearCachedUID();
+        window.location.href = './index.html';
+      }
+    });
   });
-}
 
-  try {
-  const BATCH_LIMIT = 400;
-  let batch = writeBatch(db);
-  let ops = 0;
-
-  for (const rec of records) {
-    // obtém a data do input (YYYY-MM-DD) e converte para DD-MM-YYYY para o ID
-const dateInputVal = document.getElementById('dateInput').value; // 'YYYY-MM-DD'
-let dateStrForId;
-if (dateInputVal) {
-  const [yyyy, mm, dd] = dateInputVal.split('-');
-  dateStrForId = `${dd}-${mm}-${yyyy}`;
-} else {
-  const now = new Date();
-  dateStrForId = `${String(now.getDate()).padStart(2, '0')}-${String(now.getMonth() + 1).padStart(2, '0')}-${now.getFullYear()}`;
-}
-const safeName = rec.name.replace(/[/\\#.%$[\]]/g, "-");
-const docId = `${safeName}, ${rec.memberMatricula} - ${dateStrForId}`;
-
-    batch.set(doc(db, "records", docId), rec);
-    ops++;
-
-    if (ops >= BATCH_LIMIT) {
-      await batch.commit();
-      batch = writeBatch(db);
-      ops = 0;
-    }
+  function setDateToday() {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    const el = document.getElementById("dateInput");
+    if (el) el.value = `${yyyy}-${mm}-${dd}`;
   }
 
-  if (ops > 0) {
-    await batch.commit();
-  }
+  // --- team select change -> render shifts ---
+  const teamSelectEl = document.getElementById("teamSelect");
+  if (teamSelectEl) {
+    teamSelectEl.addEventListener("change", function () {
+      const teamId = this.value;
+      const shiftsContainer = document.getElementById("shiftsContainer");
+      if (!shiftsContainer) return;
+      shiftsContainer.innerHTML = "";
+      if (!teamId) return;
 
-  showNotification("Apropriações enviadas com sucesso!", "success");
-    document.getElementById("galpaoSelect").selectedIndex = 0;
-    document.getElementById("teamSelect").selectedIndex = 0;
-    document.getElementById("shiftsContainer").innerHTML = "";
-    loadRecords();
-  } catch (e) {
-    console.error(e);
-    showNotification("Erro ao enviar apropriações.", "error");
-  }
-}
+      const teamData = teamsCache.get(teamId);
+      if (!teamData || !teamData.members || teamData.members.length === 0) return;
 
-let lastVisibleRecord = null;
-    let isFetchingRecords = false;
-    let recordsCache = []; // acumula os documentos já carregados (opcional)
-    let recordsInitialized = false; // só será true após o primeiro clique do botão
-    let noMoreRecords = false; // quando não houver mais docs no servidor
-
-    const LOAD_BATCH_SIZE = 5;
-
-function appendRecordsToTable(newDocs) {
-      const tbody = document.querySelector("#recordsTable tbody");
-      if (!tbody) return;
-      const fragment = document.createDocumentFragment();
-
-      for (const r of newDocs) {
-        const date = r.date?.toDate?.() || new Date();
-        const dateStr = date.toLocaleString("pt-BR", {
-          day: '2-digit', month: '2-digit', year: 'numeric',
-          hour: '2-digit', minute: '2-digit'
+      const turnoPadrao = teamData.shift || "";
+      const frag = document.createDocumentFragment();
+      for (const member of teamData.members) {
+        const row = createShiftRowForRecord({
+          name: member.name,
+          memberMatricula: member.matricula,
+          block: member.block || "",
+          vessel: member.vessel || "",
+          shift: turnoPadrao,
+          observations: "",
+          local: member.local || "",
+          customLocal: member.customLocal || "",
+          details: member.details || "",
+          absent: !!member.absent,
+          abono: member.abono || 'VERIFICAR',
+          absenceReason: member.absenceReason || ''
         });
-        const galp = (r.galpao || "").replace(/</g, '&lt;').replace(/>/g, '&gt;');
-        const team = (r.teamName || r.teamId || "").replace(/</g, '&lt;').replace(/>/g, '&gt;');
-        const user = (r.userName || "").replace(/</g, '&lt;').replace(/>/g, '&gt;');
-
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${dateStr}</td><td>${galp}</td><td>${team}</td><td>${user}</td>`;
-        fragment.appendChild(tr);
+        frag.appendChild(row);
       }
+      shiftsContainer.appendChild(frag);
+    });
+  }
 
-      tbody.appendChild(fragment);
+  // --- createMemberRow (team management UI) ---
+  function createMemberRow(member = { name: "", matricula: "", block: "", vessel: "", local: "", customLocal: "", details: "", absent: false, abono: 'VERIFICAR', absenceReason: '' }) {
+    const div = document.createElement("div");
+    div.className = "form-row";
+    div.style.position = "relative";
+    const uid = 'm' + Math.random().toString(36).slice(2,8);
+
+    div.innerHTML = `
+      <input type="text" id="memberName-${uid}" name="memberName[]" class="memberName" placeholder="Nome" value="${escapeHtml(member.name)}" autocomplete="off" />
+      <input type="text" id="memberMatricula-${uid}" name="memberMatricula[]" class="memberMatricula" placeholder="Matrícula" value="${escapeHtml(member.matricula)}" autocomplete="off" />
+
+      <input type="text" id="memberBlock-${uid}" name="memberBlock[]" class="memberBlock" placeholder="Bloco" value="${escapeHtml(member.block)}" autocomplete="off" />
+      <input type="text" id="memberVessel-${uid}" name="memberVessel[]" class="memberVessel" placeholder="Embarcação" value="${escapeHtml(member.vessel)}" autocomplete="off" />
+      <select id="memberLocalSelect-${uid}" name="memberLocal[]" class="memberLocalSelect">
+        <option value="">Selecione Local</option>
+        <option value="Montagem" ${member.local === "Montagem" ? "selected" : ""}>Montagem</option>
+        <option value="Sub Montagem" ${member.local === "Sub Montagem" ? "selected" : ""}>Sub Montagem</option>
+        <option value="Edificação" ${member.local === "Edificação" ? "selected" : ""}>Edificação</option>
+        <option value="Outros" ${member.local === "Outros" ? "selected" : ""}>Outros</option>
+      </select>
+      <input type="text" id="memberCustomLocalInput-${uid}" name="memberCustomLocal[]" class="memberCustomLocalInput" placeholder="Informe outro local" value="${escapeHtml(member.customLocal || '')}" style="display: none; margin-left: 5px; flex: 1;" autocomplete="off" />
+      <input type="text" id="memberDetailsInput-${uid}" name="memberDetails[]" class="memberDetailsInput" placeholder="Detalhes (Perfilado, Barras, Anteparas)" value="${escapeHtml(member.details || '')}" autocomplete="off" />
+
+      <input type="text" id="memberAbsenceReasonInput-${uid}" name="memberAbsenceReason[]" class="memberAbsenceReasonInput" placeholder="Motivo da falta / Observações" value="${escapeHtml(member.absenceReason || '')}" style="display:none; flex: 1;" autocomplete="off" />
+      <div class="abonar-wrap">
+        <label class="abonar-dsr" for="memberAbono-${uid}">Abonar DSR</label>
+        <select id="memberAbono-${uid}" name="memberAbono[]" class="memberAbonoSelect">
+          <option value="VERIFICAR" ${member.abono === 'VERIFICAR' ? 'selected' : ''}>VERIFICAR</option>
+          <option value="SIM" ${member.abono === 'SIM' ? 'selected' : ''}>SIM</option>
+          <option value="NAO" ${member.abono === 'NAO' ? 'selected' : ''}>NÃO</option>
+        </select>
+      </div>
+
+      <label class="absentLabel" style="margin-left:8px;">
+        <input type="checkbox" id="memberAbsentCheckbox-${uid}" name="memberAbsent[]" class="memberAbsentCheckbox" ${member.absent ? 'checked' : ''}/> Falta
+      </label>
+
+      <button class="btn removeMemberBtn" type="button"><i class="fas fa-trash" style="margin-left: 5px;"></i></button>
+    `;
+
+    const localSelect = div.querySelector(".memberLocalSelect");
+    const customLocalInput = div.querySelector(".memberCustomLocalInput");
+    const absentCheckbox = div.querySelector(".memberAbsentCheckbox");
+    const absenceReasonInput = div.querySelector(".memberAbsenceReasonInput");
+    const abonoSelect = div.querySelector(".memberAbonoSelect");
+    const detailsInput = div.querySelector(".memberDetailsInput");
+    const abonoWrap = div.querySelector(".abonar-wrap");
+
+    function toggleCustomLocal() {
+      if (localSelect.value === "Outros") {
+        customLocalInput.style.display = "block";
+      } else {
+        customLocalInput.style.display = "none";
+        customLocalInput.value = "";
+      }
     }
 
-    // Limpa tabela e cache (usado quando fazemos a carga inicial/reset)
-    function clearRecordsTable() {
-      const tbody = document.querySelector("#recordsTable tbody");
-      if (tbody) tbody.innerHTML = '';
-      recordsCache = [];
-      lastVisibleRecord = null;
-      noMoreRecords = false;
+    function toggleAbsentMode() {
+      const isAbsent = absentCheckbox.checked;
+      const toToggle = [div.querySelector(".memberBlock"), div.querySelector(".memberVessel"), localSelect, customLocalInput, detailsInput];
+      if (isAbsent) {
+        toToggle.forEach(el => { if (el) el.style.display = "none"; });
+        absenceReasonInput.style.display = "block";
+        if (abonoWrap) abonoWrap.classList.add("visible");
+        if (member.abono && abonoSelect) abonoSelect.value = member.abono;
+        setTimeout(() => { absenceReasonInput.focus(); }, 50);
+      } else {
+        toToggle.forEach(el => { if (el) el.style.display = ""; });
+        absenceReasonInput.style.display = "none";
+        if (abonoWrap) abonoWrap.classList.remove("visible");
+        if (abonoSelect) abonoSelect.value = "VERIFICAR";
+      }
     }
 
-    // Função principal para carregar registros (reset=true para carga inicial)
-    async function loadRecords(reset = false) {
-      if (isFetchingRecords) return;
-      if (noMoreRecords && !reset) return; // nada mais a buscar
+    localSelect.addEventListener("change", toggleCustomLocal);
+    absentCheckbox.addEventListener("change", toggleAbsentMode);
 
-      isFetchingRecords = true;
-      const loadBtn = document.getElementById('loadRecordsBtn');
-      const statusSpan = document.getElementById('recordsStatus');
-      if (loadBtn) {
-        loadBtn.disabled = true;
-        loadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Carregando...';
+    // init
+    toggleCustomLocal();
+    if (member.absent) toggleAbsentMode();
+
+    div.querySelector(".removeMemberBtn").onclick = () => div.remove();
+    return div;
+  }
+
+  const membersContainer = document.getElementById("membersContainer");
+  const addMemberBtn = document.getElementById("addMemberBtn");
+  const cancelEditBtn = document.getElementById("cancelEditBtn");
+
+  if (addMemberBtn && membersContainer) {
+    addMemberBtn.addEventListener("click", () => membersContainer.appendChild(createMemberRow()));
+  }
+
+  const saveTeamBtn = document.getElementById("saveTeamBtn");
+  if (saveTeamBtn) saveTeamBtn.addEventListener("click", saveTeam);
+
+  async function saveTeam() {
+    const name = document.getElementById("teamName").value.trim();
+    if (!name) { showNotification("Por favor, informe o nome da equipe para continuar.", "info"); return; }
+
+    const shiftRadio = document.querySelector('input[name="teamShift"]:checked');
+    const shift = shiftRadio ? shiftRadio.value : "Diurno";
+
+    const members = [];
+    const memberRows = membersContainer.querySelectorAll(".form-row");
+    for (const row of memberRows) {
+      const nameInput = row.querySelector(".memberName");
+      const matriculaInput = row.querySelector(".memberMatricula");
+      const blockInput = row.querySelector(".memberBlock");
+      const vesselInput = row.querySelector(".memberVessel");
+      if (!nameInput.value.trim() || !matriculaInput.value.trim()) {
+        showNotification("Todos os membros devem ter nome e matrícula preenchidos.", "warning");
+        return;
       }
-      if (statusSpan) statusSpan.textContent = '';
 
+      const detailsInput = row.querySelector(".memberDetailsInput");
+      const isAbsent = !!row.querySelector(".memberAbsentCheckbox")?.checked;
+
+      if (!isAbsent && !detailsInput.value.trim()) {
+        showNotification("O campo Detalhes é obrigatório para membros presentes.", "warning");
+        return;
+      }
+
+      members.push({
+        name: nameInput.value.trim(),
+        matricula: matriculaInput.value.trim(),
+        block: blockInput.value.trim(),
+        vessel: vesselInput.value.trim(),
+        local: row.querySelector(".memberLocalSelect").value,
+        customLocal: row.querySelector(".memberCustomLocalInput").value.trim(),
+        details: detailsInput.value.trim(),
+        absent: isAbsent,
+        abono: (row.querySelector(".memberAbonoSelect")?.value) || 'VERIFICAR',
+        absenceReason: (row.querySelector(".memberAbsenceReasonInput")?.value || '').trim()
+      });
+    }
+    if (members.length === 0) { showNotification("Adicione pelo menos um membro na equipe.", "warning"); return; }
+
+    const teamData = { name, shift, members, ownerUid: currentUser.uid, deleted: false };
+
+    try {
+      if (editingTeamId) {
+        await setDoc(doc(db, "teams", editingTeamId), teamData);
+        teamsCache.set(editingTeamId, normalizeTeam(teamData));
+      } else {
+        const ref = await addDoc(collection(db, "teams"), teamData);
+        teamsCache.set(ref.id, normalizeTeam(teamData));
+      }
+
+      // persist cache and update UI
+      serializeTeamsCache();
+      rebuildTeamSelectsFromCache();
+
+      // avoid immediate meta recheck (we just updated)
+      localStorage.setItem(META_LAST_CHECK_KEY, String(Date.now()));
+
+      editingTeamId = null;
+      if (document.getElementById("cancelEditBtn")) document.getElementById("cancelEditBtn").style.display = "none";
+      if (saveTeamBtn) saveTeamBtn.textContent = "Salvar Equipe";
+
+      showNotification("Equipe salva com sucesso!", "success");
+      clearTeamForm();
+    } catch (e) {
+      console.error(e);
+      showNotification("Erro ao salvar equipe.", "error");
+    }
+  }
+
+  function clearTeamForm() {
+    const teamNameEl = document.getElementById("teamName");
+    if (teamNameEl) teamNameEl.value = "";
+    const radioDiurno = document.querySelector('input[name="teamShift"][value="Diurno"]');
+    if (radioDiurno) radioDiurno.checked = true;
+    if (membersContainer) membersContainer.innerHTML = "";
+  }
+
+  if (cancelEditBtn) {
+    cancelEditBtn.addEventListener("click", () => {
+      clearTeamForm();
+      editingTeamId = null;
+      cancelEditBtn.style.display = "none";
+      if (saveTeamBtn) saveTeamBtn.textContent = "Salvar Equipe";
+    });
+  }
+
+  // --- enviar apropriação (records) ---
+  const submitRecordBtn = document.getElementById("submitRecordBtn");
+  if (submitRecordBtn) submitRecordBtn.addEventListener("click", sendRecord);
+
+  async function sendRecord() {
+    const teamSelect = document.getElementById("teamSelect");
+    const teamId = teamSelect?.value;
+    const teamName = teamSelect?.options[teamSelect.selectedIndex]?.text || '';
+
+    const dateStr = document.getElementById("dateInput")?.value;
+    const galpao = document.getElementById("galpaoSelect")?.value;
+    if (!dateStr || !galpao || !teamId) { showNotification("Preencha todos os campos para enviar a apropriação.", "warning"); return; }
+
+    // use cache first
+    let teamData = teamsCache.get(teamId);
+    if (!teamData) {
       try {
-        // reset solicita limpar cache e forçar início (primeiro clique)
-        if (reset) {
-          clearRecordsTable();
-          recordsInitialized = true;
-        }
-
-        // montar query base
-        let q = query(
-          collection(db, "records"),
-          where("createdBy", "==", currentUser.uid),
-          orderBy("date", "desc"),
-          limit(LOAD_BATCH_SIZE)
-        );
-
-        if (!reset && lastVisibleRecord) {
-          q = query(q, startAfter(lastVisibleRecord));
-        }
-
-        const snap = await getDocs(q);
-
-        if (!snap.empty) {
-          // atualiza lastVisibleRecord para paginação
-          lastVisibleRecord = snap.docs[snap.docs.length - 1];
-
-          // transforma em array de dados
-          const newDocs = [];
-          snap.forEach(docSnap => newDocs.push(docSnap.data()));
-
-          // apenda na tabela
-          appendRecordsToTable(newDocs);
-
-          // atualiza cache local (se desejar reaproveitar em outras ações)
-          recordsCache = recordsCache.concat(newDocs);
-
-          // Se trouxe menos que o batch -> provavelmente acabou
-          if (snap.size < LOAD_BATCH_SIZE) {
-            noMoreRecords = true;
-            const status = document.getElementById('recordsStatus');
-            if (status) status.textContent = 'Todos os registros foram carregados.';
-          }
-        } else {
-          // query vazia: não há registros (ex: usuário novo)
-          noMoreRecords = true;
-          if (reset) {
-            const status = document.getElementById('recordsStatus');
-            if (status) status.textContent = 'Nenhum registro encontrado.';
-          }
-        }
+        await loadTeamsWithSWR(true); // force reload
+        teamData = teamsCache.get(teamId);
+        if (!teamData) { showNotification("Equipe selecionada não encontrada.", "warning"); return; }
       } catch (e) {
-        console.error('Erro ao carregar records', e);
-        showNotification('Erro ao carregar registros recentes.', 'error');
-      } finally {
-        isFetchingRecords = false;
-        if (loadBtn) {
-          loadBtn.disabled = noMoreRecords; // desabilita se não houver mais
-          if (!noMoreRecords) loadBtn.style.display = 'none'; // após a carga inicial, escondemos o botão e deixamos o scroll carregar o resto
-          else loadBtn.innerHTML = '<i class="fas fa-check"></i> Carregado';
-        }
+        console.error("Erro ao recarregar equipes:", e);
+        showNotification("Erro ao acessar os dados da equipe.", "error");
+        return;
       }
     }
 
-    // Scroll listener: só ativa depois que o usuário iniciou a carga (recordsInitialized)
-    const tableWrapper = document.getElementById("recordsTableWrapper");
+    const shiftsContainer = document.getElementById("shiftsContainer");
+    const shiftRows = shiftsContainer?.querySelectorAll(".form-row") || [];
+    if (shiftRows.length === 0) { showNotification("Selecione uma equipe com membros para apropriar.", "warning"); return; }
+
+    const records = [];
+    for (const row of shiftRows) {
+      const name = row.querySelector(".shiftName").value.trim();
+      const memberMatricula = row.querySelector(".shiftMatricula").value.trim();
+
+      const memberOriginal = teamData.members.find(m => m.name === name && m.matricula === memberMatricula);
+
+      const hasAbonoSelect = !!row.querySelector(".shiftAbono");
+      const turnoValue = row.querySelector(".shiftTurno")?.value || "";
+      const isAbsent = hasAbonoSelect || turnoValue === 'FALTA';
+
+      const absenceReason = row.querySelector(".shiftAbsenceReason")?.value?.trim() || "";
+      const abono = row.querySelector(".shiftAbono")?.value || 'VERIFICAR';
+
+      let vesselShift = "", blockShift = "", details = "", local = "";
+
+      if (!isAbsent) {
+        vesselShift = row.querySelector(".shiftVessel")?.value?.trim() || "";
+        blockShift = row.querySelector(".shiftBlock")?.value?.trim() || "";
+        details = row.querySelector(".shiftDetails")?.value?.trim() || "";
+
+        const localInput = row.querySelector(".shiftLocal");
+        if (localInput && localInput.value != null) {
+          local = localInput.value.trim() || "";
+        } else {
+          local = (memberOriginal?.local === "Outros") ? (memberOriginal?.customLocal || "") : (memberOriginal?.local || "");
+        }
+      } else {
+        vesselShift = "";
+        blockShift = "";
+        details = "";
+        local = "";
+      }
+
+      if (!isAbsent && !(row.querySelector(".shiftTurno")?.value)) {
+        showNotification(`Preencha o turno do membro: ${name}`);
+        return;
+      }
+
+      records.push({
+        date: Timestamp.fromDate(new Date(document.getElementById('dateInput').value)),
+        galpao,
+        teamId,
+        teamName,
+        userId: currentUser.uid,
+        userName: currentUser.displayName || currentUser.email,
+        name,
+        memberMatricula,
+        vesselShift,
+        blockShift,
+        shift: isAbsent ? 'FALTA' : (row.querySelector(".shiftTurno")?.value || ""),
+        observations: row.querySelector(".shiftObservations")?.value?.trim() || "",
+        local,
+        details,
+        absent: isAbsent,
+        absenceReason,
+        abono,
+        createdBy: currentUser.uid,
+      });
+    }
+
+    try {
+      const BATCH_LIMIT = 400;
+      let batch = writeBatch(db);
+      let ops = 0;
+
+      for (const rec of records) {
+        const dateInputVal = document.getElementById('dateInput').value;
+        let dateStrForId;
+        if (dateInputVal) {
+          const [yyyy, mm, dd] = dateInputVal.split('-');
+          dateStrForId = `${dd}-${mm}-${yyyy}`;
+        } else {
+          const now = new Date();
+          dateStrForId = `${String(now.getDate()).padStart(2, '0')}-${String(now.getMonth() + 1).padStart(2, '0')}-${now.getFullYear()}`;
+        }
+        const safeName = rec.name.replace(/[/\\#.%$[\]]/g, "-");
+        const docId = `${safeName}, ${rec.memberMatricula} - ${dateStrForId}`;
+
+        batch.set(doc(db, "records", docId), rec);
+        ops++;
+        if (ops >= BATCH_LIMIT) {
+          await batch.commit();
+          batch = writeBatch(db);
+          ops = 0;
+        }
+      }
+
+      if (ops > 0) await batch.commit();
+
+      showNotification("Apropriações enviadas com sucesso!", "success");
+      const galpaoSel = document.getElementById("galpaoSelect");
+      if (galpaoSel) galpaoSel.selectedIndex = 0;
+      const teamSel = document.getElementById("teamSelect");
+      if (teamSel) teamSel.selectedIndex = 0;
+      const sc = document.getElementById("shiftsContainer");
+      if (sc) sc.innerHTML = "";
+
+      // opcional: atualiza local meta-check para que o sistema não tente ler meta imediatamente
+      localStorage.setItem(META_LAST_CHECK_KEY, String(Date.now()));
+
+      // recarrega (se quiser) registros
+      if (typeof loadRecords === 'function') loadRecords(true);
+    } catch (e) {
+      console.error(e);
+      showNotification("Erro ao enviar apropriações.", "error");
+    }
+  }
+
+  // --- Records (Lazy load + infinite scroll) ---
+  let lastVisibleRecord = null;
+  let isFetchingRecords = false;
+  let recordsCache = [];
+  let recordsInitialized = false;
+  let noMoreRecords = false;
+  const LOAD_BATCH_SIZE = 5;
+
+  function appendRecordsToTable(newDocs) {
+    const tbody = document.querySelector("#recordsTable tbody");
+    if (!tbody) return;
+    const fragment = document.createDocumentFragment();
+    for (const r of newDocs) {
+      const date = r.date?.toDate?.() || new Date();
+      const dateStr = date.toLocaleString("pt-BR", {
+        day: '2-digit', month: '2-digit', year: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+      });
+      const galp = (r.galpao || "").replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const team = (r.teamName || r.teamId || "").replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const user = (r.userName || "").replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${dateStr}</td><td>${galp}</td><td>${team}</td><td>${user}</td>`;
+      fragment.appendChild(tr);
+    }
+    tbody.appendChild(fragment);
+  }
+
+  function clearRecordsTable() {
+    const tbody = document.querySelector("#recordsTable tbody");
+    if (tbody) tbody.innerHTML = '';
+    recordsCache = [];
+    lastVisibleRecord = null;
+    noMoreRecords = false;
+  }
+
+  async function loadRecords(reset = false) {
+    if (isFetchingRecords) return;
+    if (noMoreRecords && !reset) return;
+    isFetchingRecords = true;
+
+    const loadBtn = document.getElementById('loadRecordsBtn');
+    const statusSpan = document.getElementById('recordsStatus');
+    if (loadBtn) { loadBtn.disabled = true; loadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Carregando...'; }
+    if (statusSpan) statusSpan.textContent = '';
+
+    try {
+      if (reset) { clearRecordsTable(); recordsInitialized = true; }
+
+      let q = query(collection(db, "records"),
+        where("createdBy", "==", currentUser.uid),
+        orderBy("date", "desc"),
+        limit(LOAD_BATCH_SIZE));
+
+      if (!reset && lastVisibleRecord) {
+        q = query(q, startAfter(lastVisibleRecord));
+      }
+
+      const snap = await getDocs(q);
+
+      if (!snap.empty) {
+        lastVisibleRecord = snap.docs[snap.docs.length - 1];
+        const newDocs = [];
+        snap.forEach(docSnap => newDocs.push(docSnap.data()));
+        appendRecordsToTable(newDocs);
+        recordsCache = recordsCache.concat(newDocs);
+
+        if (snap.size < LOAD_BATCH_SIZE) {
+          noMoreRecords = true;
+          if (statusSpan) statusSpan.textContent = 'Todos os registros foram carregados.';
+        }
+      } else {
+        noMoreRecords = true;
+        if (reset && statusSpan) statusSpan.textContent = 'Nenhum registro encontrado.';
+      }
+    } catch (e) {
+      console.error('Erro ao carregar records', e);
+      showNotification('Erro ao carregar registros recentes.', 'error');
+    } finally {
+      isFetchingRecords = false;
+      if (loadBtn) {
+        loadBtn.disabled = noMoreRecords;
+        if (!noMoreRecords) loadBtn.style.display = 'none';
+        else loadBtn.innerHTML = '<i class="fas fa-check"></i> Carregado';
+      }
+    }
+  }
+
+  // scroll listener with fallback
+  const tableWrapper = document.getElementById("recordsTableWrapper") || document.querySelector("#recordsTable")?.parentElement;
+  if (tableWrapper) {
     let scrollTimeout;
     tableWrapper.addEventListener("scroll", () => {
       if (!recordsInitialized || noMoreRecords) return;
       clearTimeout(scrollTimeout);
       scrollTimeout = setTimeout(() => {
         if (tableWrapper.scrollTop + tableWrapper.clientHeight >= tableWrapper.scrollHeight - 50) {
-          loadRecords(false); // próximo lote
+          loadRecords(false);
         }
       }, 120);
     });
+  }
 
-    // Botão de carregar registros (aperta 1 vez p/ carregar primeiros 5)
-    const loadRecordsBtn = document.getElementById('loadRecordsBtn');
+  const loadRecordsBtn = document.getElementById('loadRecordsBtn');
+  if (loadRecordsBtn) {
     loadRecordsBtn.addEventListener('click', async () => {
-      // se já iniciou, ignora — mas nesse fluxo, só pode iniciar uma vez
       if (recordsInitialized) return;
-      await loadRecords(true); // reset = true -> carrega primeiros 5
-      // após carregar, deixamos o botão escondido (a menos que nãoMoreRecords === true)
-      // (essa lógica já definida no finally de loadRecords)
+      await loadRecords(true);
     });
+  }
 
-// Menu hamburger
-const toggleMenuBtn = document.getElementById("toggleMenu");
-const menuList = document.getElementById("menuList");
+  // --- small UI utilities (menu, notifications) ---
+  const toggleMenuBtn = document.getElementById("toggleMenu");
+  const menuList = document.getElementById("menuList");
+  if (toggleMenuBtn) toggleMenuBtn.addEventListener("click", () => menuList.classList.toggle("active"));
 
-toggleMenuBtn.addEventListener("click", () => {
-  menuList.classList.toggle("active");
-});
-
-const icons = {
-  success: '<i class="fas fa-check-circle" style="color:#28a745;"></i>',
-  error: '<i class="fas fa-times-circle" style="color:#dc3545;"></i>',
-  warning: '<i class="fas fa-exclamation-triangle" style="color:#ffc107;"></i>',
-  info: '<i class="fas fa-info-circle" style="color:#2196f3;"></i>',
-};
-
-// Substitui alert() por notificação elegante
-function showNotification(message, type = "info") {
-  const modal = document.getElementById("notificationModal");
-  const msg = document.getElementById("notificationMessage");
-  const okBtn = document.getElementById("notificationOkBtn");
-
-  msg.innerHTML = icons[type] + '<span>' + message + '</span>';
-
-  modal.style.display = "flex";
-
-  okBtn.focus();
-
-  okBtn.onclick = () => {
-    modal.style.display = "none";
+  const icons = {
+    success: '<i class="fas fa-check-circle" style="color:#28a745;"></i>',
+    error: '<i class="fas fa-times-circle" style="color:#dc3545;"></i>',
+    warning: '<i class="fas fa-exclamation-triangle" style="color:#ffc107;"></i>',
+    info: '<i class="fas fa-info-circle" style="color:#2196f3;"></i>',
   };
-}
 
-const modal = document.getElementById("notificationModal");
-modal.addEventListener("click", (e) => {
-  if (e.target === modal) {
-    modal.style.display = "none";
-  }
-});
-
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") {
+  function showNotification(message, type = "info") {
     const modal = document.getElementById("notificationModal");
-    if (modal.style.display === "flex") {
-      modal.style.display = "none";
-    }
-  }
-});
+    const msg = document.getElementById("notificationMessage");
+    const okBtn = document.getElementById("notificationOkBtn");
+    if (!modal || !msg || !okBtn) { alert(message); return; }
 
-const teamSelectManage = document.getElementById("teamSelectManage");
-const editTeamBtn      = document.getElementById("editTeamBtn");
-
-// Ao clicar em editar, só preenche os campos — o form já está visível
-editTeamBtn.addEventListener("click", async () => {
-  const teamId = teamSelectManage.value;
-
-  if (!teamId) {
-    showNotification("Selecione uma equipe para editar.", "warning");
-    return;
+    msg.innerHTML = icons[type] + '<span>' + message + '</span>';
+    modal.style.display = "flex";
+    okBtn.focus();
+    okBtn.onclick = () => { modal.style.display = "none"; };
   }
 
-  let teamData = teamsCache.get(teamId);
-// substituição: tenta recarregar cache inteiro antes de getDoc isolado
-if (!teamData) {
-  try {
-    // recarrega todos os times do Firestore em 1 única consulta
-    await loadTeamsOnce(); // já popula teamsCache
-    teamData = teamsCache.get(teamId);
-    if (!teamData) {
-      showNotification("Equipe selecionada não encontrada.", "warning");
-      return;
-    }
-  } catch (e) {
-    console.error("Erro ao recarregar equipes:", e);
-    showNotification("Erro ao acessar os dados da equipe.", "error");
-    return;
-  }
-}
+  const modal = document.getElementById("notificationModal");
+  if (modal) modal.addEventListener("click", (e) => { if (e.target === modal) modal.style.display = "none"; });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") { const mod = document.getElementById("notificationModal"); if (mod && mod.style.display === "flex") mod.style.display = "none"; } });
 
-  // agora preenche o formulário com teamData (sempre definido aqui)
-  document.getElementById("teamName").value = teamData.name || "";
-  const radio = document.querySelector(`input[name="teamShift"][value="${teamData.shift}"]`);
-  if (radio) radio.checked = true;
+  // --- manage team (edit/delete) ---
+  const teamSelectManage = document.getElementById("teamSelectManage");
+  const editTeamBtn = document.getElementById("editTeamBtn");
+  if (editTeamBtn) {
+    editTeamBtn.addEventListener("click", async () => {
+      const teamId = teamSelectManage.value;
+      if (!teamId) { showNotification("Selecione uma equipe para editar.", "warning"); return; }
 
-  membersContainer.innerHTML = "";
-  (teamData.members || []).forEach(m => membersContainer.appendChild(createMemberRow(m)));
+      let teamData = teamsCache.get(teamId);
+      if (!teamData) {
+        try {
+          await loadTeamsWithSWR(true); // force server load
+          teamData = teamsCache.get(teamId);
+          if (!teamData) { showNotification("Equipe selecionada não encontrada.", "warning"); return; }
+        } catch (e) {
+          console.error("Erro ao recarregar equipes:", e);
+          showNotification("Erro ao acessar os dados da equipe.", "error");
+          return;
+        }
+      }
 
-  editingTeamId = teamId;
-  saveTeamBtn.innerHTML = '<i class="fas fa-rotate"></i>Atualizar Equipe';
-  cancelEditBtn.style.display = "inline-block";
-});
+      document.getElementById("teamName").value = teamData.name || "";
+      const radio = document.querySelector(`input[name="teamShift"][value="${teamData.shift}"]`);
+      if (radio) radio.checked = true;
 
-const deleteTeamBtn   = document.getElementById("deleteTeamBtn");
-const confirmModal    = document.getElementById("confirmModal");
-const confirmMessage  = document.getElementById("confirmMessage");
-const confirmYesBtn   = document.getElementById("confirmYesBtn");
-const confirmNoBtn    = document.getElementById("confirmNoBtn");
+      membersContainer.innerHTML = "";
+      (teamData.members || []).forEach(m => membersContainer.appendChild(createMemberRow(m)));
 
-// Ação ao clicar em Excluir
-deleteTeamBtn.addEventListener("click", () => {
-  const teamId   = teamSelectManage.value;
-  const teamName = teamSelectManage.options[teamSelectManage.selectedIndex].text;
-  
-  if (!teamId) {
-    showNotification("Selecione uma equipe para excluir.", "warning");
-    return;
-  }
-  
-  // Prepara mensagem e exibe modal de confirmação
-  confirmMessage.textContent = `Deseja apagar a equipe "${teamName}"? Essa alteração não pode ser revertida.`;
-  confirmModal.style.display   = "flex";
-});
-
-// Se clicar em NÃO, fecha o modal
-confirmNoBtn.addEventListener("click", () => {
-  confirmModal.style.display = "none";
-});
-
-// --- deleteRecordsByTeamInBatches: exclui records em lotes seguros ---
-async function deleteRecordsByTeamInBatches(teamId) {
-  const BATCH_SIZE = 400; // seguro < 500 (limite do writeBatch)
-  const recordsRef = collection(db, "records");
-
-  while (true) {
-    const q = query(recordsRef, where("teamId", "==", teamId), limit(BATCH_SIZE));
-    const snap = await getDocs(q);
-    if (snap.empty) break;
-
-    const wb = writeBatch(db); // usa writeBatch importado no topo do módulo
-    snap.docs.forEach(docSnap => {
-      wb.delete(doc(db, "records", docSnap.id));
+      editingTeamId = teamId;
+      if (saveTeamBtn) saveTeamBtn.innerHTML = '<i class="fas fa-rotate"></i>Atualizar Equipe';
+      if (cancelEditBtn) cancelEditBtn.style.display = "inline-block";
     });
-
-    await wb.commit();
-
-    // se trouxe menos que o tamanho do lote, terminou
-    if (snap.size < BATCH_SIZE) break;
-    // caso contrário, loop continua (os docs deletados não aparecem mais)
-  }
-}
-
-// Se clicar em SIM, procede à exclusão
-confirmYesBtn.addEventListener("click", async () => {
-  const teamId = teamSelectManage.value;
-
-  if (!teamId) {
-    showNotification("Selecione uma equipe para excluir.", "warning");
-    return;
   }
 
-  try {
-    // marca o documento como deletado (merge para não sobrescrever os campos)
-    await setDoc(doc(db, "teams", teamId), {
-      deleted: true,
-      deletedAt: Timestamp.now(),
-      deletedBy: currentUser.uid
-    }, { merge: true });
+  const deleteTeamBtn = document.getElementById("deleteTeamBtn");
+  const confirmModal = document.getElementById("confirmModal");
+  const confirmMessage = document.getElementById("confirmMessage");
+  const confirmYesBtn = document.getElementById("confirmYesBtn");
+  const confirmNoBtn = document.getElementById("confirmNoBtn");
 
-    // atualiza cache local e interface
-    teamsCache.delete(teamId); // opcional: se quiser remover imediatamente
-    serializeTeamsCache();
-    rebuildTeamSelectsFromCache();
-
-    confirmModal.style.display = "none";
-    clearTeamForm();
-    showNotification("Equipe marcada como apagada com sucesso!", "success");
-
-  } catch (e) {
-    console.error(e);
-    confirmModal.style.display = "none";
-    showNotification("Erro ao marcar equipe como apagada.", "error");
+  if (deleteTeamBtn) {
+    deleteTeamBtn.addEventListener("click", () => {
+      const teamId = teamSelectManage.value;
+      const teamName = teamSelectManage.options[teamSelectManage.selectedIndex]?.text || '';
+      if (!teamId) { showNotification("Selecione uma equipe para excluir.", "warning"); return; }
+      confirmMessage.textContent = `Deseja apagar a equipe "${teamName}"? Essa alteração não pode ser revertida.`;
+      if (confirmModal) confirmModal.style.display = "flex";
+    });
   }
-});
 
-(function(){
-    if (localStorage.getItem('dark') === '1') {
-      document.documentElement.classList.add('dark');
+  if (confirmNoBtn) confirmNoBtn.addEventListener("click", () => { if (confirmModal) confirmModal.style.display = "none"; });
+
+  async function deleteRecordsByTeamInBatches(teamId) {
+    const BATCH_SIZE = 400;
+    const recordsRef = collection(db, "records");
+    while (true) {
+      const q = query(recordsRef, where("teamId", "==", teamId), limit(BATCH_SIZE));
+      const snap = await getDocs(q);
+      if (snap.empty) break;
+      const wb = writeBatch(db);
+      snap.docs.forEach(docSnap => wb.delete(doc(db, "records", docSnap.id)));
+      await wb.commit();
+      if (snap.size < BATCH_SIZE) break;
     }
+  }
+
+  if (confirmYesBtn) {
+    confirmYesBtn.addEventListener("click", async () => {
+      const teamId = teamSelectManage.value;
+      if (!teamId) { showNotification("Selecione uma equipe para excluir.", "warning"); return; }
+      try {
+        await setDoc(doc(db, "teams", teamId), {
+          deleted: true,
+          deletedAt: Timestamp.now(),
+          deletedBy: currentUser.uid
+        }, { merge: true });
+
+        teamsCache.delete(teamId);
+        serializeTeamsCache();
+        rebuildTeamSelectsFromCache();
+
+        // update local last-check to avoid immediate meta recheck
+        localStorage.setItem(META_LAST_CHECK_KEY, String(Date.now()));
+
+        if (confirmModal) confirmModal.style.display = "none";
+        clearTeamForm();
+        showNotification("Equipe marcada como apagada com sucesso!", "success");
+      } catch (e) {
+        console.error(e);
+        if (confirmModal) confirmModal.style.display = "none";
+        showNotification("Erro ao marcar equipe como apagada.", "error");
+      }
+    });
+  }
+
+  // --- dark mode init ---
+  (function(){
+    if (localStorage.getItem('dark') === '1') document.documentElement.classList.add('dark');
   })();
   window.addEventListener('storage', e => {
-    if (e.key === 'dark') {
-      document.documentElement.classList.toggle('dark', e.newValue === '1');
-    }
+    if (e.key === 'dark') document.documentElement.classList.toggle('dark', e.newValue === '1');
   });
+
+  // --- event triggers: visibility/online with debounce -> SWR reload ---
+  let swrDebounce;
+  const triggerLoadTeamsWithSWR = (delay = 400) => {
+    clearTimeout(swrDebounce);
+    swrDebounce = setTimeout(() => loadTeamsWithSWR(), delay);
+  };
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') triggerLoadTeamsWithSWR(); });
+  window.addEventListener('online', () => triggerLoadTeamsWithSWR(100));
+
+  // --- Optional: create team lazy init button handler (if you add a button with id createTeamBtn in HTML) ---
+  const createTeamBtn = document.getElementById('createTeamBtn');
+  if (createTeamBtn) {
+    createTeamBtn.addEventListener('click', async () => {
+      // loads teams cache (if not present) to allow choosing based on existing teams (or editing later)
+      await loadTeamsWithSWR();
+      // optional: focus the team name input to start creating
+      const tName = document.getElementById("teamName");
+      if (tName) tName.focus();
+    });
+  }
 </script>
+
 </body>
 </html>
