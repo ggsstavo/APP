@@ -695,6 +695,15 @@
   box-shadow: 0 6px 12px rgba(0,0,0,0.12);
 }
 
+@keyframes slideFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+#createTeamArea.show {
+  display: block !important;
+  animation: slideFadeIn 260ms ease;
+}
+
   </style>
 </head>
 <body>
@@ -764,33 +773,51 @@
     <!-- Formulário de Criação/Edição de Equipe -->
     <section class="form-section" id="teamSection">
       <h3><i class="fa-solid fa-users-gear"></i>Gerenciar Equipe</h3>
-      <div class="form-row">
-        <label for="teamName">Nome da Equipe:</label>
-        <input
-          type="text"
-          id="teamName"
-          placeholder="Ex: Semana 1 - Plataforma X"
-          autocomplete="off"
-        />
-      </div>
-      <div class="form-row">
-        <label>Turno padrão da equipe:</label>
-        <div class="radio-group">
-          <input type="radio" id="shiftDiurno" name="teamShift" value="Diurno" checked />
-          <label for="shiftDiurno">Diurno</label>
 
-          <input type="radio" id="shiftNoturno" name="teamShift" value="Noturno" />
-          <label for="shiftNoturno">Noturno</label>
-        </div>
-      </div>
-      <div id="membersContainer">
-        <!-- Linhas de membro serão injetadas aqui -->
-      </div>
-      <button id="addMemberBtn" class="btn"><i class="fa-solid fa-plus"></i>Adicionar Membro</button>
-      <button id="saveTeamBtn" class="btn"><i class="fa-solid fa-user-plus"></i>Salvar Equipe</button>
-      <div style="margin-top: 10px; display: flex; gap: 10px;">
-  <button id="cancelEditBtn" class="btn" style="display: none; background: #c0392b"><i class="fa-solid fa-xmark"></i>Cancelar Edição</button>
+<!-- Botão Criar Equipe (visível por padrão) -->
+<div style="margin-bottom:12px;">
+  <button id="createTeamBtn" class="btn">
+    <i class="fas fa-plus-circle"></i> Criar Equipe
+  </button>
 </div>
+
+<!-- Área de criação/edição (oculta por padrão) -->
+<div id="createTeamArea" style="display: none; animation: none;">
+  <div class="form-row">
+    <label for="teamName">Nome da Equipe:</label>
+    <input
+      type="text"
+      id="teamName"
+      placeholder="Ex: Semana 1 - Plataforma X"
+      autocomplete="off"
+    />
+  </div>
+  <div class="form-row">
+    <label>Turno padrão da equipe:</label>
+    <div class="radio-group">
+      <input type="radio" id="shiftDiurno" name="teamShift" value="Diurno" checked />
+      <label for="shiftDiurno">Diurno</label>
+
+      <input type="radio" id="shiftNoturno" name="teamShift" value="Noturno" />
+      <label for="shiftNoturno">Noturno</label>
+    </div>
+  </div>
+
+  <div id="membersContainer">
+    <!-- Linhas de membro serão injetadas aqui -->
+  </div>
+
+  <button id="addMemberBtn" class="btn"><i class="fa-solid fa-plus"></i>Adicionar Membro</button>
+  <button id="saveTeamBtn" class="btn"><i class="fa-solid fa-user-plus"></i>Salvar Equipe</button>
+
+  <div style="margin-top: 5px;">
+    <button id="cancelCreateTeamBtn" class="btn" style="background: #c0392b">
+      <i class="fa-solid fa-xmark"></i>Cancelar
+    </button>
+  </div>
+</div>
+
+<!-- (a seguir vem o H3 "Editar Equipe" que você já tem) -->
 <h3 class="outros"><i class="fa-solid fa-pen-to-square"></i>Editar Equipe</h3>
 <div class="form-row">
   <label for="teamSelectManage">Selecione uma equipe para editar:</label>
@@ -848,7 +875,7 @@ Enviar Apropriação</h3>
 
       <!-- NOVO: botão para iniciar o carregamento (carrega os 5 primeiros) -->
       <div style="margin-bottom:12px;">
-        <button id="loadRecordsBtn" class="btn"><i class="fas fa-download"></i> Carregar Registros Recentes</button>
+        <button id="loadRecordsBtn" class="btn"><i class="fas fa-download"></i> Carregar Recentes</button>
         <span id="recordsStatus" style="margin-left:12px;color:var(--text);font-size:0.95rem;"></span>
       </div>
 
@@ -1461,6 +1488,7 @@ Enviar Apropriação</h3>
 
       showNotification("Equipe salva com sucesso!", "success");
       clearTeamForm();
+      showCreateArea(null);
     } catch (e) {
       console.error(e);
       showNotification("Erro ao salvar equipe.", "error");
@@ -1767,35 +1795,60 @@ Enviar Apropriação</h3>
   const teamSelectManage = document.getElementById("teamSelectManage");
   const editTeamBtn = document.getElementById("editTeamBtn");
   if (editTeamBtn) {
-    editTeamBtn.addEventListener("click", async () => {
-      const teamId = teamSelectManage.value;
-      if (!teamId) { showNotification("Selecione uma equipe para editar.", "warning"); return; }
+  editTeamBtn.addEventListener("click", async () => {
+    const teamId = teamSelectManage.value;
+    if (!teamId) { showNotification("Selecione uma equipe para editar.", "warning"); return; }
 
-      let teamData = teamsCache.get(teamId);
-      if (!teamData) {
-        try {
-          await loadTeamsWithSWR(true); // force server load
-          teamData = teamsCache.get(teamId);
-          if (!teamData) { showNotification("Equipe selecionada não encontrada.", "warning"); return; }
-        } catch (e) {
-          console.error("Erro ao recarregar equipes:", e);
-          showNotification("Erro ao acessar os dados da equipe.", "error");
-          return;
-        }
+    let teamData = teamsCache.get(teamId);
+    if (!teamData) {
+      try {
+        // força recarregar cache do servidor se não tiver local
+        await loadTeamsWithSWR(true);
+        teamData = teamsCache.get(teamId);
+        if (!teamData) { showNotification("Equipe selecionada não encontrada.", "warning"); return; }
+      } catch (e) {
+        console.error("Erro ao recarregar equipes:", e);
+        showNotification("Erro ao acessar os dados da equipe.", "error");
+        return;
       }
+    }
 
-      document.getElementById("teamName").value = teamData.name || "";
-      const radio = document.querySelector(`input[name="teamShift"][value="${teamData.shift}"]`);
-      if (radio) radio.checked = true;
+    // popula o form com os dados da equipe selecionada
+    const teamNameEl = document.getElementById("teamName");
+    if (teamNameEl) teamNameEl.value = teamData.name || "";
 
-      membersContainer.innerHTML = "";
-      (teamData.members || []).forEach(m => membersContainer.appendChild(createMemberRow(m)));
+    const radio = document.querySelector(`input[name="teamShift"][value="${teamData.shift}"]`);
+    if (radio) radio.checked = true;
 
-      editingTeamId = teamId;
-      if (saveTeamBtn) saveTeamBtn.innerHTML = '<i class="fas fa-rotate"></i>Atualizar Equipe';
-      if (cancelEditBtn) cancelEditBtn.style.display = "inline-block";
-    });
-  }
+    // limpa e recria linhas de membros
+    membersContainer.innerHTML = "";
+    (teamData.members || []).forEach(m => membersContainer.appendChild(createMemberRow(m)));
+
+    // marca que estamos em modo edição
+    editingTeamId = teamId;
+
+    // ajusta texto do botão salvar para "Atualizar"
+    if (saveTeamBtn) saveTeamBtn.innerHTML = '<i class="fas fa-rotate"></i> Atualizar Equipe';
+    // mostra área em modo edição
+showCreateArea('edit');
+
+    // mostra a mesma área de criação/edição (sem criar outra)
+    const createArea = document.getElementById('createTeamArea');
+    const createBtn = document.getElementById('createTeamBtn');
+    if (createArea) {
+      createArea.classList.add('show');
+      createArea.style.display = 'block';
+    }
+    if (createBtn) createBtn.style.display = 'none';
+
+    // mostra o botão de cancelar (o que criamos para criação)
+    const cancelCreateBtn = document.getElementById('cancelCreateTeamBtn');
+    if (cancelCreateBtn) cancelCreateBtn.style.display = 'inline-block';
+
+    // focus no nome para facilitar edição
+    setTimeout(() => { if (teamNameEl) teamNameEl.focus(); }, 40);
+  });
+}
 
   const deleteTeamBtn = document.getElementById("deleteTeamBtn");
   const confirmModal = document.getElementById("confirmModal");
@@ -1876,16 +1929,137 @@ Enviar Apropriação</h3>
   window.addEventListener('online', () => triggerLoadTeamsWithSWR(100));
 
   // --- Optional: create team lazy init button handler (if you add a button with id createTeamBtn in HTML) ---
-  const createTeamBtn = document.getElementById('createTeamBtn');
-  if (createTeamBtn) {
-    createTeamBtn.addEventListener('click', async () => {
-      // loads teams cache (if not present) to allow choosing based on existing teams (or editing later)
-      await loadTeamsWithSWR();
-      // optional: focus the team name input to start creating
-      const tName = document.getElementById("teamName");
-      if (tName) tName.focus();
+  // cancelar (tanto criação quanto edição) -> esconde a área e limpa estado
+const cancelCreateBtn = document.getElementById('cancelCreateTeamBtn');
+if (cancelCreateBtn) {
+  cancelCreateBtn.addEventListener('click', () => {
+    // limpar form visível
+    const teamNameInput = document.getElementById('teamName');
+    if (teamNameInput) teamNameInput.value = '';
+    const radioDiurno = document.querySelector('input[name="teamShift"][value="Diurno"]');
+    if (radioDiurno) radioDiurno.checked = true;
+    if (membersContainer) membersContainer.innerHTML = '';
+
+    // reset do estado de edição
+    editingTeamId = null;
+
+    // esconder área e restaurar botão criar
+    const createArea = document.getElementById('createTeamArea');
+    const createBtn = document.getElementById('createTeamBtn');
+    if (createArea) { createArea.classList.remove('show'); createArea.style.display = 'none'; }
+    if (createBtn) { createBtn.style.display = ''; createBtn.disabled = false; }
+
+    // reset texto do salvar
+    if (saveTeamBtn) saveTeamBtn.textContent = 'Salvar Equipe';
+    // opcional: também esconder o cancelCreateBtn (já será escondido quando area for escondida)
+    cancelCreateBtn.style.display = 'none';
+  });
+}
+
+  /* ------------- Criar Equipe: comportamento do botão (SEM leituras) ------------- */
+(function setupCreateTeamButton() {
+  const createBtn = document.getElementById('createTeamBtn');
+  const createArea = document.getElementById('createTeamArea');
+  const cancelCreateBtn = document.getElementById('cancelCreateTeamBtn');
+  const teamNameInput = document.getElementById('teamName');
+
+  if (!createBtn || !createArea) return;
+
+  createBtn.addEventListener('click', () => {
+    createBtn.disabled = true;
+    const originalHtml = createBtn.innerHTML;
+    createBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Criando...';
+
+    setTimeout(() => {
+      createArea.classList.add('show');
+      createArea.style.display = 'block';
+      createBtn.style.display = 'none';
+      createBtn.disabled = false;
+      createBtn.innerHTML = originalHtml;
+
+      if (teamNameInput) teamNameInput.focus();
+
+      if (cancelCreateBtn) {
+        cancelCreateBtn.style.display = 'inline-block';
+        cancelCreateBtn.innerHTML = '<i class="fa-solid fa-xmark"></i> Cancelar Criação';
+      }
+    }, 260);
+  });
+
+  if (cancelCreateBtn) {
+    cancelCreateBtn.addEventListener('click', () => {
+      // limpar form visível
+      if (teamNameInput) teamNameInput.value = '';
+      const radioDiurno = document.querySelector('input[name="teamShift"][value="Diurno"]');
+      if (radioDiurno) radioDiurno.checked = true;
+      if (membersContainer) membersContainer.innerHTML = '';
+
+      // reset do estado de edição
+      editingTeamId = null;
+
+      // esconder área e restaurar botão Criar
+      createArea.classList.remove('show');
+      createArea.style.display = 'none';
+      const createBtnEl = document.getElementById('createTeamBtn');
+      if (createBtnEl) { createBtnEl.style.display = ''; createBtnEl.disabled = false; }
+
+      // esconder o cancel
+      cancelCreateBtn.style.display = 'none';
+
+      // reset texto do salvar
+      if (saveTeamBtn) saveTeamBtn.textContent = 'Salvar Equipe';
     });
   }
+})();
+
+// helper para atualizar o botão de cancelar com ícone (usa innerHTML)
+function setCancelButtonMode(mode) {
+  // mode = 'create' | 'edit' | null
+  const cancelBtn = document.getElementById('cancelCreateTeamBtn');
+  if (!cancelBtn) return;
+
+  if (mode === 'create') {
+    cancelBtn.style.display = 'inline-block';
+    cancelBtn.innerHTML = '<i class="fas fa-times"></i> Cancelar Criação';
+    cancelBtn.setAttribute('aria-label', 'Cancelar Criação');
+  } else if (mode === 'edit') {
+    cancelBtn.style.display = 'inline-block';
+    cancelBtn.innerHTML = '<i class="fas fa-times"></i> Cancelar Edição';
+    cancelBtn.setAttribute('aria-label', 'Cancelar Edição');
+  } else {
+    cancelBtn.style.display = 'none';
+    // não mexer no innerHTML aqui
+  }
+}
+
+// mode: 'create' | 'edit' | null (null = fechar)
+function showCreateArea(mode) {
+  const createArea = document.getElementById('createTeamArea');
+  const createBtn = document.getElementById('createTeamBtn');
+  const saveBtn = document.getElementById('saveTeamBtn');
+
+  if (mode === 'create') {
+    editingTeamId = null;
+    if (createArea) { createArea.style.display = 'block'; createArea.classList.add('show'); }
+    if (createBtn) createBtn.style.display = 'none';
+    setCancelButtonMode('create');
+    if (saveBtn) saveBtn.textContent = 'Salvar Equipe';
+    setTimeout(() => { const i = document.getElementById('teamName'); if (i) i.focus(); }, 30);
+  } else if (mode === 'edit') {
+    if (createArea) { createArea.style.display = 'block'; createArea.classList.add('show'); }
+    if (createBtn) createBtn.style.display = 'none';
+    setCancelButtonMode('edit');
+    if (saveBtn) saveBtn.textContent = 'Atualizar Equipe';
+    setTimeout(() => { const i = document.getElementById('teamName'); if (i) i.focus(); }, 30);
+  } else {
+    if (createArea) { createArea.style.display = 'none'; createArea.classList.remove('show'); }
+    if (createBtn) createBtn.style.display = '';
+    setCancelButtonMode(null);
+    editingTeamId = null;
+    if (saveBtn) saveBtn.textContent = 'Salvar Equipe';
+  }
+}
+
 </script>
 
 </body>
