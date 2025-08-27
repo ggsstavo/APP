@@ -849,13 +849,15 @@ Enviar Apropriação</h3>
       </div>
       <div class="form-row">
   <label for="galpaoSelect">Galpão:</label>
-  <select id="galpaoSelect">
+  <select id="galpaoSelect" aria-label="Selecione um galpão">
+    <option value="">Selecione um galpão</option>
     <option value="Galpão 1">Galpão 1</option>
     <option value="Galpão 2">Galpão 2</option>
     <option value="Galpão 3">Galpão 3</option>
     <option value="Galpão 4">Galpão 4</option>
   </select>
 </div>
+
       <div class="form-row">
         <label for="teamSelect">Equipe:</label>
         <select id="teamSelect"></select>
@@ -1517,13 +1519,26 @@ Enviar Apropriação</h3>
   if (submitRecordBtn) submitRecordBtn.addEventListener("click", sendRecord);
 
   async function sendRecord() {
-    const teamSelect = document.getElementById("teamSelect");
-    const teamId = teamSelect?.value;
-    const teamName = teamSelect?.options[teamSelect.selectedIndex]?.text || '';
+  const teamSelect = document.getElementById("teamSelect");
+  const teamId = teamSelect?.value;
+  const teamName = teamSelect?.options[teamSelect.selectedIndex]?.text || '';
 
-    const dateStr = document.getElementById("dateInput")?.value;
-    const galpao = document.getElementById("galpaoSelect")?.value;
-    if (!dateStr || !galpao || !teamId) { showNotification("Preencha todos os campos para enviar a apropriação.", "warning"); return; }
+  const dateStr = document.getElementById("dateInput")?.value;
+  const galpao = document.getElementById("galpaoSelect")?.value;
+
+  // validações com mensagens específicas
+  if (!dateStr) {
+    showNotification("Por favor, informe a data.", "warning");
+    return;
+  }
+  if (!galpao) {
+    showNotification("Selecione um galpão para enviar.", "warning");
+    return;
+  }
+  if (!teamId) {
+    showNotification("Selecione uma equipe para enviar a apropriação.", "warning");
+    return;
+  }
 
     // use cache first
     let teamData = teamsCache.get(teamId);
@@ -1637,12 +1652,21 @@ Enviar Apropriação</h3>
       const galpaoSel = document.getElementById("galpaoSelect");
       if (galpaoSel) galpaoSel.selectedIndex = 0;
       const teamSel = document.getElementById("teamSelect");
+      teamSel.value = "";
       if (teamSel) teamSel.selectedIndex = 0;
       const sc = document.getElementById("shiftsContainer");
       if (sc) sc.innerHTML = "";
+      const teamPreview = document.getElementById("teamPreview");
+if (teamPreview) teamPreview.textContent = "";
 
       // opcional: atualiza local meta-check para que o sistema não tente ler meta imediatamente
       localStorage.setItem(META_LAST_CHECK_KEY, String(Date.now()));
+
+      const submitBtn = document.getElementById("submitRecordBtn");
+if (submitBtn) {
+  submitBtn.disabled = true;
+  setTimeout(() => { submitBtn.disabled = false; }, 1200);
+}
 
       // recarrega (se quiser) registros
       if (typeof loadRecords === 'function') loadRecords(true);
