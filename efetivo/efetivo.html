@@ -7,1000 +7,3498 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <link rel="icon" type="image/png" href="../favicon/favicon-96x96.png" sizes="96x96" />
-<link rel="icon" type="image/svg+xml" href="../favicon/favicon.svg" />
-<link rel="shortcut icon" href="../favicon/favicon.ico" />
-<link rel="apple-touch-icon" sizes="180x180" href="../favicon/apple-touch-icon.png" />
-<link rel="manifest" href="../favicon/site.webmanifest" />
-<link rel="stylesheet" href="../theme.css">
+  <link rel="icon" type="image/svg+xml" href="../favicon/favicon.svg" />
+  <link rel="shortcut icon" href="../favicon/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="../favicon/apple-touch-icon.png" />
+  <link rel="manifest" href="../favicon/site.webmanifest" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
   <style>
-
-    :root {
-      --primary-line: #1D4ED8; /* azul escuro mais elegante */
-      --bg: #f5f7fa;
-      --card: #f4f4f5;
-      --text: #374151;
-      --accent: #2c3e50;
-      --soft: #fff;
-      --text2: black;
-      --submit: #27ae60;
-      --tabela-text: #333;
-      --text-muted: #4b5563;
+    /* ------------ Luxury dark theme (shared variables) ------------ */
+    :root{
+      --bg: #0b0c0f;
+      --panel: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      --card: rgba(255,255,255,0.03);
+      --glass: rgba(255,255,255,0.03);
+      --text: #e1efe6;
+      --muted: rgba(225,239,230,0.62);
+      --muted-2: rgba(225,239,230,0.45);
+      --soft-border: rgba(255,255,255,0.04);
+      --accent: #9fccb1;
+      --accent-strong: #3b82f6;
+      --secondary: #39666b;
+      --btn-grad: linear-gradient(135deg,#4f46e5,#7c3aed);
+      --text-grad: linear-gradient(90deg,#2a6df4,#7345a1);
+      --shadow-lg: 0 18px 60px rgba(0,0,0,0.7);
+      --radius: 12px;
+      --sidebar-w: 260px;
+      --hover-ease: cubic-bezier(.15,.9,.25,1);
     }
 
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: Arial, sans-serif;
+    /* reset / base */
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:'Inter', system-ui, Arial, sans-serif;
+      background-color:var(--bg);
+      color:var(--text);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      line-height:1.35;
+      min-height:100vh;
     }
-    body {
-      display: flex;
-      min-height: 100vh;
-      background-color: var(--bg);
-    }
+
+    /* ===== SIDEBAR ===== */
     .sidebar {
-      width: 220px;
-      background: #2c3e50;
-      color: #fff;
-      padding: 20px;
+      --bg-sidebar: #0b150f;
+      --card-sidebar: rgba(255, 255, 255, 0.06);
+      --glass-sidebar: rgba(255, 255, 255, 0.04);
+      --accent-sidebar: #9fccb1;
+      --secondary-sidebar: #39666b;
+      --text-sidebar: #e1efe6;
+      --muted-sidebar: rgba(225, 239, 230, 0.6);
+      --neumo-shadow-sidebar: 10px 10px 20px rgba(0, 0, 0, 0.6), -6px -6px 16px rgba(255, 255, 255, 0.02);
+      --radius-sidebar: 14px;
+    }
+
+    /* Sidebar styles (copiado - mantive exatamente) */
+    .sidebar {
+      width: 260px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+      color: var(--text-sidebar);
+      padding: 20px 0;
       display: flex;
       flex-direction: column;
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      z-index: 60;
+      backdrop-filter: blur(8px) saturate(120%);
+      border-right: 1px solid rgba(255, 255, 255, 0.03);
+      overflow-y: auto;
     }
+
     .sidebar-header {
       display: flex;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-start;
       position: relative;
+      padding: 0 20px 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+      margin-bottom: 20px;
     }
-    .dark .sidebar {
-  background: var(--card);       /* #090b16 */
-  color: var(--text);            /* #e0e0e0 */
-  border-right: 1px solid var(--soft); /* #3c3f68 como linha */  
-} 
 
-.dark .sidebar a:hover,
-.dark .sidebar a.active {
-  background: var(--soft);       /* #3c3f68 */
-}
-    .hamburger {
-      display: none;
-      background: none;
-      border: none;
-      color: #fff;
-      font-size: 24px;
-      position: absolute;
-      left: 0;
-      cursor: pointer;
+    .brand {
+      display: flex;
+      gap: 14px;
+      align-items: center;
     }
+
     .logo {
-      font-size: 24px;
-      user-select: none;
-    }
-    nav ul {
-      list-style: none;
-      margin-top: 20px;
-    }
-    nav ul li {
-      margin: 15px 0;
-    }
-    nav ul li a {
-      text-decoration: none;
-      color: #fff;
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--accent-sidebar), var(--secondary-sidebar));
+      box-shadow: var(--neumo-shadow-sidebar);
       display: flex;
       align-items: center;
-      padding: 10px;
-      border-radius: 4px;
-      transition: background 0.2s;
+      justify-content: center;
+      font-weight: 800;
+      color: white;
+      font-size: 18px;
     }
+
+    .brand-text h1 {
+      font-size: 16px;
+      margin: 0;
+      color: var(--text-sidebar);
+      font-weight: 600;
+    }
+
+    .brand-text p {
+      margin: 0;
+      font-size: 12px;
+      opacity: 0.75;
+      color: var(--muted-sidebar);
+    }
+
+    .hamburger {
+      display: none;
+      background: var(--glass-sidebar);
+      border: 1px solid rgba(255, 255, 255, 0.02);
+      border-radius: 10px;
+      color: var(--muted-sidebar);
+      font-size: 18px;
+      width: 44px;
+      height: 44px;
+      position: absolute;
+      left: 15px;
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+    }
+
+    nav ul {
+      list-style: none;
+      padding: 0 12px;
+    }
+
+    nav ul li {
+      margin: 8px 0;
+    }
+
+    nav ul li a {
+      text-decoration: none;
+      color: var(--muted-sidebar);
+      display: flex;
+      align-items: center;
+      padding: 10px 14px;
+      border-radius: 10px;
+      transition: all 0.2s;
+      font-weight: 500;
+      font-size: 14px;
+    }
+
     nav ul li a i {
-      margin-right: 10px;
-    }
-    nav ul li a.active,
-    nav ul li a:hover {
-      background: #34495e;
-    }
-    .main-content {
-      flex: 1;
-      padding: 30px;
-    }
-    header h2 {
-      margin-bottom: 20px;
-      color: var(--accent);
-    }
-    .dark header h2{
-      background: rgba(92,124,250, .1);
-      display: inline-block;
-      padding: 6px 10px;
-  border-radius: 4px;
-    }
-
-    .tituloeft {
+      margin-right: 12px;
+      width: 20px;
       text-align: center;
-      margin-bottom: 2rem;
-      color: var(--accent);
     }
 
+    nav ul li a:hover,
+    nav ul li a.active {
+      color: var(--text-sidebar);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    /* Botão de Observa+ com estilo especial */
+    nav ul li:nth-child(1) a {
+      background: linear-gradient(135deg, var(--accent-sidebar), var(--secondary-sidebar));
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      box-shadow: 0 12px 40px rgba(70, 229, 123, 0.12), inset 0 -6px 18px rgba(255, 255, 255, 0.02);
+      margin-top: 15px;
+    }
+
+    nav ul li:nth-child(1) a:hover {
+      filter: brightness(1.08);
+      box-shadow: 0 2px 80px rgba(70, 229, 150, 0.18), -4px -4px 10px rgba(58, 237, 133, 0.04);
+    }
+    
+    /* Ícone branco para o botão gradiente em desktop também */
+    nav ul li:nth-child(1) a i {
+      color: white;
+    }
+    /* MAIN area */
+    .container {
+      margin-left: var(--sidebar-w);
+      max-width: var(--max-width);
+      padding: 28px 20px;
+      box-sizing: border-box;
+    }
+
+    header.topbar{
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      padding:12px 16px; border-radius:12px; border:1px solid var(--soft-border);
+      box-shadow: 0 6px 22px rgba(0,0,0,0.6);
+      margin-bottom:16px;
+    }
+    .topbar h2{ margin:0; font-size:18px; letter-spacing:-0.01em; background: linear-gradient(90deg,#2a6df4,#7345a1); background-clip:text; color:transparent; }
+    .topbar .actions{ display:flex; gap:10px; align-items:center }
+    .left h2{ margin:0; font-size:18px; letter-spacing:-0.01em; background: var(--text-grad); background-clip:text; -webkit-background-clip:text; color:transparent; }
+    .left small{ color:var(--muted); margin-left:6px; display:block; font-size:13px }
+
+    /* Chart grid & cards */
     .chart-container {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 3.5rem;
+      gap: 22px;
       align-items: start;
     }
 
     .card {
-      background: var(--soft);
+      background: var(--panel);
       border-radius: 12px;
-      padding: 1rem;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-      transition: transform 0.3s ease;
-      text-align: center;
-      color: var(--text2);
+      padding: 16px;
+      border:1px solid var(--soft-border);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.55);
+      transition: transform .18s var(--hover-ease), box-shadow .18s var(--hover-ease);
+      color:var(--text);
+      position:relative;
+    }
+    .card:hover{ transform: translateY(-6px); box-shadow: 0 22px 60px rgba(0,0,0,0.72); }
+
+    /* card header row (title + export) */
+    .card-header {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:8px;
+    }
+    .card-header h3{ margin:0; font-size:16px; color:var(--muted); background: var(--text-grad); -webkit-background-clip:text; background-clip:text; color:transparent; display:flex; align-items:center; gap:10px; }
+    .export-btn {
+      appearance:none;
+      border:0;
+      background: var(--btn-grad);
+      color: #fff;
+      padding:7px 10px;
+      border-radius:8px;
+      font-weight:700;
+      cursor:pointer;
+      display:inline-flex;
+      gap:8px;
+      align-items:center;
+      border:1px solid rgba(255,255,255,0.06);
+      transition: transform .12s var(--hover-ease), box-shadow .12s var(--hover-ease);
+    }
+    .export-btn i { width:16px; text-align:center; color: #fff; }
+    .export-btn:hover{ transform: translateY(-2px); box-shadow: 0 8px 26px rgba(0,0,0,0.45); color:var(--text); }
+
+    /* hide text on small screens (only icon visible) */
+    .export-btn span { display:inline-block; }
+    @media (max-width:600px) {
+      .export-btn { padding:8px; }
+      .export-btn span { display:none; }
     }
 
-    .card:hover {
-      transform: scale(1.02);
+    /* canvas size */
+    canvas { width:100% !important; height: auto !important; }
+
+    /* Single centered chart card (make similar size to other cards) */
+    .single-chart-wrapper { display:flex; justify-content:center; margin:28px 0; }
+    .single-chart-card { width:100%; max-width:420px; } /* reduced from 760 to match other cards */
+
+    /* Accordion / distribuicao */
+    .accordion_section { width:100%; max-width:980px; margin: 0 auto 28px; display:flex; flex-direction:column; gap:12px; }
+    .accordion_title { font-size:20px; margin-bottom:10px; background: var(--text-grad); -webkit-background-clip:text; background-clip:text; color:transparent; text-align:center; }
+
+    .distribuicao { width:100%; padding:12px; background: linear-gradient(90deg, rgba(255,255,255,0.01), rgba(255,255,255,0.00)); border-radius:10px; border:1px solid rgba(255,255,255,0.02); cursor:pointer; transition: box-shadow .18s var(--hover-ease), transform .18s var(--hover-ease); display:flex; flex-direction:column; }
+    .distribuicao:hover { box-shadow: 0 12px 30px rgba(0,0,0,0.45); transform: translateY(-4px); }
+    .distribuicao_dados { display:flex; justify-content:space-between; align-items:center; gap:10px; }
+    .resposta_dados { max-height:0; overflow-y: auto; transition: max-height .45s var(--hover-ease); color:var(--muted-2); padding-top:0; cursor: auto;}
+    .distribuicao.active .resposta_dados { max-height:480px; padding-top:12px; }
+    .distribuicao.active { box-shadow: 0 18px 48px rgba(0,0,0,0.6); border-color: rgba(255,255,255,0.04); }
+
+    .toggle-icon { width:24px; height:24px; transition: transform .25s var(--hover-ease); }
+    .toggle-icon .pipe { transform-origin: 12px 12px; transition: transform .25s var(--hover-ease); }
+    .distribuicao.active .toggle-icon .pipe { transform: rotate(90deg); }
+
+    /* team-icon (accordion left) */
+    .team-left { display:flex; align-items:center; gap:12px; }
+    .team-icon {
+      width:36px;
+      height:36px;
+      border-radius:10px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      font-size:14px;
+      color:white;
+      flex-shrink:0;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6), inset 0 -6px 12px rgba(255,255,255,0.02);
     }
 
-    canvas {
-      width: 100% !important;
-      height: auto !important;
-    }
+    /* filtro niveis (make darker theme friendly) */
+    #filtroNiveis { display:flex; gap:12px; margin-top:12px; flex-wrap:wrap; }
+    #filtroNiveis label { display:flex; align-items:center; gap:8px; padding:8px 12px; border-radius:999px; background: rgba(255,255,255,0.02); color:var(--muted); cursor:pointer; border:1px solid rgba(255,255,255,0.02); }
+    #filtroNiveis input[type="checkbox"] { appearance:none; width:18px; height:18px; border-radius:4px; border:1px solid rgba(255,255,255,0.06); background:transparent; display:inline-block; position:relative; }
+    #filtroNiveis input[type="checkbox"]:checked { background: linear-gradient(135deg,#6366F1,#7c3aed); border-color: rgba(255,255,255,0.06); }
+    #filtroNiveis input[type="checkbox"]:checked::after { content: "✓"; position:absolute; left:4px; top:0px; font-size:12px; color:white; }
 
-    @media (max-width: 600px) {
-      .chart-container {
-        grid-template-columns: 1fr;
+    /* status classes (as you had) — tweak contrast for dark */
+    .status-ferias{ background:#3b82f6; color:#fff; padding:3px 6px; border-radius:6px; display:inline-block; }
+    .status-emprestadoprocessamento{ background:#fbbf24; color:#000; padding:3px 6px; border-radius:6px; display:inline-block; }
+    .status-inss{ background:#ef4444; color:#fff; padding:3px 6px; border-radius:6px; display:inline-block; }
+    .status-trabalhoalternativopaiol{ background:#d1fae5; color:#065f46; padding:3px 6px; border-radius:6px; display:inline-block; }
+    .status-noturno{ background:#9ca3af; color:#374151; padding:3px 6px; border-radius:6px; display:inline-block; }
+    .status-integracao{ background:#facc15; color:#000; padding:3px 6px; border-radius:6px; display:inline-block; }
+    .status-ativo{ color:var(--muted-2); padding:3px 6px; border-radius:6px; display:inline-block; }
+
+    /* responsive */
+    @media (max-width:1000px){
+      .container{ 
+        margin-left: 0;
+        margin-top: 80px; /* altura da navbar fechada aumentada */
+        padding: 18px; 
+        transition: margin-top 0.4s ease; 
+      }
+      .controls{ grid-template-columns: 1fr; }
+      
+      .sidebar { 
+        width: 100%;
+        height: auto;
+        min-height: 80px; /* altura maior para melhor visibilidade */
+        max-height: 80px;
+        position: fixed;
+        top: 0;
+        left: 0;
+        flex-direction: column;
+        align-items: stretch;
+        padding: 0;
+        overflow: hidden;
+        transition: max-height 0.4s ease;
+        border-right: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08); /* borda mais visível */
+        z-index: 1000;
+        backdrop-filter: blur(12px) saturate(140%); /* blur mais forte */
+      }
+      
+      .sidebar.active {
+        max-height: 520px;
+        overflow-y: auto;
+      }
+      
+      .sidebar-header {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        padding: 18px 20px; /* padding maior */
+        margin: 0;
+        border: none;
+        width: 100%;
+        min-height: 80px;
+        box-sizing: border-box;
+      }
+      
+      .brand {
+        flex-direction: row;
+        gap: 14px; /* gap maior */
+        align-items: center;
+      }
+      
+      .brand-text {
+        display: block;
+      }
+      
+      .brand-text h1 {
+        font-size: 16px; /* fonte maior */
+        font-weight: 700;
+        color: var(--text-sidebar);
+      }
+      
+      .brand-text p {
+        display: none;
+      }
+      
+      .logo {
+        width: 48px; /* logo maior */
+        height: 48px;
+        font-size: 20px;
+        box-shadow: 0 8px 25px rgba(159, 204, 177, 0.15), inset 0 2px 8px rgba(255,255,255,0.05); /* sombra mais visível */
+      }
+      
+      .hamburger {
+        display: flex;
+        position: static;
+        margin: 0;
+        order: 2;
+        width: 48px; /* botão maior */
+        height: 48px;
+        font-size: 20px;
+        background: rgba(255, 255, 255, 0.06); /* fundo mais visível */
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        color: var(--text-sidebar);
+        transition: all 0.3s var(--hover-ease);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      }
+      
+      .hamburger:hover {
+        background: rgba(255, 255, 255, 0.1);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+      }
+      
+      .hamburger:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      }
+      
+      #sidebarNav {
+        width: 100%;
+        padding: 8px 20px 20px;
+        box-shadow: none;
+        display: block !important;
+        opacity: 0;
+        transition: opacity 0.3s ease 0.1s;
+      }
+      
+      .sidebar.active #sidebarNav {
+        opacity: 1;
+      }
+      
+      nav ul {
+        display: flex;
+        flex-direction: column;
+        gap: 14px; /* gap ainda maior para melhor espaçamento */
+        padding: 0;
+        margin: 0;
+      }
+      
+      nav ul li {
+        margin: 0;
+      }
+      
+      nav ul li a {
+        padding: 14px 16px; /* padding maior */
+        font-size: 15px; /* fonte ligeiramente maior */
+        font-weight: 600; /* peso da fonte maior */
+        border-radius: 12px;
+        transition: all 0.25s var(--hover-ease);
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.03);
+        color: var(--text-sidebar);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      }
+      
+      nav ul li a i {
+        margin-right: 14px; /* margem maior do ícone */
+        width: 22px; /* ícones maiores */
+        font-size: 16px;
+        color: var(--accent-sidebar);
+      }
+      
+      nav ul li a:hover,
+      nav ul li a.active {
+        position: relative;
+  color: #ffffff !important;                    /* texto branco */
+  background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+  border-color: rgba(255,255,255,0.14);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.35);
+  transform: translateX(6px) scale(1.01);
+  transition: transform .22s var(--hover-ease), box-shadow .22s var(--hover-ease), background .2s ease;
+  width: 95%;
+  z-index: 6;
+      }
+
+      /* borda lateral colorida — guia visual forte, arredondada */
+nav ul li a.active::before{
+  content: "";
+  position: absolute;
+  left: -10px;                /* ajusta a posição para “saltar” levemente */
+  top: 8px;
+  bottom: 8px;
+  width: 6px;
+  border-radius: 6px;
+  background: linear-gradient(180deg, var(--accent-sidebar), var(--secondary-sidebar));
+  box-shadow: 0 6px 18px rgba(60,150,120,0.12), inset 0 -4px 12px rgba(255,255,255,0.03);
+}
+
+/* ícone: preenche com cor para reforçar sinal ativo */
+nav ul li a.active i {
+  color: var(--accent-sidebar) !important;
+  filter: drop-shadow(0 4px 14px rgba(0,0,0,0.35));
+  transform: translateX(2px);
+  transition: transform .18s var(--hover-ease), color .18s;
+}
+
+/* acessibilidade: foco visível (keyboard/touch) */
+nav ul li a:focus {
+  outline: none;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.45), 0 0 0 3px rgba(155,204,177,0.06);
+  transform: translateX(6px);
+}
+      
+      /* Estilo especial para o botão Observa+ em mobile */
+      nav ul li:nth-child(1) a {
+        background: linear-gradient(135deg, var(--accent-sidebar), var(--secondary-sidebar));
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: 0 6px 20px rgba(70, 229, 123, 0.2), inset 0 1px 0 rgba(255,255,255,0.1);
+        font-weight: 700;
+      }
+      
+      nav ul li:nth-child(1) a i {
+        color: white; /* ícone branco para contraste com fundo verde */
+      }
+
+      nav ul li:nth-child(1) a:hover {
+        filter: brightness(1.1);
+        transform: translateX(6px) translateY(-2px);
+        box-shadow: 0 8px 25px rgba(70, 229, 150, 0.3);
+      }
+      
+      nav ul li a span {
+        display: inline;
+        letter-spacing: 0.3px; /* espaçamento das letras */
       }
     }
 
-    /* centraliza o wrapper inteiro */
-.single-chart-wrapper {
-  display: flex;
-  justify-content: center;
-  margin: 3.5rem 0;      /* espaço acima e abaixo */
+    /* responsive */
+    @media (max-width:1000px){
+      .chart-container{ grid-template-columns: 1fr; }
+      .single-chart-card { max-width: 100%; }
+    }
+
+    /* ===== ACTIVE somente em DESKTOP (telas maiores que 1000px) ===== */
+@media (min-width:1001px) {
+  /* item ativo na sidebar (desktop) */
+  nav ul li a.active {
+    position: relative;
+    color: var(--text-sidebar) !important;
+    background: linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0.01));
+    border-radius: 0 10px 10px 0;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+    padding-left: 18px;
+    transition: background .20s var(--hover-ease), box-shadow .22s var(--hover-ease), transform .18s;
+    z-index: 5;
+  }
+
+  nav ul li a.active::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 8px;
+    bottom: 8px;
+    width: 8px;
+    border-radius: 0 6px 6px 0;
+    background: linear-gradient(180deg, var(--accent-sidebar), var(--secondary-sidebar));
+    box-shadow: 0 6px 18px rgba(60,150,120,0.12), inset 0 -4px 12px rgba(255,255,255,0.03);
+  }
+
+  nav ul li a.active i {
+    color: var(--accent-sidebar) !important;
+    transform: translateX(2px);
+    filter: drop-shadow(0 6px 14px rgba(0,0,0,0.35));
+    transition: transform .18s var(--hover-ease), color .18s;
+  }
+
+  /* hover leve só no desktop (não afeta mobile) */
+  nav ul li a:hover:not(.active) {
+    background: rgba(255,255,255,0.02);
+    transform: translateX(4px);
+    box-shadow: none;
+  }
+
+  nav ul li a:focus {
+    outline: none;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 0 4px rgba(155,204,177,0.06);
+  }
+
+  /* Botão de Observa+ com estilo especial */
+    nav ul li:nth-child(1) a {
+      background: linear-gradient(135deg, var(--accent-sidebar), var(--secondary-sidebar)) !important;
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      box-shadow: 0 12px 40px rgba(70, 229, 123, 0.12), inset 0 -6px 18px rgba(255, 255, 255, 0.02);
+      margin-top: 15px;
+    }
+
+    nav ul li:nth-child(1) a:hover {
+      filter: brightness(1.08);
+      box-shadow: 0 2px 80px rgba(70, 229, 150, 0.18), -4px -4px 10px rgba(58, 237, 133, 0.04);
+    }
+    
+    /* Ícone branco para o botão gradiente em desktop também */
+    nav ul li:nth-child(1) a i {
+      color: white;
+    }
 }
-
-/* card específico para status */
-.single-chart-card {
-  background: var(--soft);
-      border-radius: 12px;
-      padding: 1rem;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-      transition: transform 0.3s ease;
-      text-align: center;
-}
-
-/* faz o canvas ocupar todo o espaço interno do card */
-.single-chart-card canvas {
-  width: 100% !important;
-      height: auto !important;
-}
-
-
-    /* Accordion Styles */
-    .accordion_section {
-      min-height: 100vh;
-      width: 90%;
-      max-width: 800px;
-      margin: 0 auto 3rem;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    .accordion_title {
-      font-size: 2.5rem;
-      margin: 2rem 0;
-      text-align: center;
-      color: var(--accent);
-    }
-
-    .distribuicao {
-      width: 100%;
-      margin-bottom: 1rem;
-      padding: 1rem;
-      border-bottom: 2px solid #9ca3af;
-      cursor: pointer;
-      transition: background 0.2s, box-shadow 0.2s ease-in-out;
-      background-color: var(--card);
-      border-radius: 5px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    }
-
-    .distribuicao:hover {
-      background: rgba(75, 85, 99, 0.05);
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-    }
-
-    .distribuicao_dados {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .distribuicao_dados h3 {
-      font-size: 1.6rem;
-      margin: 0;
-      color: var(--text);
-    }
-
-    .resposta_dados {
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height 0.6s ease;
-    }
-
-    .resposta_dados p {
-      line-height: 1.5;
-      font-size: 1.05rem;
-      margin: 0.5rem 0 0;
-      color: var(--text-muted);
-    }
-
-    .distribuicao.active .resposta_dados {
-      max-height: 400px;
-      animation: fadeIn 0.4s ease-in-out;
-      overflow-y: auto;
-    }
-
-    .distribuicao.active {
-  box-shadow: 0 12px 24px rgba(75, 85, 99, 0.25);
-}
-
-.dark .distribuicao.active {
-  border: 2px solid var(--hover-bg);
-  background: rgba(75, 85, 99, 0.07)
-}
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(-5px); }
-      to { opacity: 1; transform: translateY(0); }
+    
+    @media (max-width:560px){
+      header.topbar{ flex-direction:column; align-items:flex-start; gap:10px }
+      .preview .preview-head{ flex-direction:column; align-items:flex-start; gap:8px }
+      
+      .sidebar-header {
+        padding: 16px 18px;
+      }
+      
+      .brand-text h1 {
+        font-size: 15px;
+      }
+      
+      .logo {
+        width: 44px;
+        height: 44px;
+        font-size: 18px;
+      }
+      
+      .hamburger {
+        width: 44px;
+        height: 44px;
+        font-size: 18px;
+      }
+      
+      nav ul li a {
+        padding: 12px 14px;
+        font-size: 14px;
+      }
+      
+      nav ul li a i {
+        width: 20px;
+        font-size: 15px;
+      }
     }
 
     @media (max-width: 480px) {
-      .accordion_section {
-        width: 98%;
+      .sidebar.active {
+        max-height: 100vh;
       }
-      .accordion_title { font-size: 2rem; }
-      .distribuicao_dados h3 { font-size: 1.4rem; }
-      .resposta_dados p { font-size: 1rem; }
+      
+      .container {
+        margin-top: 76px;
+      }
+      
+      .sidebar {
+        min-height: 76px;
+        max-height: 76px;
+      }
+      
+      .sidebar-header {
+        min-height: 76px;
+        padding: 14px 16px;
+      }
     }
 
-    /* Toggle Icon */
-    .toggle-icon { width: 24px; height: 24px; transition: transform 0.3s ease-in-out; }
-    .toggle-icon .pipe { transform-origin: 12px 12px; transition: transform 0.3s ease-in-out; }
-    .distribuicao.active .toggle-icon .pipe { transform: rotate(90deg); }
+    /* ===== SCROLLBAR STYLING ===== */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
 
-    #filtroNiveis {
+    ::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.01); /* Mais escuro */
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(159, 204, 177, 0.3);
+      border-radius: 4px;
+      transition: background 0.3s ease;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(159, 204, 177, 0.5);
+    }
+
+    /* SEARCH CONTAINER - Psychological perfection */
+    .search-container {
+      position: relative;
+      min-width: 280px;
+      max-width: 400px;
+      flex: 1;
+      display: flex;
+      align-items: center;
+    }
+
+    .search-wrapper {
+      position: relative;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.02);
+      backdrop-filter: blur(20px) saturate(150%);
+      border-radius: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      transition: all 0.4s var(--hover-ease);
+      overflow: hidden;
+    }
+
+    .search-wrapper::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(135deg, 
+        rgba(159, 204, 177, 0.03), 
+        rgba(59, 130, 246, 0.02),
+        rgba(124, 58, 237, 0.03)
+      );
+      border-radius: 24px;
+      opacity: 0;
+      transition: opacity 0.4s var(--hover-ease);
+      z-index: 1;
+    }
+
+    .search-wrapper:hover::before,
+    .search-wrapper:focus-within::before {
+      opacity: 1;
+    }
+
+    .search-wrapper:focus-within {
+      border-color: rgba(159, 204, 177, 0.3);
+      box-shadow: 
+        0 0 0 1px rgba(159, 204, 177, 0.1),
+        0 8px 32px rgba(0, 0, 0, 0.4),
+        0 0 20px rgba(159, 204, 177, 0.1);
+      transform: translateY(-1px);
+    }
+
+    .search-input {
+      width: 100%;
+      background: transparent;
+      border: none;
+      outline: none;
+      padding: 14px 20px 14px 52px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text);
+      font-family: inherit;
+      position: relative;
+      z-index: 2;
+      transition: all 0.3s var(--hover-ease);
+    }
+
+    .search-input::placeholder {
+      color: var(--muted-2);
+      font-weight: 400;
+      transition: color 0.3s var(--hover-ease);
+    }
+
+    .search-input:focus::placeholder {
+      color: rgba(225, 239, 230, 0.3);
+      transform: translateX(4px);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 18px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-size: 16px;
+      z-index: 3;
+      transition: all 0.4s var(--hover-ease);
+      pointer-events: none;
+    }
+
+    .search-wrapper:focus-within .search-icon {
+      color: var(--accent);
+      transform: translateY(-50%) scale(1.1);
+    }
+
+    .search-clear {
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%) scale(0);
+      background: rgba(255, 255, 255, 0.08);
+      border: none;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--muted);
+      font-size: 12px;
+      z-index: 3;
+      transition: all 0.3s var(--hover-ease);
+      opacity: 0;
+    }
+
+    .search-clear.active {
+      transform: translateY(-50%) scale(1);
+      opacity: 1;
+    }
+
+    .search-clear:hover {
+      background: rgba(239, 68, 68, 0.2);
+      color: #ef4444;
+      transform: translateY(-50%) scale(1.1);
+    }
+
+    /* SEARCH RESULTS DROPDOWN */
+    .search-results {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0;
+      right: 0;
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+      backdrop-filter: blur(20px) saturate(150%);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      box-shadow: 
+        0 20px 60px rgba(0, 0, 0, 0.4),
+        0 0 0 1px rgba(255, 255, 255, 0.02);
+      z-index: 1000;
+      max-height: 400px;
+      overflow-y: auto;
+      opacity: 0;
+      transform: translateY(-10px);
+      visibility: hidden;
+      transition: all 0.3s var(--hover-ease);
+    }
+
+    .search-results.active {
+      opacity: 1;
+      transform: translateY(0);
+      visibility: visible;
+    }
+
+    .search-result-item {
+      padding: 12px 18px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+      cursor: pointer;
+      transition: all 0.2s var(--hover-ease);
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .search-result-item:hover {
+      background: rgba(159, 204, 177, 0.08);
+      transform: translateX(4px);
+    }
+
+    .search-result-item:last-child {
+      border-bottom: none;
+    }
+
+    /* Forçar cursor visível sempre */
+.search-input {
+  caret-color: var(--accent) !important;
+}
+
+.search-input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px rgba(11, 12, 15, 0.95) inset !important;
+  -webkit-text-fill-color: var(--text) !important;
+  caret-color: var(--accent) !important; /* Cursor piscando */
+  background: transparent !important;
+  color: var(--text) !important;
+  border: none !important;
+}
+
+.search-input:-webkit-autofill:focus {
+  -webkit-box-shadow: 
+    0 0 0 1000px rgba(11, 12, 15, 0.95) inset,
+    0 0 0 2px rgba(159, 204, 177, 0.4) !important;
+  -webkit-text-fill-color: var(--text) !important;
+  caret-color: var(--accent) !important; /* Mantém cursor visível */
+}
+
+    .result-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--btn-grad);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: white;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+
+    .result-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .result-name {
+      font-weight: 600;
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.2;
+      margin-bottom: 2px;
+    }
+
+    .result-details {
+      font-size: 12px;
+      color: var(--muted-2);
+      line-height: 1.2;
+    }
+
+    .result-highlight {
+      background: rgba(159, 204, 177, 0.3);
+      padding: 1px 3px;
+      border-radius: 3px;
+      color: var(--text);
+    }
+
+    .no-results {
+      padding: 24px 18px;
+      text-align: center;
+      color: var(--muted-2);
+      font-size: 14px;
+    }
+
+    .no-results i {
+      font-size: 24px;
+      margin-bottom: 8px;
+      opacity: 0.5;
+    }
+
+    /* FLOATING SEARCH STATS */
+    .search-stats {
+      position: absolute;
+      top: -32px;
+      right: 0;
+      background: rgba(159, 204, 177, 0.15);
+      color: var(--accent);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.3s var(--hover-ease);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(159, 204, 177, 0.2);
+    }
+
+    .search-stats.active {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 768px) {
+  header.topbar { 
+    flex-direction: column; 
+    align-items: stretch; 
+    gap: 16px; 
+  }
+  
+  .search-container {
+    width: 100%;
+    min-width: auto;
+    max-width: none;
+  }
+}
+/* Destaque do colaborador encontrado - CONTIDO no accordion */
+.colaborador-destacado-busca {
+  position: relative;
+  border-radius: 6px !important;
+  margin: 4px 0 !important;
+  padding: 8px !important;
+  /* Remover transform que causa vazamento */
+  transform: none !important;
+  /* Box-shadow mais sutil e contido */
+  box-shadow: 
+    inset 0 0 0 2px rgba(159, 204, 177, 0.4),
+    inset 0 0 8px rgba(159, 204, 177, 0.1) !important;
+  animation: pulseGlowContained 2s ease-in-out !important;
+  /* Garantir que não vaze */
+  overflow: hidden;
+}
+
+/* Destaque apenas do nome */
+.nome-highlight {
+  background: rgba(159, 204, 177, 0.4) !important;
+  padding: 2px 4px !important;
+  border-radius: 3px !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3) !important;
+}
+
+/* Animação contida que não vaza */
+@keyframes pulseGlowContained {
+  0%, 100% { 
+    box-shadow: 
+      inset 0 0 0 2px rgba(159, 204, 177, 0.4),
+      inset 0 0 8px rgba(159, 204, 177, 0.1);
+  }
+  50% { 
+    box-shadow: 
+      inset 0 0 0 2px rgba(159, 204, 177, 0.6),
+      inset 0 0 12px rgba(159, 204, 177, 0.2);
+  }
+}
+
+/* Transição suave preservando estilos originais */
+.resposta_dados p {
+  transition: all 0.3s var(--hover-ease);
+}
+
+/* ===== Stat card (Total de Colaboradores) ===== */
+.stat-card {
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  gap:12px;
+  width: 100%;
+  max-width: 360px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border-radius: var(--radius);
+  padding: 16px;
+  border: 1px solid rgba(255,255,255,0.04);
+  box-shadow: var(--shadow-lg);
+  transition: transform .18s var(--hover-ease), box-shadow .18s var(--hover-ease);
+}
+.stat-card:hover { transform: translateY(-6px); box-shadow: 0 28px 72px rgba(0,0,0,0.72); }
+
+.stat-top { display:flex; align-items:center; gap:14px; }
+.stat-icon{
+  width:56px; height:56px; border-radius:12px;
+  display:flex; align-items:center; justify-content:center;
+  background: linear-gradient(135deg, rgba(159,204,177,0.14), rgba(59,130,246,0.08));
+  box-shadow: inset 0 -6px 12px rgba(255,255,255,0.02), 0 8px 18px rgba(0,0,0,0.45);
+  font-size:20px; color:var(--text);
+}
+.stat-body { display:flex; flex-direction:column; gap:4px; min-width:0; }
+.stat-value {
+  font-weight:800;
+  font-size:36px;
+  line-height:1;
+  letter-spacing:-0.02em;
+  background: var(--text-grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 6px 18px rgba(0,0,0,0.6);
+}
+.stat-label {
+  color: var(--muted);
+  font-size:13px;
+  font-weight:600;
+}
+
+.stat-footer {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-top:6px;
+}
+.stat-footer .stat-meta { display:flex; align-items:center; gap:8px; color:var(--muted-2); font-size:12px; }
+.export-small {
+  padding:6px 8px;
+  border-radius:10px;
+  font-size:13px;
+  height:36px;
+  align-self:flex-end;
+}
+
+/* small screens */
+@media (max-width:600px){
+  .stat-card { max-width:100%; padding:14px; }
+  .stat-value { font-size:30px; }
+  .stat-icon { width:48px; height:48px; font-size:18px; }
+}
+/* Centraliza apenas os números dos stat-cards (mantendo subtítulo à esquerda) */
+#stats-cards-row .stat-body > div {
+  /* garante que a coluna do valor fique alinhada verticalmente ao centro */
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+}
+
+/* centraliza o número em si */
+#stats-cards-row .stat-value {
+  text-align: center;
+  width: 100%;
+}
+
+/* preserva o subtítulo alinhado à esquerda (não altera) */
+#stats-cards-row .stat-sub {
+  text-align: left;
+}
+
+/* se quiser também centralizar visualmente quando tela for bem pequena,
+   ativar o centro do subtítulo para não provocar quebra feia — opcional */
+@media (max-width:420px) {
+  #stats-cards-row .stat-sub { text-align: center; }
+}
+
+.header-actions {
+  display: flex;
   gap: 12px;
-  margin-top: 16px;
-}
-
-#filtroNiveis label {
-  display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 14px;
-  background-color: #f3f4f6;
-  color: #374151;
-  font-size: 14px;
-  font-weight: 500;
-  border-radius: 9999px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border: 2px solid transparent;
-  position: relative;
 }
 
-#filtroNiveis input[type="checkbox"] {
+.download-efetivo-btn {
   appearance: none;
-  width: 18px;
-  height: 18px;
-  border: 2px solid #9ca3af;
-  border-radius: 4px;
-  background-color: white;
-  position: relative;
-  transition: all 0.2s ease;
-  flex-shrink: 0;
+  border: 0;
+  background: var(--btn-grad);
+  color: #fff;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  gap: 10px;
+  align-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s var(--hover-ease);
+  font-size: 14px;
+  white-space: nowrap;
 }
 
-#filtroNiveis input[type="checkbox"]::after {
-  content: "";
-  position: absolute;
-  top: 1px;
-  left: 5px;
-  width: 4px;
-  height: 8px;
-  border-right: 2px solid white;
-  border-bottom: 2px solid white;
-  transform: rotate(45deg);
-  opacity: 0;
-  transition: opacity 0.2s ease;
+.download-efetivo-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 26px rgba(0,0,0,0.45);
 }
 
-#filtroNiveis input[type="checkbox"]:checked {
-  background-color: #6366F1; /* Cor do checkbox marcado */
-  border-color: #4F46E5;
+.download-efetivo-btn i {
+  font-size: 16px;
 }
 
-#filtroNiveis input[type="checkbox"]:checked::after {
-  opacity: 1;
-}
-
-#filtroNiveis label:has(input[type="checkbox"]:checked) {
-  background-color: #E0E7FF; /* Fundo claro no label ao marcar */
-  color: #1E3A8A;
-}
-
-#filtroNiveis label:hover {
-  background-color: #e5e7eb;
-}
-
-.status-ferias {
-  background-color: #3b82f6; /* azul */
-  padding: 3px 5px;
-  border-radius: 3px;
-  margin-bottom: 2px;
-  color: white !important;
-}
-
-.status-emprestadoprocessamento {
-  background-color: #fbbf24; /* amarelo */
-  padding: 3px 5px;
-  border-radius: 3px;
-  margin-bottom: 2px;
-  color: black;
-}
-
-.status-inss {
-  background-color: #ef4444; /* vermelho */
-  padding: 3px 5px;
-  border-radius: 3px;
-  margin-bottom: 2px;
-  color: white;
-}
-
-.status-trabalhoalternativopaiol {
-  background-color: #d1fae5; /* verde claro suave */
-  padding: 3px 5px;
-  border-radius: 3px;
-  margin-bottom: 2px;
-  color: #065f46; /* verde escuro para contraste */
-}
-
-.status-noturno {
-  background-color: #9ca3af; /* cinza claro perceptível */
-  padding: 3px 5px;
-  border-radius: 3px;
-  margin-bottom: 2px;
-  color: #374151 !important; /* cinza escuro para contraste */
-}
-
-.status-integracao {
-  background-color: #facc15; /* azul (mesma cor de férias) */
-  padding: 3px 5px;
-  border-radius: 3px;
-  margin-bottom: 2px;
-  color: white;
-}
-
-.status-ativo {
-  background-color: transparent;
-}
-
-@media (max-width: 768px) {
-  body {
-    flex-direction: column;
-  }
-  .sidebar {
+/* Responsivo */
+@media (max-width: 720px) {
+  .header-actions {
     width: 100%;
-    padding: 15px;
-    flex-direction: column; /* <--- mudou de row para column */
-    align-items: center;
-    justify-content: flex-start;
+    display: flex;             /* garante que continua sendo flex */
+    flex-direction: column;    /* empilha os itens */
+    justify-content: center;   /* centraliza verticalmente se houver altura */
+    align-items: center;       /* centraliza horizontalmente os itens */
+    gap: 10px;                 /* espaço entre itens na coluna */
+    padding: 8px 12px;         /* evita que encoste nas bordas */
+    box-sizing: border-box;
   }
 
-  .sidebar-header {
-    width: 100%;
-    justify-content: center;
-    position: relative;
+  .download-efetivo-btn {
+    width: 100%;               /* ocupa toda a largura disponível */
+    max-width: 360px;          /* limita largura para não ficar gigante */
+    padding: 12px 18px;
+    white-space: normal;       /* permite quebra se necessário */
+    justify-content: center;   /* garante ícone + texto centralizados */
   }
+}
 
-  .dark .sidebar {
-      border-right: none !important;
-      border-bottom: 1px solid var(--soft);
+/* numeração à esquerda dos colaboradores */
+.colab-item { /* já existe seu estilo, isso complementa */
+  padding-left: 0;
+}
+.colab-num {
+  min-width:32px;
+  height:32px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:8px;
+  background: rgba(255,255,255,0.03);
+  color: var(--muted);
+  font-weight:700;
+  font-size:13px;
+  box-shadow: inset 0 -4px 8px rgba(0,0,0,0.45);
+  border: 1px solid rgba(255,255,255,0.02);
+}
+
+.resposta_dados p[style*="background:"] .colab-num {
+  background: rgba(255,255,255,0.08);
+  color: #000;
+}
+
+.dev-note {
+      color:var(--muted);
+      font-size:12px;
+      text-align:center;
+      padding:12px 10px;
+      border-radius:10px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.00));
+      border: 1px solid rgba(255,255,255,0.02);
+      box-shadow: var(--neumo-shadow);
     }
-
-  .hamburger {
-    display: block;
-    position: absolute;
-    left: 15px;
-    top: 50%;
-    transform: translateY(-50%);
-  }
-
-  .logo {
-    font-size: 20px;
-    text-align: center;
-    width: 100%;
-  }
-
-  nav ul {
-    width: 100%;
-    max-height: 0;
-    overflow: hidden;
-    opacity: 0;
-    transform-origin: top center;
-    transform: translateY(-10px);
-    transition: max-height 0.4s ease, opacity 0.4s ease, transform 0.4s ease;
-    margin-top: 10px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  nav ul.active {
-    max-height: 600px;
-    opacity: 1;
-    transform: translateY(0);
-  }
-
-  .main-content {
-    padding: 15px;
-  }
-  }
-
-@media (max-width: 480px) {
-  header h2 {
-    font-size: 1.2rem;
-  }
-}
+    .dev-note strong { color:var(--text); letter-spacing:0.01em; font-weight:700; }
+    .dev-note .meta { display:block; margin-top:6px; color: rgba(225,239,230,0.45); font-size:11px; }
   </style>
 </head>
 <body>
-<div class="sidebar">
+  <!-- SIDEBAR (exatamente sua versão antiga) -->
+  <div class="sidebar" aria-label="Navegação">
     <div class="sidebar-header">
-      <button id="toggleMenu" class="hamburger">
+      <div class="brand">
+        <div class="logo"><img src="../favicon/favicon.svg" alt="" style="width: 75%;"></div>
+        <div class="brand-text">
+          <h1>Estrutura</h1>
+          <p>Efetivo</p>
+        </div>
+      </div>
+      <button id="toggleMenu" class="hamburger" aria-label="Abrir menu">
         <i class="fas fa-bars"></i>
       </button>
-      <h1 class="logo">Estrutura</h1>
     </div>
-    <nav>
+    <nav id="sidebarNav">
       <ul id="menuList">
-  <li>
-    <a href="../dashboard.html">
-      <i class="fas fa-file-signature"></i> Apropriações
-    </a>
-  </li>
-  <li>
-    <a href="../equipes/equipe.html">
-      <i class="fas fa-users-cog"></i> Equipes
-    </a>
-  </li>
-  <li>
-    <a href="../apontamentos/apontamentos.html">
-      <i class="fas fa-clipboard-list"></i> Apontamentos
-    </a>
-  </li>
-  <li>
-    <a href="../diario/diario.html">
-      <i class="fas fa-book"></i> Diário de obra
-    </a>
-  </li>
-  <li>
-    <a href="./efetivo/efetivo.html" class="active">
-      <i class="fas fa-user-friends"></i> Efetivo
-    </a>
-  </li>
-  <li>
-    <a href="./anotar/anotar.html">
-      <i class="fas fa-sticky-note" aria-hidden="true"></i> Anotações
-    </a>
-  </li>
-  <li>
-    <a href="#">
-      <i class="fas fa-calendar-check"></i> Abono DSR
-    </a>
-  </li>
-  <li>
-  <a href="https://detroitbrasil.qforms.com.br/QuestionarioWeb/ResponderQuestionarioLink?chave=ADC929D335B064357179BDBAE1686855"
-     target="_blank"
-     rel="noopener noreferrer">
-    <i class="fa-solid fa-shield-halved"></i> Observa+
-  </a>
-</li>
-  <li>
-    <a href="../configurações/configuracao.html">
-      <i class="fas fa-cog"></i> Configurações
-    </a>
-  </li>
-</ul>
+        <li>
+          <a href="../dashboard.html">
+            <i class="fas fa-file-signature"></i><span>Apropriações</span>
+          </a>
+        </li>
+        <li>
+          <a href="../equipes/equipe.html">
+            <i class="fas fa-users-cog"></i><span>Equipes</span>
+          </a>
+        </li>
+        <li>
+          <a href="../apontamentos/apontamentos.html">
+            <i class="fas fa-clipboard-list"></i><span>Apontamentos</span>
+          </a>
+        </li>
+        <li>
+          <a href="../diario/diario.html">
+            <i class="fas fa-book"></i><span>Diário de obra</span>
+          </a>
+        </li>
+        <li>
+          <a href="./efetivo.html" class="active">
+            <i class="fas fa-user-friends"></i><span>Efetivo</span>
+          </a>
+        </li>
+        <li>
+          <a href="../anotar/anotar.html">
+            <i class="fas fa-sticky-note" aria-hidden="true"></i><span>Anotações</span>
+          </a>
+        </li>
+        <li>
+          <a href="#">
+            <i class="fas fa-calendar-check"></i><span>Abono DSR</span>
+          </a>
+        </li>
+        <li>
+          <a href="https://detroitbrasil.qforms.com.br/QuestionarioWeb/ResponderQuestionarioLink?chave=ADC929D335B064357179BDBAE1686855"
+            target="_blank" rel="noopener noreferrer">
+            <i class="fa-solid fa-shield-halved"></i><span>Observa+</span>
+          </a>
+        </li>
+        <li>
+          <a href="../configurações/configuração.html">
+            <i class="fas fa-cog"></i><span>Configurações</span>
+          </a>
+        </li>
+      </ul>
     </nav>
   </div>
 
-  <div class="main-content">
-  <section class="accordion_section">
-    <h2 class="accordion_title">Efetivo 23/07/2025</h2>
-
-    <div class="distribuicao">
-      <div class="distribuicao_dados">
-        <h3>Liderança</h3>
-        <svg class="toggle-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <!-- Linha horizontal com bordas arredondadas -->
-          <rect x="4" y="11" width="16" height="2" rx="1" ry="1" fill="var(--text-muted)" />
-          <!-- Linha vertical (pipe) com bordas arredondadas -->
-          <rect class="pipe" x="11" y="4" width="2" height="16" rx="1" ry="1" fill="var(--text-muted)"/>
-        </svg>
+  <!-- Main -->
+  <div class="container">
+    <header class="topbar">
+      <div class="left">
+        <h2>Efetivo — Gráficos</h2>
+        <small>Visualização da distribuição e status dos colaboradores</small>
       </div>
-      <div class="resposta_dados">
-        <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Aut cupiditate deserunt atque, eos tempora recusandae ratione esse ipsum qui enim vitae a sequi minus, dolorem alias maxime! Itaque, voluptas unde?</p>
+      <div class="search-container">
+        <div class="search-wrapper">
+          <i class="fas fa-search search-icon"></i>
+          <input type="text" class="search-input" placeholder="Pesquisar colaboradores, equipes ou cargos..."
+            id="searchInput" />
+          <button class="search-clear" id="searchClear"><i class="fas fa-times"></i></button>
+          <div class="search-results" id="searchResults"></div>
+          <div class="search-stats" id="searchStats"></div>
+        </div>
+      </div>
+      <div class="header-actions">
+    <button class="download-efetivo-btn" id="downloadEfetivoBtn">
+      <i class="fa-solid fa-download"></i>
+      <span>Baixar Efetivo</span>
+    </button>
+  </div>
+    </header>
+
+    <section class="accordion_section">
+      <h3 class="accordion_title">Efetivo 23/07/2025</h3>
+
+      <div class="distribuicao">
+        <div class="distribuicao_dados">
+          <div class="team-left"><!-- ICON will be injected -->
+            <h3>Liderança</h3>
+          </div>
+          <svg class="toggle-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <rect x="4" y="11" width="16" height="2" rx="1" ry="1" fill="var(--muted)"/>
+            <rect class="pipe" x="11" y="4" width="2" height="16" rx="1" ry="1" fill="var(--muted)"/>
+          </svg>
+        </div>
+        <div class="resposta_dados"><p>Carregando...</p></div>
+      </div>
+
+      <div class="distribuicao">
+        <div class="distribuicao_dados">
+          <div class="team-left"><!-- ICON will be injected -->
+            <h3>Dimensional</h3>
+          </div>
+          <svg class="toggle-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <rect x="4" y="11" width="16" height="2" rx="1" ry="1" fill="var(--muted)"/>
+            <rect class="pipe" x="11" y="4" width="2" height="16" rx="1" ry="1" fill="var(--muted)"/>
+          </svg>
+        </div>
+        <div class="resposta_dados"><p>Carregando...</p></div>
+      </div>
+
+      <div class="distribuicao">
+        <div class="distribuicao_dados">
+          <div class="team-left"><h3>Montagem</h3></div>
+          <svg class="toggle-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <rect x="4" y="11" width="16" height="2" rx="1" ry="1" fill="var(--muted)"/>
+            <rect class="pipe" x="11" y="4" width="2" height="16" rx="1" ry="1" fill="var(--muted)"/>
+          </svg>
+        </div>
+        <div class="resposta_dados"><p>Carregando...</p></div>
+      </div>
+
+      <div class="distribuicao">
+        <div class="distribuicao_dados">
+          <div class="team-left"><h3>Meio Oficial</h3></div>
+          <svg class="toggle-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <rect x="4" y="11" width="16" height="2" rx="1" ry="1" fill="var(--muted)"/>
+            <rect class="pipe" x="11" y="4" width="2" height="16" rx="1" ry="1" fill="var(--muted)"/>
+          </svg>
+        </div>
+        <div class="resposta_dados"><p>Carregando...</p></div>
+      </div>
+
+      <div class="distribuicao">
+        <div class="distribuicao_dados">
+          <div class="team-left"><h3>Desempeno</h3></div>
+          <svg class="toggle-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <rect x="4" y="11" width="16" height="2" rx="1" ry="1" fill="var(--muted)"/>
+            <rect class="pipe" x="11" y="4" width="2" height="16" rx="1" ry="1" fill="var(--muted)"/>
+          </svg>
+        </div>
+        <div class="resposta_dados"><p>Carregando...</p></div>
+      </div>
+
+      <div class="distribuicao">
+        <div class="distribuicao_dados">
+          <div class="team-left"><h3>Andaimes</h3></div>
+          <svg class="toggle-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <rect x="4" y="11" width="16" height="2" rx="1" ry="1" fill="var(--muted)"/>
+            <rect class="pipe" x="11" y="4" width="2" height="16" rx="1" ry="1" fill="var(--muted)"/>
+          </svg>
+        </div>
+        <div class="resposta_dados"><p>Carregando...</p></div>
+      </div>
+
+      <div class="distribuicao">
+        <div class="distribuicao_dados">
+          <div class="team-left"><h3>Soldador</h3></div>
+          <svg class="toggle-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <rect x="4" y="11" width="16" height="2" rx="1" ry="1" fill="var(--muted)"/>
+            <rect class="pipe" x="11" y="4" width="2" height="16" rx="1" ry="1" fill="var(--muted)"/>
+          </svg>
+        </div>
+        <div class="resposta_dados"><p>Carregando...</p></div>
+      </div>
+
+      <div class="distribuicao">
+        <div class="distribuicao_dados">
+          <div class="team-left"><h3>Apoio</h3></div>
+          <svg class="toggle-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <rect x="4" y="11" width="16" height="2" rx="1" ry="1" fill="var(--muted)"/>
+            <rect class="pipe" x="11" y="4" width="2" height="16" rx="1" ry="1" fill="var(--muted)"/>
+          </svg>
+        </div>
+        <div class="resposta_dados"><p>Carregando...</p></div>
+      </div>
+
+      <div class="distribuicao">
+        <div class="distribuicao_dados">
+          <div class="team-left"><h3>CEFAP</h3></div>
+          <svg class="toggle-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <rect x="4" y="11" width="16" height="2" rx="1" ry="1" fill="var(--muted)"/>
+            <rect class="pipe" x="11" y="4" width="2" height="16" rx="1" ry="1" fill="var(--muted)"/>
+          </svg>
+        </div>
+        <div class="resposta_dados"><p>Carregando...</p></div>
+      </div>
+    </section>
+
+    <h1 class="accordion_title" style="margin-top:8px">Distribuição do Efetivo</h1>
+
+    <div class="chart-container">
+      <div class="card">
+        <div class="card-header">
+          <h3><i class="fas fa-users" style="opacity:.9"></i> Por Equipe</h3>
+          <button class="export-btn" data-target="graficoEquipe"><i class="fas fa-download"></i><span> Exportar</span></button>
+        </div>
+        <canvas id="graficoEquipe"></canvas>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3><i class="fas fa-layer-group" style="opacity:.9"></i> Por Nível</h3>
+          <button class="export-btn" data-target="graficoNivel"><i class="fas fa-download"></i><span> Exportar</span></button>
+        </div>
+        <canvas id="graficoNivel"></canvas>
+        <div id="filtroNiveis">
+          <label><input type="checkbox" value="Montador" checked><span>Montador</span></label>
+          <label><input type="checkbox" value="Desempenador"><span>Desempenador</span></label>
+          <label><input type="checkbox" value="Montador de Andaimes"><span>Montador de Andaimes</span></label>
+          <label><input type="checkbox" value="Soldador"><span>Soldador</span></label>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3><i class="fas fa-clock" style="opacity:.9"></i> Tempo de Empresa</h3>
+          <button class="export-btn" data-target="graficoTempo"><i class="fas fa-download"></i><span> Exportar</span></button>
+        </div>
+        <canvas id="graficoTempo"></canvas>
       </div>
     </div>
 
-    <div class="distribuicao">
-      <div class="distribuicao_dados">
-        <h3>Montagem</h3>
-        <svg class="toggle-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <!-- Linha horizontal com bordas arredondadas -->
-          <rect x="4" y="11" width="16" height="2" rx="1" ry="1" fill="var(--text-muted)" />
-          <!-- Linha vertical (pipe) com bordas arredondadas -->
-          <rect class="pipe" x="11" y="4" width="2" height="16" rx="1" ry="1" fill="var(--text-muted)"/>
-        </svg>
-      </div>
-      <div class="resposta_dados">
-        <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Aut cupiditate deserunt atque, eos tempora recusandae ratione esse ipsum qui enim vitae a sequi minus, dolorem alias maxime! Itaque, voluptas unde?</p>
+    <div class="single-chart-wrapper">
+      <div class="card single-chart-card">
+        <div class="card-header">
+          <h3><i class="fas fa-circle-nodes" style="opacity:.9"></i> Status dos Colaboradores</h3>
+          <button class="export-btn" data-target="graficoStatus"><i class="fas fa-download"></i><span> Exportar</span></button>
+        </div>
+        <canvas id="graficoStatus"></canvas>
       </div>
     </div>
 
-    <div class="distribuicao">
-      <div class="distribuicao_dados">
-        <h3>Meio Oficial</h3>
-        <svg class="toggle-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <!-- Linha horizontal com bordas arredondadas -->
-          <rect x="4" y="11" width="16" height="2" rx="1" ry="1" fill="var(--text-muted)" />
-          <!-- Linha vertical (pipe) com bordas arredondadas -->
-          <rect class="pipe" x="11" y="4" width="2" height="16" rx="1" ry="1" fill="var(--text-muted)"/>
-        </svg>
-      </div>
-      <div class="resposta_dados">
-        <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Aut cupiditate deserunt atque, eos tempora recusandae ratione esse ipsum qui enim vitae a sequi minus, dolorem alias maxime! Itaque, voluptas unde?</p>
-      </div>
+    <div id="stats-cards-container" style="max-width:1000px; margin:10px 0;"></div>
+
+    <div style="display:none">
+      <!-- hidden canvas (line growth) -->
+      <canvas id="graficoCrescimento" height="300"></canvas>
     </div>
 
-    <div class="distribuicao">
-      <div class="distribuicao_dados">
-        <h3>Desempeno</h3>
-        <svg class="toggle-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <!-- Linha horizontal com bordas arredondadas -->
-          <rect x="4" y="11" width="16" height="2" rx="1" ry="1" fill="var(--text-muted)" />
-          <!-- Linha vertical (pipe) com bordas arredondadas -->
-          <rect class="pipe" x="11" y="4" width="2" height="16" rx="1" ry="1" fill="var(--text-muted)"/>
-        </svg>
+    <div class="dev-note reveal">
+        <div>Sistema desenvolvido por <strong>Gustavo Carvalho</strong></div>
+        <div>Setor de <strong>Estrutura</strong></div>
+        <span class="meta">Agilidade, confiabilidade e design de excelência — pensado para líderes de obra que buscam precisão e confiança • © 2025</span>
       </div>
-      <div class="resposta_dados">
-        <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Aut cupiditate deserunt atque, eos tempora recusandae ratione esse ipsum qui enim vitae a sequi minus, dolorem alias maxime! Itaque, voluptas unde?</p>
-      </div>
-    </div>
-
-    <div class="distribuicao">
-      <div class="distribuicao_dados">
-        <h3>Andaimes</h3>
-        <svg class="toggle-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <!-- Linha horizontal com bordas arredondadas -->
-          <rect x="4" y="11" width="16" height="2" rx="1" ry="1" fill="var(--text-muted)" />
-          <!-- Linha vertical (pipe) com bordas arredondadas -->
-          <rect class="pipe" x="11" y="4" width="2" height="16" rx="1" ry="1" fill="var(--text-muted)"/>
-        </svg>
-      </div>
-      <div class="resposta_dados">
-        <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Aut cupiditate deserunt atque, eos tempora recusandae ratione esse ipsum qui enim vitae a sequi minus, dolorem alias maxime! Itaque, voluptas unde?</p>
-      </div>
-    </div>
-
-    <div class="distribuicao">
-      <div class="distribuicao_dados">
-        <h3>Soldador</h3>
-        <svg class="toggle-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <!-- Linha horizontal com bordas arredondadas -->
-          <rect x="4" y="11" width="16" height="2" rx="1" ry="1" fill="var(--text-muted)" />
-          <!-- Linha vertical (pipe) com bordas arredondadas -->
-          <rect class="pipe" x="11" y="4" width="2" height="16" rx="1" ry="1" fill="var(--text-muted)"/>
-        </svg>
-      </div>
-      <div class="resposta_dados">
-        <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Aut cupiditate deserunt atque, eos tempora recusandae ratione esse ipsum qui enim vitae a sequi minus, dolorem alias maxime! Itaque, voluptas unde?</p>
-      </div>
-    </div>
-
-    <div class="distribuicao">
-      <div class="distribuicao_dados">
-        <h3>CEFAP</h3>
-        <svg class="toggle-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <!-- Linha horizontal com bordas arredondadas -->
-          <rect x="4" y="11" width="16" height="2" rx="1" ry="1" fill="var(--text-muted)" />
-          <!-- Linha vertical (pipe) com bordas arredondadas -->
-          <rect class="pipe" x="11" y="4" width="2" height="16" rx="1" ry="1" fill="var(--text-muted)"/>
-        </svg>
-      </div>
-      <div class="resposta_dados">
-        <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Aut cupiditate deserunt atque, eos tempora recusandae ratione esse ipsum qui enim vitae a sequi minus, dolorem alias maxime! Itaque, voluptas unde?</p>
-      </div>
-    </div>
-  </section>
-
-  <h1 class="tituloeft">Distribuição do Efetivo</h1>
-
-  <div class="chart-container">
-    <div class="card">
-      <h3>Por Equipe</h3>
-      <canvas id="graficoEquipe"></canvas>
-    </div>
-    <div class="card">
-      <h3>Por Nível</h3>
-      <canvas id="graficoNivel"></canvas>
-      <div id="filtroNiveis">
-  <label>
-    <input type="checkbox" value="Montador" checked>
-    <span>Montador</span>
-  </label>
-  <label>
-    <input type="checkbox" value="Desempenador">
-    <span>Desempenador</span>
-  </label>
-  <label>
-    <input type="checkbox" value="Montador de Andaimes">
-    <span>Montador de Andaimes</span>
-  </label>
-  <label>
-    <input type="checkbox" value="Soldador">
-    <span>Soldador</span>
-  </label>
-</div>
-
-    </div>
-    <div class="card">
-      <h3>Tempo de Empresa</h3>
-      <canvas id="graficoTempo"></canvas>
-    </div>
   </div>
 
-  <div class="single-chart-wrapper">
-  <div class="card single-chart-card">
-    <h3>Status dos Colaboradores</h3>
-    <canvas id="graficoStatus"></canvas>
-  </div>
-</div>
-
-  <canvas id="graficoCrescimento" height="300"></canvas>
-</div>
-
-  <script>
+<script>
+/* ================= CONFIG ================= */
+const PLANILHA_EFETIVO = './dados_efetivo/efetivo.xlsx';
 const equipesArquivos = {
-    "Montagem": "./dados_efetivo/colaboradores_montagem.json",
-    "Desempeno": "./dados_efetivo/colaboradores_desempeno.json",
-    "Meio Oficial": "./dados_efetivo/colaboradores_meio_oficial.json",
-    "Andaimes": "./dados_efetivo/colaboradores_andaimes.json",
-    "Soldador": "./dados_efetivo/colaboradores_soldador.json",
-    "CEFAP": "./dados_efetivo/colaboradores_cefap.json",
-    "Liderança": "./dados_efetivo/colaboradores_lideranca.json"
-  };
+  "Montagem": "./dados_efetivo/colaboradores_montagem.json",
+  "Desempeno": "./dados_efetivo/colaboradores_desempeno.json",
+  "Meio Oficial": "./dados_efetivo/colaboradores_meio_oficial.json",
+  "Andaimes": "./dados_efetivo/colaboradores_andaimes.json",
+  "Soldador": "./dados_efetivo/colaboradores_soldador.json",
+  "CEFAP": "./dados_efetivo/colaboradores_cefap.json",
+  "Liderança": "./dados_efetivo/colaboradores_lideranca.json"
+};
 
-  const accordionItems = document.querySelectorAll('.distribuicao');
+/* visual meta for accordion icons */
+const teamMeta = {
+  "Montagem":   { icon: '<i class="fas fa-tools"></i>', color: '#4f46e5' },
+  "Desempeno":  { icon: '<i class="fas fa-wrench"></i>', color: '#7c3aed' },
+  "Meio Oficial":{ icon: '<i class="fas fa-user-tie"></i>', color: '#06b6d4' },
+  "Andaimes":   { icon: '<i class="fas fa-layer-group"></i>', color: '#f59e0b' },
+  "Soldador":   { icon: '<i class="fas fa-fire"></i>', color: '#ef4444' },
+  "CEFAP":      { icon: '<i class="fas fa-graduation-cap"></i>', color: '#ec4899' },
+  "Liderança":  { icon: '<i class="fas fa-star"></i>', color: '#10b981' },
+  "Dimensional": { icon: '<i class="fas fa-ruler-combined"></i>', color: '#8b5cf6' }, // NOVA LINHA
+  "Apoio":      { icon: '<i class="fas fa-hands-helping"></i>', color: '#1E293B' } // cor única não utilizada em outro lugar
+};
 
-  accordionItems.forEach(async (item) => {
-    const equipe = item.querySelector('h3').innerText.trim();
-    const resposta = item.querySelector('.resposta_dados');
+function cssVar(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || undefined; }
+const chartTextColor = cssVar('--muted') || '#bfcfd9';
+const chartGrid = 'rgba(255,255,255,0.02)';
+const chartPalette = ['#6D28D9','#2563EB','#0891B2','#D97706','#059669','#DC2626','#DB2777'];
 
-    if (equipesArquivos[equipe]) {
-      try {
-        const res = await fetch(equipesArquivos[equipe]);
-        const dados = await res.json();
-
-        const html = dados.map(colab => {
-  const data = new Date(colab.entrada).toLocaleDateString("pt-BR");
-  
-  // Cria uma classe para o status, removendo espaços e barras
-  function removeAcentos(texto) {
-  return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+/* ================= date helpers (robust) ================= */
+function dateFromExcelSerial(serial){
+  const DAYS_TO_UNIX_EPOCH = 25569;
+  const utcDays = Math.floor(serial - DAYS_TO_UNIX_EPOCH);
+  const utcSeconds = utcDays * 86400;
+  const dateUtc = new Date(utcSeconds * 1000);
+  return new Date(dateUtc.getUTCFullYear(), dateUtc.getUTCMonth(), dateUtc.getUTCDate());
 }
 
-const statusPadrao = "ativo";
-
-const statusClass = colab.status
-  ? "status-" + removeAcentos(colab.status.toLowerCase()).replace(/\s+/g, '').replace(/\//g, '')
-  : "";
-  
-  return `<p class="${statusClass}">
-    <strong>${colab.nome}</strong> - ${colab.matricula} - ${colab.nivel} - ${data}
-    ${colab.status ? ` - <em>${colab.status}</em>` : ''}
-  </p>`;
-}).join('');
-
-        resposta.innerHTML = html;
-      } catch (error) {
-        resposta.innerHTML = `<p style="color:red;">Erro ao carregar dados de ${equipe}.</p>`;
-      }
-    } else {
-      resposta.innerHTML = `<p style="color:gray;">Nenhum dado disponível.</p>`;
-    }
-  });
-
-let efetivoCompleto = [];
-let chartNivel = null;
-
-const hoje = new Date();
-
-// ⬇️ Carrega uma vez todos os dados
-async function carregarEfetivo() {
-  efetivoCompleto = [];
-
-  for (const [equipe, url] of Object.entries(equipesArquivos)) {
-    try {
-      const res = await fetch(url);
-      const dados = await res.json();
-
-      dados.forEach(colab => {
-        efetivoCompleto.push({
-          equipe,
-          nivel: colab.nivel,
-          entrada: colab.entrada,
-          status: colab.status || 'ativo'
-        });
-      });
-    } catch (e) {
-      console.error(`Erro ao carregar ${equipe}:`, e);
-    }
+function parseFlexibleDate(raw){
+  if (raw === null || raw === undefined || raw === '') return null;
+  if (raw instanceof Date) return isNaN(raw) ? null : raw;
+  if (typeof raw === 'number' && !isNaN(raw)){
+    if (raw >= 30000 && raw < 60000) { try{ return dateFromExcelSerial(raw); }catch(e){ return null; } }
+    return null;
   }
-
-  gerarGraficosGerais(efetivoCompleto);  // gráficos gerais
-  gerarGraficoStatus(efetivoCompleto);
-  aplicarFiltroNiveis();                 // gráfico por nível filtrado
+  const s = String(raw).trim();
+  if (/^\d{4,6}$/.test(s)){
+    const n = Number(s);
+    if (n >= 30000 && n < 60000) { return dateFromExcelSerial(n); }
+    return null;
+  }
+  const dm = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})(?:\s+(\d{1,2}:\d{2}(:\d{2})?))?/);
+  if (dm){
+    let day = parseInt(dm[1],10);
+    let month = parseInt(dm[2],10);
+    let year = parseInt(dm[3],10);
+    if (year < 100) year += (year < 50 ? 2000 : 1900);
+    const dt = new Date(year, month-1, day);
+    return isNaN(dt) ? null : dt;
+  }
+  const fallback = new Date(s);
+  if (!isNaN(fallback)) return fallback;
+  return null;
 }
 
-// ⬇️ Gráficos que usam todos os dados (sem filtro)
-function gerarGraficosGerais(efetivo) {
-  const equipes = {};
-  const tempoFaixa = { "Até 1 ano": 0, "1-3 anos": 0, "3+ anos": 0 };
-  const crescimento = {};
+function isValidDate(d){ return d instanceof Date && !isNaN(d); }
 
-  efetivo.forEach(colab => {
-    // Equipes
-    equipes[colab.equipe] = (equipes[colab.equipe] || 0) + 1;
-
-    // Tempo de empresa
-    const entrada = new Date(colab.entrada);
-    const anos = (hoje - entrada) / (1000 * 60 * 60 * 24 * 365);
-    if (anos < 1) tempoFaixa["Até 1 ano"]++;
-    else if (anos < 3) tempoFaixa["1-3 anos"]++;
-    else tempoFaixa["3+ anos"]++;
-
-    // Crescimento
-    const mesAno = `${entrada.getFullYear()}-${String(entrada.getMonth() + 1).padStart(2, '0')}`;
-    crescimento[mesAno] = (crescimento[mesAno] || 0) + 1;
-  });
-
-  // 🎯 Gráfico por Equipe
-  new Chart(document.getElementById('graficoEquipe'), {
-    type: 'doughnut',
-    data: {
-      labels: Object.keys(equipes),
-      datasets: [{
-        data: Object.values(equipes),
-        backgroundColor: ['#3B82F6','#10B981','#FACC15','#F87171','#8B5CF6','#EC4899','#14B8A6']
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: {
-          position: 'bottom',
-          labels: { color: '#333', font: { size: 14 } }
-        }
-      }
-    }
-  });
-
-  // 🎯 Gráfico Tempo de Empresa
-  new Chart(document.getElementById('graficoTempo'), {
-    type: 'pie',
-    data: {
-      labels: Object.keys(tempoFaixa),
-      datasets: [{
-        data: Object.values(tempoFaixa),
-        backgroundColor: ['#10B981','#FACC15','#F87171']
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: {
-          position: 'bottom',
-          labels: { color: '#333', font: { size: 14 } }
-        }
-      }
-    }
-  });
-
-  // 🎯 Gráfico Crescimento
-  const meses = Object.keys(crescimento).sort();
-  const valores = meses.map(m => crescimento[m]);
-
-  new Chart(document.getElementById('graficoCrescimento'), {
-    type: 'line',
-    data: {
-      labels: meses,
-      datasets: [{
-        label: 'Entradas no mês',
-        data: valores,
-        borderColor: '#3B82F6',
-        backgroundColor: 'rgba(59,130,246,0.2)',
-        fill: true,
-        tension: 0.4
-      }]
-    },
-    options: {
-      responsive: true,
-      scales: {
-        y: { beginAtZero: true }
-      },
-      plugins: {
-        legend: { position: 'top' }
-      }
-    }
-  });
+function toSafeISOString(v){
+  const d = parseFlexibleDate(v);
+  return isValidDate(d) ? d.toISOString() : '';
 }
 
-function gerarGraficoStatus(efetivo) {
-  const statusCounts = {};
+function excelDateToJSDate(v){
+  if (v === null || v === undefined || v === '') return null;
+  if (v instanceof Date) return isValidDate(v) ? v : null;
+  if (typeof v === 'number' && !isNaN(v)){
+    if (v >= 30000 && v < 60000) return dateFromExcelSerial(v);
+    return null;
+  }
+  const parsed = parseFlexibleDate(v);
+  return parsed;
+}
 
-  efetivo.forEach(colab => {
-    // se não existir status, trate como “ativo” ou “semStatus”
-    const raw = colab.status || 'ativo';
-    // normaliza: remove acentos, espaços, barras, tudo em minúsculas
-    const key = raw
-      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-      .toLowerCase()
-      .replace(/\s+/g, "")
-      .replace(/\//g, "");
-    statusCounts[key] = (statusCounts[key] || 0) + 1;
-  });
+/* ================= heurísticas ================= */
+function looksLikeName(cell){
+  if (!cell) return false;
+  const s = String(cell).trim();
+  
+  // Deve ter pelo menos duas palavras com letras
+  if (!/\p{L}+\s+\p{L}+/u.test(s) || s.length <= 3) return false;
+  
+  // Lista expandida de exclusões - termos que NÃO são nomes de pessoas
+  const excludePatterns = [
+    'equipe', 'montagem', 'solda', 'andaime', 'cefap', 'desempen',
+    'emprestado', 'processamento', 'emprestado processamento', 
+    'trabalho alternativo', 'paiol', 'alternativo',
+    'ferias', 'férias', 'integração', 'integracao', 'noturno', 'inss',
+    'estagio', 'estágio', 'estagiario', 'estagiário'
+  ];
+  
+  const normalized = normalizeForMatch(s);
+  
+  // Verificar se contém algum padrão de exclusão
+  for (const pattern of excludePatterns) {
+    if (normalized.includes(pattern)) return false;
+  }
+  
+  // Verificar se é puramente um rótulo/status (sem letras suficientes para ser nome)
+  if (isLegendTextSimple(s)) return false;
+  
+  return true;
+}
+function looksLikeCargo(cell){
+  if (!cell) return false;
+  const s = String(cell).trim();
+  return /supervis|encarregad|encarregado|montador|montagem|soldador|solda|andaime|cefap|meio oficial|desempen|dimensional|inspetor/i.test(s);
+}
+function equipeFromCargo(cargo){
+  if (!cargo) return null;
+  const s = String(cargo).toLowerCase();
+  if (/supervis|encarregad|encarregado|dimensional|inspetor/i.test(s)) return 'Liderança';
+  if (/dimensional/i.test(s)) return 'Dimensional';
+  if (/soldador|solda/i.test(s)) return 'Soldador';
+  if (/andaime|andaimes/i.test(s)) return 'Andaimes';
+  if (/montador|montagem/i.test(s)) return 'Montagem';
+  if (/meio\s*oficial/i.test(s)) return 'Meio Oficial';
+  if (/desempen/i.test(s)) return 'Desempeno';
+  if (/cefap/i.test(s)) return 'CEFAP';
+  return null;
+}
 
-  // destrói instância anterior, se houver
-  if (window.chartStatus) window.chartStatus.destroy();
+/* ================= util: canonical team name ================= */
+const canonicalMap = {
+  'montagem':'Montagem',
+  'montador':'Montagem',
+  'soldador':'Soldador',
+  'soldadores':'Soldador',
+  'solda':'Soldador',
+  'andaimes':'Andaimes',
+  'andaime':'Andaimes',
+  'desempeno':'Desempeno',
+  'desempenho':'Desempeno',
+  'desmpeno':'Desempeno',
+  'desempenador':'Desempeno',
+  'meiooficial':'Meio Oficial',
+  'meio_oficial':'Meio Oficial',
+  'meio oficial':'Meio Oficial',
+  'cefap':'CEFAP',
+  'lideranca':'Liderança',
+  'liderança':'Liderança',
+  'lideres':'Liderança',
+  'liderancas':'Liderança',
+  'dimensional':'Dimensional'
+};
 
-  // cria o chart
-  window.chartStatus = new Chart(
-    document.getElementById('graficoStatus'),
-    {
-      type: 'doughnut',  // ou 'bar' / 'pie'
-      data: {
-        labels: Object.keys(statusCounts),
-        datasets: [{
-          data: Object.values(statusCounts),
-          // opcional: cores
-          backgroundColor: [
-            '#10B981', // ativo
-            '#3b82f6', // férias
-            '#9ca3af', //noturno
-            '#2DD4BF', // trabalho alternativo
-            '#facc15' // integração
-          ]
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: {
-            position: 'bottom',
-            labels: { color: '#333', font: { size: 14 } }
+function canonicalizeTeamName(raw){
+  if (!raw) return null;
+  let s = String(raw).trim().toLowerCase();
+  s = s.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  s = s.replace(/[^a-z0-9]+/g, ' ').trim();
+  if (!s) return null;
+  if (canonicalMap[s]) return canonicalMap[s];
+  for (const k of Object.keys(canonicalMap)){
+    if (s.includes(k)) return canonicalMap[k];
+  }
+  return s.split(' ').map(w => w.charAt(0).toUpperCase()+w.slice(1)).join(' ');
+}
+
+/* ================= util: color helpers ================= */
+function normalizeHex(s){
+  if (!s) return null;
+  s = String(s).trim();
+  if (s.startsWith('[') && s.endsWith(']')) s = s.slice(1,-1);
+  if (/^[0-9A-Fa-f]{8}$/.test(s) && s.toUpperCase().startsWith('FF')) s = s.slice(2);
+  s = s.replace(/^#/, '');
+  if (/^[0-9A-Fa-f]{6}$/.test(s)) return '#' + s.toUpperCase();
+  return null;
+}
+function hexToRgb(hex){
+  if (!hex) return null;
+  const h = hex.replace('#','');
+  if (h.length !== 6) return null;
+  const r = parseInt(h.slice(0,2),16);
+  const g = parseInt(h.slice(2,4),16);
+  const b = parseInt(h.slice(4,6),16);
+  return {r,g,b};
+}
+function luminanceFromHex(hex){
+  const rgb = hexToRgb(hex);
+  if (!rgb) return 1;
+  return (0.2126*rgb.r + 0.7152*rgb.g + 0.0722*rgb.b) / 255;
+}
+function isGreenish(hex){
+  const rgb = hexToRgb(hex);
+  if (!rgb) return false;
+  return (rgb.g > rgb.r && rgb.g > rgb.b);
+}
+function isOrangeish(hex){
+  const rgb = hexToRgb(hex);
+  if (!rgb) return false;
+  return (rgb.r > 160 && rgb.r > rgb.g + 20 && rgb.g >= 80 && rgb.b < 140);
+}
+
+/* ================= util: extract color from SheetJS cell ================= */
+function extractFillColorFromSheetCell(cell){
+  if (!cell) return null;
+  try{
+    if (cell.s && cell.s.fill){
+      const f = cell.s.fill;
+      if (f.fgColor && f.fgColor.rgb) return normalizeHex(f.fgColor.rgb);
+      if (f.fg && f.fg.rgb) return normalizeHex(f.fg.rgb);
+    }
+    if (cell.s && cell.s.fgColor && cell.s.fgColor.rgb) return normalizeHex(cell.s.fgColor.rgb);
+    if (cell.style && cell.style.fill && cell.style.fill.fgColor && cell.style.fill.fgColor.rgb) return normalizeHex(cell.style.fill.fgColor.rgb);
+    if (cell.s && cell.s.color && cell.s.color.rgb) return normalizeHex(cell.s.color.rgb);
+    if (cell.fill && cell.fill.fgColor && cell.fill.fgColor.rgb) return normalizeHex(cell.fill.fgColor.rgb);
+  }catch(e){}
+  return null;
+}
+
+/* ================= legend tokens detect (prevents legend being parsed as colaborador) ================= */
+const LEGEND_TOKENS = [
+  'ferias','férias','integra','integracao','integração','noturno','inss','trabalho alternativo','paiol','alternativo',
+  'estagio','estágio','estagiario','estagiário','emprestado','processamento','emprestado processamento'
+];
+function normalizeForMatch(s){
+  if (!s) return '';
+  return String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim();
+}
+function isLegendTextSimple(s){
+  if (!s) return false;
+  const n = normalizeForMatch(s);
+  for (const tk of LEGEND_TOKENS){
+    if (n.indexOf(tk) !== -1) return true;
+  }
+  return false;
+}
+function normalizeStatusForRouting(s){
+  if (!s) return '';
+  return String(s).toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'').trim();
+}
+
+/* ================= build color legend from sheet =================
+   Detects the known labels and maps their colors.
+   EMPRESTADO PROCESSAMENTO: prefer the sheet color if found, otherwise fallback to distinct orange.
+   ESTÁGIO: prefer a green/dark color; fallback to a chosen dark-green if needed.
+*/
+function buildColorLegendFromSheet(ws){
+  const legend = {};
+  if (!ws) return legend;
+  const labelsToFind = [
+    {key:'FÉRIAS', tokens:['férias','ferias']},
+    {key:'INTEGRAÇÃO', tokens:['integra','integração','integracao']},
+    {key:'NOTURNO', tokens:['noturno']},
+    {key:'INSS', tokens:['inss']},
+    {key:'TRABALHO ALTERNATIVO', tokens:['trabalho alternativo','paiol','alternativo']},
+    {key:'ESTÁGIO', tokens:['estagio','estágio','estagiario','estagiário']},
+    {key:'EMPRESTADO PROCESSAMENTO', tokens:['emprestado processamento','emprestado','processamento']}
+  ];
+
+  // default fallbacks
+  const defaultStageColor = '#2F6F2F';     // dark green for estágio
+  const defaultEmprestadoColor = '#F28C2B';// distinct orange for emprestado processamento
+
+  for (const addr of Object.keys(ws)){
+    if (!/^[A-Z]+[0-9]+$/.test(addr)) continue;
+    const cell = ws[addr];
+    if (!cell || cell.v === undefined || cell.v === null) continue;
+    const text = String(cell.v).trim().toLowerCase();
+    if (!text) continue;
+    for (const item of labelsToFind){
+      for (const tk of item.tokens){
+        if (text.indexOf(tk) !== -1){
+          const coord = XLSX.utils.decode_cell(addr);
+          // try neighbors for a fill color
+          const tryCoords = [
+            {c: coord.c - 1, r: coord.r},
+            {c: coord.c - 2, r: coord.r},
+            {c: coord.c, r: coord.r}
+          ];
+          let foundColor = null;
+          for (const tc of tryCoords){
+            if (tc.c < 0) continue;
+            const a = XLSX.utils.encode_cell(tc);
+            const scell = ws[a];
+            const color = extractFillColorFromSheetCell(scell);
+            if (color){
+              const lum = luminanceFromHex(color);
+              if (lum > 0.93) {
+                console.log('Ignoring too-light legend color', color, 'for label', item.key, 'for cell', a);
+                continue;
+              }
+              foundColor = color;
+              break;
+            }
+          }
+
+          // fallback scan small window if none found
+          if (!foundColor){
+            for (let cc = coord.c-4; cc <= coord.c+1 && !foundColor; cc++){
+              if (cc < 0) continue;
+              const a = XLSX.utils.encode_cell({c:cc,r:coord.r});
+              const scell = ws[a];
+              const color = extractFillColorFromSheetCell(scell);
+              if (color){
+                const lum = luminanceFromHex(color);
+                if (lum > 0.93) { console.log('Ignoring too-light legend color', color, 'for label', item.key, 'at', a); continue; }
+                foundColor = color;
+                break;
+              }
+            }
+          }
+
+          if (item.key === 'EMPRESTADO PROCESSAMENTO'){
+            // Prefer found color for EMPRESTADO, fallback to a distinct orange only if none found
+            if (foundColor){
+              if (!legend[foundColor]) {
+                legend[foundColor] = item.key;
+                console.log('Mapping EMPRESTADO PROCESSAMENTO →', foundColor, '(from sheet)');
+              }
+            } else {
+              if (!legend[defaultEmprestadoColor]) {
+                legend[defaultEmprestadoColor] = item.key;
+                console.log('Mapping EMPRESTADO PROCESSAMENTO →', defaultEmprestadoColor, '(fallback)');
+              }
+            }
+            continue;
+          }
+
+          if (foundColor){
+            if (item.key === 'ESTÁGIO'){
+              const lum = luminanceFromHex(foundColor);
+              if (!(isGreenish(foundColor) && lum < 0.75)){
+                // not green/dark enough — use default stage color
+                if (!legend[defaultStageColor]) {
+                  legend[defaultStageColor] = item.key;
+                  console.log('ESTÁGIO detected but color not greenish/dark enough. Using default:', defaultStageColor);
+                }
+              } else {
+                if (!legend[foundColor]){
+                  legend[foundColor] = item.key;
+                  console.log('Mapped legend', foundColor, '→', item.key);
+                }
+              }
+            } else {
+              if (!legend[foundColor]){
+                legend[foundColor] = item.key;
+                console.log('Mapped legend', foundColor, '→', item.key);
+              } else {
+                console.log('Legend color already used:', foundColor, 'skipping second mapping for', item.key);
+              }
+            }
+          } else {
+            // no found color case: fallback for specific labels
+            if (item.key === 'ESTÁGIO'){
+              if (!legend[defaultStageColor]) {
+                legend[defaultStageColor] = item.key;
+                console.log('ESTÁGIO label found but no usable color — using default:', defaultStageColor);
+              }
+            } else {
+              console.log('No usable color found near label text for', item.key, 'at', addr);
+            }
           }
         }
       }
     }
-  );
+  }
+
+  // ensure EMPRESTADO_PROCESSAMENTO default present even if not detected in sheet (only fallback)
+  const ensureEmp = '#F28C2B';
+  if (!Object.keys(legend).some(k => legend[k] === 'EMPRESTADO PROCESSAMENTO')){
+    legend[ensureEmp] = 'EMPRESTADO PROCESSAMENTO';
+    console.log('Ensured EMPRESTADO PROCESSAMENTO default mapping →', ensureEmp);
+  }
+
+  console.log('Detected legend (color → chosen label):', legend);
+  return legend;
 }
 
-// ✅ Obtém filtros (checkbox)
-function getFiltrosSelecionados() {
-  const checkboxes = document.querySelectorAll('#filtroNiveis input[type="checkbox"]:checked');
-  return Array.from(checkboxes).map(cb => cb.value);
-}
+/* ================= parse por blocos (agora recebe ws e colorLegend) ================= */
+function parseRowsByBlocks(rows, ws, colorLegend){
+  const colaboradores = [];
+  if (!rows || rows.length === 0) return colaboradores;
 
-// ✅ Gera gráfico por nível filtrado
-function aplicarFiltroNiveis() {
-  const filtros = getFiltrosSelecionados();
-  const niveis = {};
+  const titleMap = {
+    'MONTAGEM': 'Montagem',
+    'SOLDADORES': 'Soldador',
+    'SOLDADOR': 'Soldador',
+    'SOLDA': 'Soldador',
+    'ANDAIMES': 'Andaimes',
+    'ANDAIME': 'Andaimes',
+    'DESMPENO': 'Desempeno',
+    'DESEMPENO': 'Desempeno',
+    'DESEMPENHO': 'Desempeno',
+    'CEFAP': 'CEFAP',
+    'MEIO OFICIAL': 'Meio Oficial',
+    'MEIOOFICIAL': 'Meio Oficial',
+    'LIDERANÇA': 'Liderança',
+    'LIDERANCA': 'Liderança',
+    'LIDERES': 'Liderança',
+    'LIDERANÇAS': 'Liderança',
+    'DIMENSIONAL': 'Dimensional'
+  };
 
-  efetivoCompleto.forEach(colab => {
-    const nivelBase = colab.nivel.trim();
-    if (filtros.some(filtro => nivelBase.toLowerCase().includes(filtro.toLowerCase()))) {
-      niveis[nivelBase] = (niveis[nivelBase] || 0) + 1;
+  let currentTeam = null;
+
+  for (let r = 0; r < rows.length; r++){
+    const row = rows[r] || [];
+    const cells = row.map(c => (c === undefined || c === null) ? '' : c);
+
+    const any = cells.some(c => c !== '');
+    if (!any) continue;
+
+    const nonEmptyCells = cells.filter(c => c !== '');
+    if (nonEmptyCells.length === 1){
+      const val = String(nonEmptyCells[0]).toUpperCase().replace(/\s+/g,' ').trim();
+      for (const key of Object.keys(titleMap)){
+        if (val.includes(key)) {
+          currentTeam = titleMap[key];
+          console.log('Found title row:', val, '→ currentTeam =', currentTeam);
+          break;
+        }
+      }
+      if (currentTeam && nonEmptyCells.length === 1) continue;
     }
+
+    for (let c = 0; c < cells.length; c++){
+      const cell = cells[c];
+      if (!cell) continue;
+      const cellStr = String(cell).trim();
+
+      // Avoid treating the legend label itself as a collaborator:
+      // if the cell text looks like a legend AND the row has very few non-empty cells
+      // and the row doesn't contain another name-like cell, then skip.
+      if (isLegendTextSimple(cellStr)){
+        const rowHasOtherName = cells.some((cc, idx) => idx !== c && looksLikeName(cc));
+        if (!rowHasOtherName && nonEmptyCells.length <= 3){
+          console.log('Skipping legend-like row cell (not a collaborator):', cellStr, 'row', r+1, 'col', c+1);
+          continue;
+        }
+        // else: if row contains a name elsewhere, don't skip — it's likely a status cell
+      }
+
+      if (looksLikeName(cellStr) && !looksLikeCargo(cellStr)){
+        const nome = cellStr;
+        let cargo = '';
+        if (cells[c+1] && looksLikeCargo(cells[c+1])) cargo = String(cells[c+1]).trim();
+        else if (cells[c+2] && looksLikeCargo(cells[c+2])) cargo = String(cells[c+2]).trim();
+        else if (cells[c+1] && !looksLikeName(cells[c+1]) && String(cells[c+1]).length < 60) cargo = String(cells[c+1]).trim();
+
+        let matricula = '';
+        if (cells[c-1] && /^\d{1,6}$/.test(String(cells[c-1]).trim())) matricula = String(cells[c-1]).trim();
+        else if (cells[c-2] && /^\d{1,6}$/.test(String(cells[c-2]).trim())) matricula = String(cells[c-2]).trim();
+
+        let entradaRaw = '';
+        const candidates = [cells[c+3], cells[c+4], cells[c+2], cells[c+1]];
+        for (const cand of candidates){
+          if (cand === undefined || cand === null || cand === '') continue;
+          const parsed = parseFlexibleDate(cand);
+          if (isValidDate(parsed)){
+            entradaRaw = toSafeISOString(cand);
+            break;
+          }
+        }
+
+        // detect color-based status:
+        let statusLabel = '';
+        let statusColor = null;
+        if (ws && typeof XLSX !== 'undefined' && colorLegend){
+          // sheet_to_json row index r corresponds to Excel row r+1
+          const excelRow = r; // 0-based for decode/encode_cell
+          const candidateOffsets = [0, -1, 1, -2, 2];
+          for (const off of candidateOffsets){
+            const colIndex = c + off;
+            if (colIndex < 0) continue;
+            try{
+              const cellAddr = XLSX.utils.encode_cell({c: colIndex, r: excelRow});
+              const sheetCell = ws[cellAddr];
+              const color = extractFillColorFromSheetCell(sheetCell);
+              if (color){
+                // found color; check in legend (only accept colors present in legend)
+                if (colorLegend[color]){
+                  statusLabel = colorLegend[color];
+                  statusColor = color;
+                  break;
+                } else {
+                  // not in legend — ignore (prevents misclassification)
+                }
+              }
+            }catch(e){}
+          }
+        }
+
+        let assignedTeam = null;
+        if (currentTeam && ['Soldador','Andaimes','CEFAP'].includes(currentTeam)){
+          assignedTeam = currentTeam;
+        } else {
+          assignedTeam = equipeFromCargo(cargo);
+          if (!assignedTeam){
+            assignedTeam = currentTeam || 'Montagem';
+          }
+        }
+
+        const colab = {
+          nome: nome,
+          matricula: matricula,
+          cargo: cargo,
+          entrada: entradaRaw || '',
+          status: statusLabel || '',
+          statusColor: statusColor || null,
+        };
+        colaboradores.push({ ...colab, equipeForParser: assignedTeam, _rowIndex: r+1, _colIndex: c+1 });
+        console.log('Adding:', nome, 'cargo:', cargo, 'currentTeam:', currentTeam, '→ assigned:', assignedTeam, '— entradaISO:', entradaRaw || '', 'status:', colab.status, 'color:', colab.statusColor, 'row:', r+1, 'col:', c+1);
+      }
+    }
+  }
+
+  return colaboradores.map(c => ({ nome: c.nome, matricula: c.matricula, cargo: c.cargo, entrada: c.entrada, status: c.status, statusColor: c.statusColor, equipeHint: c.equipeForParser }));
+}
+
+/* ================= carregar planilha rows ================= */
+async function tentarCarregarPlanilhaRows(){
+  try{ await ensureXLSX(); } catch(e){ console.warn('XLSX not available', e); return null; }
+  try{
+    const res = await fetch(PLANILHA_EFETIVO);
+    if (!res.ok) { console.warn('Planilha não encontrada', res.status); return null; }
+    const ab = await res.arrayBuffer();
+    // read with cellStyles:true so cell style info (fills) is present
+    const wb = XLSX.read(ab, { type:'array', cellStyles:true });
+    const sheetName = wb.SheetNames[0];
+    const ws = wb.Sheets[sheetName];
+    const rows = XLSX.utils.sheet_to_json(ws, { header:1, raw:true });
+    console.log('Planilha carregada — amostra:', rows.slice(0,8));
+    return { rows, ws, wb };
+  }catch(err){
+    console.warn('Erro ao ler planilha', err);
+    return null;
+  }
+}
+
+/* ================= carregar fallback JSONs (corrigido: seta equipeHint) ================= */
+async function carregarDeJSONs(){
+  const lista = [];
+  for (const [equipe, url] of Object.entries(equipesArquivos)){
+    try{
+      const res = await fetch(url);
+      if (!res.ok) { console.warn('JSON not found:', url, res.status); continue; }
+      const dados = await res.json();
+      for (const colab of dados){
+        lista.push({
+          nome: colab.nome || colab.Nome || '',
+          matricula: colab.matricula || colab.Matrícula || '',
+          cargo: colab.nivel || colab.cargo || colab.funcao || '',
+          entrada: toSafeISOString(colab.entrada || colab.data || ''),
+          status: colab.status || 'ativo',
+          equipeHint: equipe  // preserve source team
+        });
+      }
+    }catch(e){ console.warn('Erro carregando JSON', url, e); }
+  }
+  console.log('carregarDeJSONs: total extraídos =', lista.length);
+  return lista;
+}
+
+/* ================= atualizar accordions com icons ================= */
+function atualizarAccordionsDistribuicao(colaboradores){
+  const grupos = {};
+  colaboradores.forEach(c => {
+    // NOVA LÓGICA: Verificar primeiro se é dimensional
+    if (isDimensional(c.matricula, c.cargo)) {
+      var equipeCan = 'Dimensional';
+    } else {
+      // Lógica existente para outros casos
+      const stNorm = normalizeStatusForRouting(c.status);
+      const cargoNorm = normalizeForMatch(c.cargo);
+      
+      if ((stNorm && (stNorm.includes('EMPRESTADO') || stNorm.includes('PROCESSAMENTO') || stNorm.includes('EMPRESTADOPROCESSAMENTO') || stNorm.includes('INSS') || stNorm.includes('ESTAGIO') || stNorm.includes('ESTAGIARIO')))
+          || (cargoNorm && (cargoNorm.indexOf('estagiario') !== -1 || cargoNorm.indexOf('estagio') !== -1))) {
+        var equipeCan = 'Apoio';
+      } else {
+        const rawEquipe = c.equipeHint || equipeFromCargo(c.cargo) || 'Montagem';
+        var equipeCan = canonicalizeTeamName(rawEquipe) || 'Montagem';
+      }
+    }
+    
+    if (!grupos[equipeCan]) grupos[equipeCan] = [];
+    grupos[equipeCan].push(c);
+    console.log(`Assigned to team: ${c.nome} → ${equipeCan} (cargo: ${c.cargo}) — matricula: ${c.matricula} — entrada=${c.entrada} — status=${c.status}`);
+  });
+
+  const accordionItems = document.querySelectorAll('.distribuicao');
+  accordionItems.forEach(item => {
+    const rawTitulo = (item.querySelector('h3') && item.querySelector('h3').innerText) ? item.querySelector('h3').innerText.trim() : '';
+    const equipeTituloCan = canonicalizeTeamName(rawTitulo) || rawTitulo || 'Montagem';
+    const resposta = item.querySelector('.resposta_dados');
+    const left = item.querySelector('.team-left');
+
+    if (left && !left.querySelector('.team-icon')) {
+      const span = document.createElement('span');
+      span.className = 'team-icon';
+      const meta = teamMeta[equipeTituloCan];
+      if (meta) {
+        span.innerHTML = meta.icon;
+        span.style.background = meta.color;
+      } else {
+        span.textContent = (equipeTituloCan[0] || '').toUpperCase();
+        span.style.background = '#6b7280';
+      }
+      left.insertBefore(span, left.firstChild);
+    }
+
+    const lista = grupos[equipeTituloCan] || [];
+    if (lista.length === 0) {
+      resposta.innerHTML = `<p style="color:var(--muted)">Nenhum colaborador encontrado para ${rawTitulo || equipeTituloCan}.</p>`;
+      return;
+    }
+
+    // ---------- AQUI: gera HTML com numeração por item (1,2,3...) ----------
+    const html = lista.map((colab, idx) => {
+      const num = idx + 1; // numeração por accordion (reinicia em 1)
+      const dt = colab.entrada ? (excelDateToJSDate(colab.entrada) || new Date(colab.entrada)) : null;
+      const dataTxt = isValidDate(dt) ? dt.toLocaleDateString('pt-BR') : 'N/A';
+      const status = colab.status || '';
+      const statusColor = colab.statusColor || '';
+      let extraStyle = '', textColor = '';
+      if (statusColor) {
+        extraStyle = `background:${statusColor}; padding:6px; border-radius:8px; display:block;`;
+        textColor = 'color:#000;';
+      }
+      const cargoTxt = status ? '' : ` • ${colab.cargo || '—'}`;
+
+      return `
+      <p class="colab-item" style="display:flex; align-items:center; gap:10px; margin:6px 0; line-height:1.3; ${extraStyle} ${textColor}">
+        <span class="colab-num" aria-hidden="true">${num}</span>
+        <span style="flex:1; min-width:0;">
+          <strong>${colab.nome}</strong> • ${colab.matricula || 'S/N'}${cargoTxt} • ${dataTxt}
+          ${status ? ` •<em style="opacity:.95; ${textColor}">${status}</em>` : ''}
+        </span>
+      </p>`;
+    }).join('');
+    resposta.innerHTML = html;
+  });
+}
+
+/* ================= gráficos ================= */
+let chartEquipe, chartNivel, chartTempo, chartStatus;
+const hoje = new Date();
+
+function gerarGraficos(colaboradores){
+  const equipesCount = {};
+  const niveisCount = {};
+  const tempoFaixa = { "Até 1 ano":0, "1-3 anos":0, "3+ anos":0 };
+  const statusCount = {};
+
+  colaboradores.forEach(c=>{
+    const equipe = c.equipeHint || equipeFromCargo(c.cargo) || 'Montagem';
+    equipesCount[equipe] = (equipesCount[equipe]||0) + 1;
+
+    const nivel = c.cargo || '—';
+    niveisCount[nivel] = (niveisCount[nivel]||0) + 1;
+
+    if (c.entrada){
+      const dt = excelDateToJSDate(c.entrada) || new Date(c.entrada);
+      if (isValidDate(dt)){
+        const anos = (hoje - dt) / (1000*60*60*24*365);
+        if (anos < 1) tempoFaixa["Até 1 ano"]++;
+        else if (anos < 3) tempoFaixa["1-3 anos"]++;
+        else tempoFaixa["3+ anos"]++;
+      }
+    }
+
+    const st = (c.status || 'ativo').toString();
+    const key = st.normalize ? st.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,'') : st.toLowerCase();
+    statusCount[key] = (statusCount[key]||0)+1;
+  });
+
+  if (chartEquipe) chartEquipe.destroy();
+  chartEquipe = new Chart(document.getElementById('graficoEquipe'), {
+    type:'doughnut',
+    data:{ labels:Object.keys(equipesCount), datasets:[{ data:Object.values(equipesCount), backgroundColor: chartPalette.slice(0,Object.keys(equipesCount).length), borderColor: chartGrid, borderWidth:1 }]},
+    options:{ responsive:true, plugins:{ legend:{ position:'bottom', labels:{ color:chartTextColor } } } }
   });
 
   if (chartNivel) chartNivel.destroy();
-
   chartNivel = new Chart(document.getElementById('graficoNivel'), {
-    type: 'bar',
-    data: {
-      labels: Object.keys(niveis),
-      datasets: [{
-        label: 'Colaboradores',
-        data: Object.values(niveis),
-        backgroundColor: '#3B82F6'
-      }]
-    },
-    options: {
-      responsive: true,
-      scales: {
-        y: { beginAtZero: true, ticks: { color: '#333' }, grid: { color: '#eee' } },
-        x: { ticks: { color: '#333' }, grid: { display: false } }
-      },
-      plugins: { legend: { display: false } }
+    type:'bar',
+    data:{ labels:Object.keys(niveisCount), datasets:[{ label:'Colaboradores', data:Object.values(niveisCount), backgroundColor:'#4f46e5', borderColor: chartGrid, borderWidth:1 }]},
+    options:{ responsive:true, scales:{ x:{ ticks:{ color:chartTextColor }, grid:{ display:false } }, y:{ ticks:{ color:chartTextColor }, grid:{ color:chartGrid }, beginAtZero:true } }, plugins:{ legend:{ display:false } } }
+  });
+
+  if (chartTempo) chartTempo.destroy();
+  chartTempo = new Chart(document.getElementById('graficoTempo'), {
+    type:'pie',
+    data:{ labels:Object.keys(tempoFaixa), datasets:[{ data:Object.values(tempoFaixa), backgroundColor:['#059669','#D97706','#DC2626'], borderColor: chartGrid, borderWidth:1 }]},
+    options:{ responsive:true, plugins:{ legend:{ position:'bottom', labels:{ color:chartTextColor } } } }
+  });
+
+  if (chartStatus) chartStatus.destroy();
+  chartStatus = new Chart(document.getElementById('graficoStatus'), {
+    type:'doughnut',
+    data:{ labels:Object.keys(statusCount), datasets:[{ data:Object.values(statusCount), backgroundColor:['#059669','#6D28D9','#9CA3AF','#06B6D4','#D97706'], borderColor: chartGrid, borderWidth:1 }]},
+    options:{ responsive:true, plugins:{ legend:{ position:'bottom', labels:{ color:chartTextColor } } } }
+  });
+}
+
+/* ================= export helpers (simples) ================= */
+function downloadDataUrl(dataUrl, filename){ const a=document.createElement('a'); a.href=dataUrl; a.download=filename; document.body.appendChild(a); a.click(); a.remove(); }
+function buildLegendEntries(chart){ if (!chart) return []; const type = chart.config.type; const out = []; if (type === 'doughnut' || type === 'pie'){ const labels = chart.data.labels || []; const colors = chart.data.datasets && chart.data.datasets[0] && chart.data.datasets[0].backgroundColor || []; for(let i=0;i<labels.length;i++) out.push({label:labels[i]||'', color: Array.isArray(colors)?colors[i]:colors}); return out; } chart.data.datasets.forEach(ds=> out.push({label: ds.label || 'Série', color: Array.isArray(ds.backgroundColor)? ds.backgroundColor[0] : ds.backgroundColor})); return out; }
+async function exportChartWithTitleLegend(chartCanvas, titleText, filename){ const chart = Chart.getChart(chartCanvas); if (!chart){ try{ downloadDataUrl(chartCanvas.toDataURL('image/png'), filename); }catch(e){ alert('erro export'); } return; } const dpr = window.devicePixelRatio || 1; const sourceW = chartCanvas.width, sourceH = chartCanvas.height; const titleH = Math.round(56*dpr), legendRowH = Math.round(28*dpr); const legend = buildLegendEntries(chart); const cols = Math.max(1, Math.min(legend.length,4)); const rows = Math.ceil(legend.length/cols); const legendH = rows*legendRowH + Math.round(12*dpr); const outW = sourceW, outH = titleH + legendH + sourceH + Math.round(24*dpr); const c = document.createElement('canvas'); c.width = outW; c.height = outH; const ctx = c.getContext('2d'); ctx.fillStyle = '#0b0c0f'; ctx.fillRect(0,0,outW,outH); ctx.font = `700 ${Math.round(18*dpr)}px Inter, Arial`; ctx.fillStyle = '#fff'; ctx.fillText(titleText||'', Math.round(20*dpr), Math.round(titleH/2)); const legendStartY = titleH + Math.round(10*dpr); const boxSize = Math.round(12*dpr); const gapX = Math.round(16*dpr); const startX = Math.round(20*dpr); ctx.font = `${Math.round(12*dpr)}px Inter, Arial`; const colWidths = []; for(let i=0;i<cols;i++) colWidths[i]=0; legend.forEach((le, idx)=>{ const col = idx%cols; const metrics = ctx.measureText(le.label||''); const w = metrics.width + boxSize + Math.round(8*dpr); if (w > (colWidths[col] || 0)) colWidths[col] = w; }); const colX = []; colX[0] = startX; for(let ci=1; ci<cols; ci++) colX[ci] = colX[ci-1] + (colWidths[ci-1] || 120) + gapX; legend.forEach((le, idx)=>{ const ci = idx % cols; const ri = Math.floor(idx / cols); const lx = colX[ci]; const ly = legendStartY + ri * legendRowH + Math.round(legendRowH/2); ctx.fillStyle = le.color || '#999'; ctx.fillRect(lx, ly - Math.round(boxSize/2), boxSize, boxSize); ctx.fillStyle = '#e6f2ea'; ctx.fillText(le.label || '', lx + boxSize + Math.round(8*dpr), ly); }); const img = new Image(); img.onload = ()=>{ ctx.drawImage(img, 0, titleH + legendH + Math.round(12*dpr), sourceW, sourceH); try{ downloadDataUrl(c.toDataURL('image/png'), filename); }catch(e){ console.error(e); } }; img.src = chartCanvas.toDataURL('image/png'); }
+function bindExportButtons(){ document.querySelectorAll('.export-btn').forEach(btn=>{ if (btn._bound) return; btn._bound = true; btn.addEventListener('click', ()=>{ const target = btn.getAttribute('data-target'); const card = btn.closest('.card'); const title = card ? (card.querySelector('h3') ? card.querySelector('h3').innerText.trim() : target) : target; exportChartWithTitleLegend(document.getElementById(target), title, `${title.replace(/\s+/g,'_')}.png`); }); }); }
+
+/* ================= main loader ================= */
+async function carregarETDistribuir(){
+  let colaboradores = [];
+  const loaded = await tentarCarregarPlanilhaRows();
+  let rows = null, ws = null, colorLegend = null;
+  if (loaded && loaded.rows){
+    rows = loaded.rows;
+    ws = loaded.ws;
+    // build color legend from sheet
+    colorLegend = buildColorLegendFromSheet(ws);
+    colaboradores = parseRowsByBlocks(rows, ws, colorLegend);
+    if (colaboradores.length === 0){
+      try{
+        const res = await fetch(PLANILHA_EFETIVO);
+        const ab = await res.arrayBuffer();
+        const wb = XLSX.read(ab, { type:'array' });
+        const ws2 = wb.Sheets[wb.SheetNames[0]];
+        const objs = XLSX.utils.sheet_to_json(ws2, { defval: '' });
+        for (const o of objs){
+          const nome = o.Nome || o.NOME || o.nome || o.Colaborador || '';
+          if (!nome) continue;
+          colaboradores.push({
+            nome: String(nome).trim(),
+            matricula: o['Matrícula'] || o.MATRICULA || o.matricula || '',
+            cargo: o.Cargo || o.cargo || o.Nível || o.nivel || '',
+            entrada: toSafeISOString(o['Data Admissão'] || o.DATA_ADMISSAO || o.entrada || ''),
+            status: o.Status || o.status || '',
+            statusColor: null,
+            equipeHint: equipeFromCargo(o.Cargo || o.cargo || o.Nível || o.nivel)
+          });
+        }
+      }catch(e){ console.warn('fallback object parse err', e); }
+    }
+  }
+
+  if (!colaboradores || colaboradores.length === 0){
+    const fromJson = await carregarDeJSONs();
+    colaboradores = fromJson.map(c => ({ ...c, equipeHint: equipeFromCargo(c.cargo) || c.equipeHint }));
+  }
+
+  const byKey = new Map();
+  function normalizeName(n){
+    return String(n||'').trim().toLowerCase().replace(/\s+/g,' ');
+  }
+  for (const c of colaboradores){
+    const hasMat = c.matricula && String(c.matricula).trim() !== '';
+    const key = hasMat ? `M:${String(c.matricula).trim()}` : `N:${normalizeName(c.nome)}`;
+
+    if (!byKey.has(key)){
+      byKey.set(key, c);
+      continue;
+    }
+
+    const existing = byKey.get(key);
+    const prefer = (a,b) => {
+      if ((a.equipeHint && !b.equipeHint)) return a;
+      if ((b.equipeHint && !a.equipeHint)) return b;
+      const aMat = a.matricula && String(a.matricula).trim() !== '';
+      const bMat = b.matricula && String(b.matricula).trim() !== '';
+      if (aMat && !bMat) return a;
+      if (bMat && !aMat) return b;
+      const aEnt = a.entrada && a.entrada !== '';
+      const bEnt = b.entrada && b.entrada !== '';
+      if (aEnt && !bEnt) return a;
+      if (bEnt && !aEnt) return b;
+      return a;
+    };
+
+    const chosen = prefer(existing, c);
+    byKey.set(key, chosen);
+  }
+
+  const finalList = Array.from(byKey.values());
+
+  window.efetivoCompleto = finalList;
+  console.log('Total colaboradores finais:', finalList.length);
+
+  atualizarAccordionsDistribuicao(finalList);
+  gerarGraficos(finalList);
+  bindExportButtons();
+
+  const indicator = document.getElementById('dataSourceIndicator');
+  if (indicator){
+    indicator.className = rows && rows.length ? 'data-source-indicator planilha' : 'data-source-indicator json';
+    indicator.innerHTML = rows && rows.length ? '<i class="fas fa-file-excel"></i><span>Dados da Planilha Excel</span>' : '<i class="fas fa-file-code"></i><span>Dados dos Arquivos JSON</span>';
+  }
+
+  // Initialize search with data
+if (!searchManager) {
+  searchManager = new SearchManager();
+}
+searchManager.setData(finalList);
+}
+
+/* ================= init ================= */
+document.addEventListener('DOMContentLoaded', ()=>{
+  document.querySelectorAll('.distribuicao').forEach(d=>{
+    d.addEventListener('click', (ev)=>{
+      if (ev.target.closest('.resposta_dados')) return;
+      const s = window.getSelection();
+      if (s && s.toString().length>0) return;
+      
+      d.classList.toggle('active');
+    });
+  });
+
+  carregarETDistribuir();
+});
+
+/* ================ lazy-load xlsx ================ */
+async function ensureXLSX(){
+  if (window.XLSX) return;
+  return new Promise((resolve,reject)=>{
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+    s.async = true; s.defer = true;
+    s.onload = ()=>{ console.log('XLSX loaded'); resolve(); };
+    s.onerror = (e)=> reject(e);
+    document.head.appendChild(s);
+    setTimeout(()=>{ if (!window.XLSX) reject(new Error('XLSX timeout')); }, 10000);
+  });
+}
+
+// SEARCH FUNCTIONALITY
+class SearchManager {
+  constructor() {
+  this.searchInput = document.getElementById('searchInput');
+  this.searchResults = document.getElementById('searchResults');
+  this.searchClear = document.getElementById('searchClear');
+  this.searchStats = document.getElementById('searchStats');
+  this.colaboradores = [];
+  this.currentSearchQuery = '';
+  this.autoSelectTimeout = null; // Novo timeout
+  this.autoSelectDelay = 3000; // 3 segundos de espera
+  this.init();
+}
+
+  init() {
+  this.searchInput.addEventListener('input', (e) => {
+    // Se começou a digitar algo novo, limpar estado anterior
+    if (e.target.value.length === 1 || e.target.value === '') {
+      this.resetAccordions();
+      this.clearHighlights();
+    }
+    this.handleSearch(e);
+  });
+  
+  this.searchInput.addEventListener('keydown', this.handleSearch.bind(this));
+  this.searchClear.addEventListener('click', this.clearSearch.bind(this));
+  
+  // Close results when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.search-container')) {
+      this.hideResults();
     }
   });
-} 
+}
 
-// ⬇️ Checkbox: impede desmarcar todos + atualiza apenas gráfico por nível
-document.querySelectorAll('#filtroNiveis input[type="checkbox"]').forEach(checkbox => {
-  checkbox.addEventListener('change', () => {
-    // Se foi marcado, desmarca os outros
-    if (checkbox.checked) {
-      document.querySelectorAll('#filtroNiveis input[type="checkbox"]').forEach(outro => {
-        if (outro !== checkbox) outro.checked = false;
-      });
+  setData(colaboradores) {
+    this.colaboradores = colaboradores;
+  }
+
+  handleSearch(e) {
+  const query = e.target.value.trim();
+  
+  // Limpar timeout anterior se existir
+  if (this.autoSelectTimeout) {
+    clearTimeout(this.autoSelectTimeout);
+    this.autoSelectTimeout = null;
+  }
+  
+  // Sempre limpar estado anterior quando começar nova busca
+  if (query !== this.currentSearchQuery) {
+    this.resetAccordions();
+    this.clearHighlights();
+  }
+  
+  this.currentSearchQuery = query;
+  
+  if (query) {
+    this.searchClear.classList.add('active');
+  } else {
+    this.searchClear.classList.remove('active');
+    this.hideResults();
+    this.resetAccordions();
+    this.clearHighlights();
+    return;
+  }
+
+  if (query.length < 2) {
+    this.resetAccordions();
+    return;
+  }
+
+  const results = this.search(query);
+  this.displayResults(results, query);
+  this.showStats(results.length);
+  
+  // Enter imediato
+  if (e.key === 'Enter' && results.length === 1) {
+    this.selectCollaborator(results[0].nome, this.determineActualTeam(results[0]));
+    return;
+  }
+  
+  // Auto-seleção após timeout (apenas se não for evento de keydown/Enter)
+  if (e.type === 'input' && results.length === 1) {
+    this.autoSelectTimeout = setTimeout(() => {
+      // Verificar se ainda é o mesmo query e se ainda tem apenas 1 resultado
+      if (this.currentSearchQuery === query && this.search(query).length === 1) {
+        this.selectCollaborator(results[0].nome, this.determineActualTeam(results[0]));
+      }
+    }, this.autoSelectDelay);
+  }
+}
+
+  search(query) {
+    const q = query.toLowerCase();
+    return this.colaboradores.filter(colab => 
+      colab.nome.toLowerCase().includes(q) ||
+      colab.cargo.toLowerCase().includes(q) ||
+      (colab.equipeHint && colab.equipeHint.toLowerCase().includes(q)) ||
+      (colab.matricula && colab.matricula.toString().includes(q))
+    ).slice(0, 8);
+  }
+
+  displayResults(results, query) {
+  if (results.length === 0) {
+    this.searchResults.innerHTML = `
+      <div class="no-results">
+        <i class="fas fa-search"></i>
+        <div>Nenhum resultado encontrado</div>
+      </div>`;
+  } else {
+    this.searchResults.innerHTML = results.map(colab => {
+      const highlightedName = this.highlightText(colab.nome, query);
+      const avatar = colab.nome.split(' ').map(n => n[0]).join('').substring(0, 2);
+      
+      // Mostrar a equipe real onde o colaborador está
+      const equipeReal = this.determineActualTeam(colab);
+      
+      return `
+        <div class="search-result-item" 
+             data-matricula="${colab.matricula}"
+             data-nome="${colab.nome}"
+             data-equipe="${equipeReal}"
+             onclick="searchManager.selectCollaborator('${colab.nome}', '${equipeReal}')">
+          <div class="result-avatar">${avatar}</div>
+          <div class="result-info">
+            <div class="result-name">${highlightedName}</div>
+            <div class="result-details">${colab.cargo} • ${equipeReal}</div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+  
+  this.showResults();
+}
+
+  highlightText(text, query) {
+    const regex = new RegExp(`(${this.escapeRegex(query)})`, 'gi');
+    return text.replace(regex, '<span class="result-highlight">$1</span>');
+  }
+
+  escapeRegex(string) {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
+  showResults() {
+    this.searchResults.classList.add('active');
+  }
+
+  hideResults() {
+    this.searchResults.classList.remove('active');
+  }
+
+  showStats(count) {
+    this.searchStats.textContent = `${count} resultado${count !== 1 ? 's' : ''}`;
+    this.searchStats.classList.add('active');
+  }
+
+  selectCollaborator(nomeColaborador, equipeColaborador) {
+    if (this.autoSelectTimeout) {
+    clearTimeout(this.autoSelectTimeout);
+    this.autoSelectTimeout = null;
+  }
+
+  this.hideResults();
+  
+  // PRIMEIRO: Limpar completamente qualquer estado anterior
+  this.resetAccordions();
+  this.clearHighlights();
+  
+  // SEGUNDO: Fechar todos os accordions
+  document.querySelectorAll('.distribuicao').forEach(accordion => {
+    accordion.classList.remove('active');
+  });
+  
+  // Encontrar o colaborador completo para determinar onde ele realmente está
+  const colaboradorCompleto = this.colaboradores.find(c => 
+    c.nome.toLowerCase().includes(nomeColaborador.toLowerCase())
+  );
+  
+  if (colaboradorCompleto) {
+    const equipeReal = this.determineActualTeam(colaboradorCompleto);
+    const targetAccordion = this.findAccordionByTeam(equipeReal);
+    
+    if (targetAccordion) {
+      targetAccordion.classList.add('active');
+      
+      setTimeout(() => {
+        this.filterAndHighlightCollaborator(targetAccordion, nomeColaborador);
+        this.scrollToAccordion(targetAccordion);
+      }, 300);
+    }
+  }
+}
+
+// Adicionar no SearchManager
+normalizeStatusForRouting(s) {
+  if (!s) return '';
+  return String(s).toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'').trim();
+}
+
+normalizeForMatch(s) {
+  if (!s) return '';
+  return String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim();
+}
+
+  findAccordionByTeam(equipeNome) {
+  const accordions = document.querySelectorAll('.distribuicao');
+  
+  // Primeiro, tentar match exato
+  for (let accordion of accordions) {
+    const titleElement = accordion.querySelector('h3');
+    if (titleElement) {
+      const title = titleElement.textContent.trim();
+      if (this.normalizeTeamName(title) === this.normalizeTeamName(equipeNome)) {
+        return accordion;
+      }
+    }
+  }
+  
+  // Se não encontrou match exato, tentar por lógica de roteamento
+  // (importante para capturar colaboradores que foram roteados para "Apoio")
+  const normalizedEquipe = this.normalizeTeamName(equipeNome);
+  
+  // Se a equipe original era uma das principais mas foi roteada para Apoio,
+  // verificar se existe accordion de Apoio
+  if (normalizedEquipe && ['montagem', 'soldador', 'andaimes', 'cefap', 'meiooficial', 'desempeno', 'lideranca'].includes(normalizedEquipe)) {
+    // Primeiro verificar se tem accordion específico da equipe
+    for (let accordion of accordions) {
+      const titleElement = accordion.querySelector('h3');
+      if (titleElement) {
+        const title = this.normalizeTeamName(titleElement.textContent.trim());
+        if (title === normalizedEquipe) {
+          return accordion;
+        }
+      }
+    }
+  }
+  
+  // Se chegou até aqui e não encontrou, procurar accordion "Apoio"
+  for (let accordion of accordions) {
+    const titleElement = accordion.querySelector('h3');
+    if (titleElement) {
+      const title = this.normalizeTeamName(titleElement.textContent.trim());
+      if (title === 'apoio') {
+        return accordion;
+      }
+    }
+  }
+    return null;
+  }
+
+  // Adicionar essas funções dentro da classe SearchManager
+
+determineActualTeam(colaborador) {
+  // Reproduzir a mesma lógica usada em atualizarAccordionsDistribuicao
+  const stNorm = this.normalizeStatusForRouting(colaborador.status);
+  const cargoNorm = this.normalizeForMatch(colaborador.cargo);
+
+  // Se status ou cargo indicam grupo de apoio, vai para Apoio
+  if (
+    (stNorm && (stNorm.includes('EMPRESTADO') || stNorm.includes('PROCESSAMENTO') || stNorm.includes('EMPRESTADOPROCESSAMENTO') || stNorm.includes('INSS') || stNorm.includes('ESTAGIO') || stNorm.includes('ESTAGIARIO'))) ||
+    (cargoNorm && (cargoNorm.indexOf('estagiario') !== -1 || cargoNorm.indexOf('estagio') !== -1))
+  ){
+    return 'Apoio';
+  } else {
+    const rawEquipe = colaborador.equipeHint || this.equipeFromCargo(colaborador.cargo) || 'Montagem';
+    return this.canonicalizeTeamName(rawEquipe) || 'Montagem';
+  }
+}
+
+normalizeStatusForRouting(s) {
+  if (!s) return '';
+  return String(s).toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'').trim();
+}
+
+normalizeForMatch(s) {
+  if (!s) return '';
+  return String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim();
+}
+
+equipeFromCargo(cargo) {
+  if (!cargo) return null;
+  const s = String(cargo).toLowerCase();
+  if (/supervis|encarregad|encarregado|dimensional|inspetor/i.test(s)) return 'Liderança';
+  if (/dimensional/i.test(s)) return 'Dimensional';
+  if (/soldador|solda/i.test(s)) return 'Soldador';
+  if (/andaime|andaimes/i.test(s)) return 'Andaimes';
+  if (/montador|montagem/i.test(s)) return 'Montagem';
+  if (/meio\s*oficial/i.test(s)) return 'Meio Oficial';
+  if (/desempen/i.test(s)) return 'Desempeno';
+  if (/cefap/i.test(s)) return 'CEFAP';
+  return null;
+}
+
+canonicalizeTeamName(raw) {
+  if (!raw) return null;
+  let s = String(raw).trim().toLowerCase();
+  s = s.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  s = s.replace(/[^a-z0-9]+/g, ' ').trim();
+  if (!s) return null;
+  
+  const canonicalMap = {
+    'montagem':'Montagem',
+    'montador':'Montagem',
+    'soldador':'Soldador',
+    'soldadores':'Soldador',
+    'solda':'Soldador',
+    'andaimes':'Andaimes',
+    'andaime':'Andaimes',
+    'desempeno':'Desempeno',
+    'desempenho':'Desempeno',
+    'desmpeno':'Desempeno',
+    'desempenador':'Desempeno',
+    'meiooficial':'Meio Oficial',
+    'meio_oficial':'Meio Oficial',
+    'meio oficial':'Meio Oficial',
+    'cefap':'CEFAP',
+    'lideranca':'Liderança',
+    'liderança':'Liderança',
+    'lideres':'Liderança',
+    'liderancas':'Liderança',
+    'dimensional':'Dimensional',
+    'apoio':'Apoio'
+  };
+  
+  if (canonicalMap[s]) return canonicalMap[s];
+  for (const k of Object.keys(canonicalMap)){
+    if (s.includes(k)) return canonicalMap[k];
+  }
+  return s.split(' ').map(w => w.charAt(0).toUpperCase()+w.slice(1)).join(' ');
+}
+
+  normalizeTeamName(name) {
+    if (!name) return '';
+    return name.toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/\s+/g, '');
+  }
+
+  filterAndHighlightCollaborator(accordion, nomeColaborador) {
+  const respostaDiv = accordion.querySelector('.resposta_dados');
+  if (!respostaDiv) return;
+  
+  const allParagraphs = respostaDiv.querySelectorAll('p');
+  let foundCollaborator = false;
+  
+  allParagraphs.forEach(p => {
+    const text = p.textContent;
+    const isTargetCollaborator = text.toLowerCase().includes(nomeColaborador.toLowerCase());
+    
+    if (isTargetCollaborator) {
+      p.style.display = 'block';
+      p.classList.add('colaborador-destacado-busca');
+      p.innerHTML = this.highlightTextInCollaborator(p.innerHTML, nomeColaborador);
+      foundCollaborator = true;
     } else {
-      // Impede desmarcar todos (mantém pelo menos um marcado)
-      checkbox.checked = true;
+      p.style.display = 'none';
     }
-
-    aplicarFiltroNiveis(); // ← atualiza gráfico por nível
   });
-});
+  
+  if (!foundCollaborator) {
+    allParagraphs.forEach(p => {
+      p.style.display = 'block';
+      p.classList.remove('colaborador-destacado-busca');
+      
+      // Preservar cores de status ao reexibir
+      const hasStatusColor = p.style.backgroundColor && 
+                            p.style.backgroundColor !== '' && 
+                            p.style.backgroundColor !== 'transparent';
+      
+      if (!hasStatusColor) {
+        // Só limpar se não tiver cor de status
+        this.removeAllHighlights(p);
+      } else {
+        // Se tem cor de status, só remover highlights do texto
+        const highlights = p.querySelectorAll('.nome-highlight');
+        highlights.forEach(highlight => {
+          highlight.outerHTML = highlight.innerHTML;
+        });
+      }
+    });
+  }
+}
 
-// ⬇️ Inicialização
-carregarEfetivo();
+  highlightTextInCollaborator(html, query) {
+    let cleanHtml = html.replace(/<span class="nome-highlight">(.*?)<\/span>/gi, '$1');
+    
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = cleanHtml;
+    
+    const strongElements = tempDiv.querySelectorAll('strong');
+    
+    strongElements.forEach(strong => {
+      const text = strong.textContent;
+      if (text.toLowerCase().includes(query.toLowerCase())) {
+        const regex = new RegExp(`(${this.escapeRegex(query)})`, 'gi');
+        strong.innerHTML = strong.textContent.replace(regex, '<span class="nome-highlight">$1</span>');
+      }
+    });
+    
+    return tempDiv.innerHTML;
+  }
 
-const distribuicoes = document.querySelectorAll(".distribuicao");
+  scrollToAccordion(accordion) {
+    accordion.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center'
+    });
+  }
 
-distribuicoes.forEach(distribuicao => {
-  distribuicao.addEventListener("click", (event) => {
-    // Não abrir/fechar se clicou dentro do conteúdo
-    if (event.target.closest('.resposta_dados')) {
-      return;
+  clearSearch() {
+    if (this.autoSelectTimeout) {
+    clearTimeout(this.autoSelectTimeout);
+    this.autoSelectTimeout = null;
+  }
+
+    this.searchInput.value = '';
+    this.searchClear.classList.remove('active');
+    this.hideResults();
+    this.searchStats.classList.remove('active');
+    this.clearHighlights();
+    this.resetAccordions();
+    this.currentSearchQuery = '';
+  }
+
+  resetAccordions() {
+  document.querySelectorAll('.resposta_dados p').forEach(p => {
+    p.style.display = 'block';
+    p.classList.remove('colaborador-destacado-busca');
+    
+    this.removeAllHighlights(p);
+    
+    const hasStatusColor = p.style.backgroundColor && 
+                          p.style.backgroundColor !== '' && 
+                          p.style.backgroundColor !== 'transparent' &&
+                          p.style.backgroundColor !== 'rgba(0, 0, 0, 0)';
+    
+    // Preservar estilos de status (background, padding, borderRadius)
+    if (!hasStatusColor) {
+      p.style.background = '';
+      p.style.padding = '';
+      p.style.borderRadius = ''; // Só limpar se não tiver cor de status
     }
-
-    // Detecta se há texto selecionado (independente de onde)
-    const selection = window.getSelection();
-    if (selection && selection.toString().length > 0) {
-      // Se texto está selecionado, não toggleia para evitar fechar durante seleção
-      return;
-    }
-
-    distribuicao.classList.toggle("active");
+    
+    // Limpar apenas estilos específicos da busca
+    p.style.border = '';
+    p.style.animation = '';
+    p.style.marginBottom = '';
+    p.style.transform = '';
+    p.style.boxShadow = '';
   });
-});
+}
 
-// Menu hamburger
-const toggleMenuBtn = document.getElementById("toggleMenu");
-const menuList = document.getElementById("menuList");
+  removeAllHighlights(element) {
+    const highlights = element.querySelectorAll('.nome-highlight, .result-highlight');
+    highlights.forEach(highlight => {
+      highlight.outerHTML = highlight.innerHTML;
+    });
+    
+    element.innerHTML = element.innerHTML
+      .replace(/<span class="nome-highlight">(.*?)<\/span>/gi, '$1')
+      .replace(/<span class="result-highlight">(.*?)<\/span>/gi, '$1');
+  }
 
-toggleMenuBtn.addEventListener("click", () => {
-  menuList.classList.toggle("active");
-});
+  clearHighlights() {
+  // Remover highlights de nome
+  document.querySelectorAll('.nome-highlight').forEach(el => {
+    el.outerHTML = el.innerHTML;
+  });
+  
+  // Remover highlights de resultado
+  document.querySelectorAll('.result-highlight').forEach(el => {
+    el.outerHTML = el.innerHTML;
+  });
+  
+  // Remover classes de destaque de busca apenas
+  document.querySelectorAll('.colaborador-destacado-busca').forEach(el => {
+    el.classList.remove('colaborador-destacado-busca');
+  });
+  
+  // Limpar spans de highlight sem afetar outros estilos
+  document.querySelectorAll('.resposta_dados p').forEach(p => {
+    if (p.innerHTML.includes('nome-highlight') || p.innerHTML.includes('result-highlight')) {
+      p.innerHTML = p.innerHTML
+        .replace(/<span class="nome-highlight">(.*?)<\/span>/gi, '$1')
+        .replace(/<span class="result-highlight">(.*?)<\/span>/gi, '$1');
+    }
+  });
+}
+}
+
+// Initialize search when data is loaded
+let searchManager;
 
 (function(){
-    if (localStorage.getItem('dark') === '1') {
-      document.documentElement.classList.add('dark');
-    }
-  })();
-  window.addEventListener('storage', e => {
-    if (e.key === 'dark') {
-      document.documentElement.classList.toggle('dark', e.newValue === '1');
-    }
-  });
+  /* ========== Config localStorage keys ========== */
+  const LS = {
+    total: 'efetivo:lastTotal',
+    diurno: 'efetivo:lastDiurno',
+    noturno: 'efetivo:lastNoturno',
+    updated: 'efetivo:lastUpdated' // timestamp common (kept for backward compat)
+  };
 
-  </script>
+  /* ========== Inject CSS (keeps visual consistent & equal sizes) ========== */
+  const STYLE_ID = 'efetivo-stats-style-v2';
+  if (!document.getElementById(STYLE_ID)) {
+    const style = document.createElement('style');
+    style.id = STYLE_ID;
+    style.textContent = `
+      /* Cards layout */
+      #stats-cards-container { max-width:1200px; margin: 10px 0 22px; }
+      #stats-cards-row { display:flex; gap:18px; flex-wrap:wrap; align-items:stretch; }
+      .stat-card-mini {
+        --card-bg: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+        background: var(--card-bg);
+        border-radius: 12px;
+        padding: 14px;
+        border:1px solid rgba(255,255,255,0.04);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.55);
+        display:flex;
+        flex-direction:column;
+        justify-content:space-between;
+        min-width:260px;
+        flex:1;
+        min-height:122px; /* equal height baseline */
+      }
+      .stat-head { display:flex; justify-content:space-between; align-items:center; gap:10px; }
+      .stat-title { font-weight:700; font-size:13px; color:var(--muted); margin:0; }
+      .stat-body { display:flex; gap:12px; align-items:center; margin-top:8px; }
+      .stat-square {
+        width:52px; height:52px; border-radius:10px;
+        display:flex; align-items:center; justify-content:center;
+        font-size:20px; color:var(--text);
+        box-shadow: inset 0 -6px 12px rgba(255,255,255,0.02), 0 8px 18px rgba(0,0,0,0.45);
+      }
+      /* Subtle gradients for each square */
+      /* ===== Gradientes para o quadrado do ícone (substitui .stat-icon / .stat-square) ===== */
+.stat-icon, .stat-square {
+  width:56px; height:56px; border-radius:12px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:20px; color:#fff; /* ícone branco por padrão */
+  box-shadow: inset 0 -6px 12px rgba(255,255,255,0.02), 0 8px 18px rgba(0,0,0,0.45);
+  border: 1px solid rgba(255,255,255,0.03);
+  backdrop-filter: blur(6px) saturate(120%);
+  background-color: rgba(255,255,255,0.02); /* fallback escuro */
+  transition: transform .45s cubic-bezier(.16,.9,.32,1), box-shadow .25s ease;
+}
+
+.stat-icon.total,
+.stat-square.total {
+  background-image: linear-gradient(135deg,
+    var(--accent) 0%,
+    rgba(79, 192, 153, 0.18) 40%,
+    var(--secondary) 100%);
+  background-size: 200% 200%;
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.04);
+  box-shadow: inset 0 -6px 12px rgba(255,255,255,0.02), 0 10px 30px rgba(0,0,0,0.55);
+}
+
+/* Diurno: verde suave -> turquesa */
+.stat-icon.diurno,
+.stat-square.diurno {
+  /* uso da sua variável --accent + tom turquesa + leve verde para profundidade */
+  background-image: linear-gradient(135deg,
+    var(--accent) 0%,
+    rgba(6,182,212,0.18) 45%,
+    rgba(16,185,129,0.10) 100%);
+  background-size: 200% 200%;
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.04);
+  box-shadow: inset 0 -6px 12px rgba(255,255,255,0.02), 0 10px 30px rgba(0,0,0,0.55);
+}
+
+.stat-icon.noturno,
+.stat-square.noturno {
+  background-image: linear-gradient(135deg,
+    rgba(124,58,237,0.20) 0%,
+    rgba(99,102,241,0.12) 45%,
+    rgba(37,99,235,0.10) 100%);
+  background-size: 200% 200%;
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.04);
+  box-shadow: inset 0 -6px 12px rgba(255,255,255,0.02), 0 10px 30px rgba(0,0,0,0.55);
+}
+
+/* Leve animação do gradiente (opcional) */
+@keyframes efGradientShift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.stat-icon.animate, .stat-square.animate {
+  animation: efGradientShift 6.5s ease infinite;
+}
+
+/* Glow sutil no ícone para melhorar contraste */
+.stat-icon i, .stat-square i {
+  filter: drop-shadow(0 4px 14px rgba(0,0,0,0.6));
+  color: #fff;
+}
+
+/* Pequeno efeito hover (opcional) */
+.stat-card-mini:hover .stat-icon, .stat-card-mini:hover .stat-square,
+.stat-card:hover .stat-icon, .stat-card:hover .stat-square {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 18px 44px rgba(0,0,0,0.6);
+}
+
+      .stat-value { font-weight:800; font-size:30px; line-height:1; background:var(--text-grad); -webkit-background-clip:text; color:transparent; }
+      .stat-sub { color:var(--muted); font-size:12px; }
+      .stat-bottom { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:8px; color:var(--muted-2); font-size:12px; }
+      .stat-bottom small{ opacity:.9; }
+      /* make the timestamp subdued but visible */
+      .stat-updated { color:var(--muted-2); font-size:11px; }
+
+      /* responsive */
+      @media (max-width:900px) {
+        .stat-card-mini { min-width: 100%; }
+        #stats-cards-row { flex-direction:column; gap:12px; }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  /* ========== Ensure container + cards exist in required order ========== */
+  function ensureCards() {
+    let container = document.getElementById('stats-cards-container');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'stats-cards-container';
+      // prefer existing .container in page, else body
+      const root = document.querySelector('.container') || document.body;
+      root.prepend(container);
+    }
+
+    // row wrapper
+    if (!document.getElementById('stats-cards-row')) {
+      const row = document.createElement('div');
+      row.id = 'stats-cards-row';
+      container.appendChild(row);
+    }
+    const row = document.getElementById('stats-cards-row');
+
+    // create cards in the desired order: Total, Diurno, Noturno
+    const cards = [
+      { id:'stat-total', key:'total', title:'Total', subtitle:'Total de colaboradores', iconClass:'fas fa-users', squareClass:'total' },
+      { id:'stat-diurno', key:'diurno', title:'Diurno', subtitle:'Colaboradores diurnos', iconClass:'fas fa-sun', squareClass:'diurno' },
+      { id:'stat-noturno', key:'noturno', title:'Noturno', subtitle:'Colaboradores noturnos', iconClass:'fas fa-moon', squareClass:'noturno' }
+    ];
+
+    // remove any old cards not in this list? We'll simply replace/inject in order.
+    row.innerHTML = ''; // reset to ensure order
+
+    for (const c of cards) {
+      const card = document.createElement('div');
+      card.className = 'card stat-card-mini';
+      card.id = c.id;
+      card.setAttribute('role','region');
+      card.setAttribute('aria-label', c.title);
+
+      card.innerHTML = `
+        <div class="stat-head">
+          <h4 class="stat-title">${c.title}</h4>
+          <!-- top-right icon removed per request -->
+        </div>
+
+        <div class="stat-body">
+          <div class="stat-square ${c.squareClass}" aria-hidden="true">
+            <i class="${c.iconClass}"></i>
+          </div>
+          <div style="flex:1; min-width:0;">
+            <div id="total-${c.key}" class="stat-value">0</div>
+            <div class="stat-sub">${c.subtitle}</div>
+          </div>
+        </div>
+
+        <div class="stat-bottom">
+          <div class="stat-meta"><small class="stat-sub">Última atualização</small></div>
+          <div class="stat-updated" id="updated-${c.key}">—</div>
+        </div>
+      `;
+      row.appendChild(card);
+    }
+  }
+
+  /* ========== countUp util ========== */
+  function countUpTo(el, target, duration = 800) {
+    if (!el) return;
+    const start = Number(String(el.textContent || el.innerText).replace(/\D+/g,'')) || 0;
+    const end = Number(target) || 0;
+    const range = end - start;
+    if (range === 0) { el.textContent = end.toLocaleString('pt-BR'); return; }
+    const startTime = performance.now();
+    function step(now) {
+      const elapsed = now - startTime;
+      const t = Math.min(1, elapsed / duration);
+      const eased = 1 - Math.pow(1 - t, 3);
+      const val = Math.round(start + (range * eased));
+      el.textContent = val.toLocaleString('pt-BR');
+      if (t < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  /* ========== hydrate from localStorage (show immediately) ========== */
+  function hydrateFromLS() {
+    const tot = localStorage.getItem(LS.total);
+    const diu = localStorage.getItem(LS.diurno);
+    const not = localStorage.getItem(LS.noturno);
+    const updGlobal = localStorage.getItem(LS.updated);
+
+    const elTot = document.getElementById('total-total');
+    const elDiu = document.getElementById('total-diurno');
+    const elNot = document.getElementById('total-noturno');
+
+    if (elTot && tot !== null) elTot.textContent = Number(tot).toLocaleString('pt-BR');
+    if (elDiu && diu !== null) elDiu.textContent = Number(diu).toLocaleString('pt-BR');
+    if (elNot && not !== null) elNot.textContent = Number(not).toLocaleString('pt-BR');
+
+    // put same timestamp into all three if present
+    if (updGlobal) {
+      const t = (new Date(updGlobal));
+      const formatted = isNaN(t) ? updGlobal : t.toLocaleString('pt-BR', { dateStyle:'short', timeStyle:'short' });
+      ['total','diurno','noturno'].forEach(k => {
+        const el = document.getElementById('updated-'+k);
+        if (el) el.textContent = formatted;
+      });
+    } else {
+      // also check per-key timestamps (backwards compat)
+      ['total','diurno','noturno'].forEach(k => {
+        const val = localStorage.getItem(LS[k]);
+        const up = localStorage.getItem(LS.updated);
+        if (up) {
+          const t = new Date(up);
+          const f = isNaN(t) ? up : t.toLocaleString('pt-BR', { dateStyle:'short', timeStyle:'short' });
+          const el = document.getElementById('updated-'+k);
+          if (el) el.textContent = f;
+        }
+      });
+    }
+  }
+
+  /* ========== dedupe used earlier (keeps your logic) ========== */
+  function dedupeColaboradores(list=[]) {
+    const byKey = new Map();
+    const normalizeName = n => String(n||'').trim().toLowerCase().replace(/\s+/g,' ');
+    for (const c of list) {
+      const hasMat = c.matricula && String(c.matricula).trim() !== '';
+      const key = hasMat ? `M:${String(c.matricula).trim()}` : `N:${normalizeName(c.nome)}`;
+      if (!byKey.has(key)) { byKey.set(key, c); continue; }
+      const existing = byKey.get(key);
+      const prefer = (a,b) => {
+        if ((a.equipeHint && !b.equipeHint)) return a;
+        if ((b.equipeHint && !a.equipeHint)) return b;
+        const aMat = a.matricula && String(a.matricula).trim() !== '';
+        const bMat = b.matricula && String(b.matricula).trim() !== '';
+        if (aMat && !bMat) return a;
+        if (bMat && !aMat) return b;
+        const aEnt = a.entrada && a.entrada !== '';
+        const bEnt = b.entrada && b.entrada !== '';
+        if (aEnt && !bEnt) return a;
+        if (bEnt && !aEnt) return b;
+        return a;
+      };
+      const chosen = prefer(existing, c);
+      byKey.set(key, chosen);
+    }
+    return Array.from(byKey.values());
+  }
+
+  /* ========== infer turno (Diurno/Noturno) - prioritize explicit fields/status/cargo ========== */
+  function determineTurnoForCollaborator(c){
+  if(!c) return 'Diurno';
+
+  // 1) Checa campo explícito 'turno'
+  if(c.turno && String(c.turno).trim()){
+    const t = String(c.turno).toLowerCase().trim();
+    // aceita: "noturno", "noite", "n", "n.", "nº", "n " etc.
+    if(t.includes('not') || t.includes('noite') || t === 'n' || t === 'n.' || t.startsWith('n')) return 'Noturno';
+    return 'Diurno';
+  }
+
+  // 2) Status pode indicar noturno
+  const status = (c.status || '').toString().toLowerCase();
+  if(status.includes('noturno') || status.includes('noite')) return 'Noturno';
+
+  // 3) Cargo pode indicar noturno
+  const cargo = (c.cargo || '').toString().toLowerCase();
+  if(cargo.includes('noturno') || cargo.includes('noite')) return 'Noturno';
+
+  // padrão
+  return 'Diurno';
+}
+
+  /* ========== flexible fetch (sheet -> json -> dom) reuse your existing helpers if available ========== */
+  async function fetchColaboradoresFlexible() {
+    // 1) tentarCarregarPlanilhaRows + parseRowsByBlocks (if present)
+    try {
+      if (typeof tentarCarregarPlanilhaRows === 'function') {
+        const loaded = await tentarCarregarPlanilhaRows();
+        if (loaded && Array.isArray(loaded.rows)) {
+          const rows = loaded.rows, ws = loaded.ws;
+          if (typeof parseRowsByBlocks === 'function') {
+            let colorLegend = {};
+            if (typeof buildColorLegendFromSheet === 'function') {
+              try { colorLegend = buildColorLegendFromSheet(ws || {}); } catch(e){ colorLegend = {}; }
+            }
+            try {
+              const extracted = parseRowsByBlocks(rows, ws, colorLegend) || [];
+              if (extracted.length) return dedupeColaboradores(extracted);
+            } catch(e){ console.warn('parseRowsByBlocks failed', e); }
+          }
+          // fallback to XLSX.utils.sheet_to_json
+          if (typeof XLSX !== 'undefined' && loaded.wb) {
+            try {
+              const ws2 = ws || loaded.wb.Sheets[loaded.wb.SheetNames[0]];
+              const objs = XLSX.utils.sheet_to_json(ws2, { defval: '' });
+              const arr = objs.map(o => ({
+                nome: o.Nome || o.NOME || o.nome || o.Colaborador || '',
+                matricula: o['Matrícula'] || o.MATRICULA || o.matricula || '',
+                cargo: o.Cargo || o.cargo || o.Nível || o.nivel || '',
+                entrada: (typeof toSafeISOString === 'function') ? toSafeISOString(o['Data Admissão'] || o.DATA_ADMISSAO || o.entrada || '') : '',
+                status: o.Status || o.status || '',
+                turno: o.Turno || o.turno || '',
+                equipeHint: (typeof equipeFromCargo === 'function') ? equipeFromCargo(o.Cargo || o.cargo || o.Nível || o.nivel) : ''
+              }));
+              if (arr.length) return dedupeColaboradores(arr);
+            } catch(e){ console.warn('sheet_to_json fallback failed', e); }
+          }
+        }
+      }
+    } catch(e){ console.warn('tentarCarregarPlanilhaRows failed', e); }
+
+    // 2) carregarDeJSONs
+    try {
+      if (typeof carregarDeJSONs === 'function') {
+        const lista = await carregarDeJSONs();
+        if (Array.isArray(lista) && lista.length) return dedupeColaboradores(lista);
+      }
+    } catch(e){ console.warn('carregarDeJSONs failed', e); }
+
+    // 3) DOM fallback .colaborador-row
+    try {
+      const rows = document.querySelectorAll('.colaborador-row');
+      if (rows && rows.length) {
+        const arr = Array.from(rows).map(r => ({
+          nome: (r.querySelector('.nome')?.innerText) || r.textContent || '',
+          matricula: r.getAttribute('data-matricula') || '',
+          cargo: r.getAttribute('data-cargo') || '',
+          turno: r.getAttribute('data-turno') || ''
+        }));
+        return dedupeColaboradores(arr);
+      }
+    } catch(e){}
+
+    return [];
+  }
+
+  /* ========== update totals and persist (writes same timestamp to all cards) ========== */
+  function updateTotalsAndSave({ total=0, diurno=0, noturno=0 }, { save=true, updatedAt=new Date() } = {}) {
+    const elTot = document.getElementById('total-total');
+    const elDiu = document.getElementById('total-diurno');
+    const elNot = document.getElementById('total-noturno');
+
+    if (elTot) countUpTo(elTot, Number(total)||0, 900);
+    if (elDiu) countUpTo(elDiu, Number(diurno)||0, 700);
+    if (elNot) countUpTo(elNot, Number(noturno)||0, 700);
+
+    const formatted = (function(dt) {
+      try { return new Date(dt).toLocaleString('pt-BR', { dateStyle:'short', timeStyle:'short' }); }
+      catch(e){ return String(dt); }
+    })(updatedAt);
+
+    ['total','diurno','noturno'].forEach(k=>{
+      const el = document.getElementById('updated-'+k);
+      if (el) el.textContent = formatted;
+    });
+
+    if (save) {
+      try {
+        localStorage.setItem(LS.total, String(Number(total)||0));
+        localStorage.setItem(LS.diurno, String(Number(diurno)||0));
+        localStorage.setItem(LS.noturno, String(Number(noturno)||0));
+        localStorage.setItem(LS.updated, (new Date(updatedAt)).toISOString());
+      } catch(e) { console.warn('LS save failed', e); }
+    }
+  }
+
+  /* ========== main loader ========== */
+  async function loadAndUpdateTotals(){
+  try{
+    if(Array.isArray(window.efetivoCompleto) && window.efetivoCompleto.length > 0){
+      const list = dedupeColaboradores(window.efetivoCompleto);
+      let di = 0, no = 0;
+      for(const c of list){
+        const t = determineTurnoForCollaborator(c);
+        if(t === 'Noturno') no++; else di++;
+      }
+      updateTotalsAndSave({ total: di + no, diurno: di, noturno: no }, { save: true, updatedAt: new Date() });
+      return { di, no, total: di + no, list };
+    }
+
+    // se não houver efetivoCompleto com itens, buscar de fontes (planilha/JSON/DOM)
+    const list = await fetchColaboradoresFlexible();
+    let di = 0, no = 0;
+    for(const c of list){
+      const t = determineTurnoForCollaborator(c);
+      if(t === 'Noturno') no++; else di++;
+    }
+    updateTotalsAndSave({ total: di + no, diurno: di, noturno: no }, { save: true, updatedAt: new Date() });
+    window.efetivoCompleto = list;
+    return { di, no, total: di + no, list };
+  }catch(e){
+    console.warn('loadAndUpdateTotals error', e);
+    try{
+      const rows = document.querySelectorAll('.colaborador-row');
+      const total = rows.length || 0;
+      updateTotalsAndSave({ total, diurno: total, noturno: 0 }, { save: false, updatedAt: new Date() });
+      return { di: total, no: 0, total, list: [] };
+    }catch(_){
+      updateTotalsAndSave({ total: 0, diurno: 0, noturno: 0 }, { save: false, updatedAt: new Date() });
+      return { di: 0, no: 0, total: 0, list: [] };
+    }
+  }
+}
+
+  /* ========== wrap carregarETDistribuir to auto-refresh after it runs ========== */
+  (function wrapCarregar(){
+    try {
+      if (typeof window.carregarETDistribuir === 'function' && !window.__stat_wrap_carregar) {
+        const orig = window.carregarETDistribuir.bind(window);
+        window.__stat_wrap_carregar = true;
+        window.carregarETDistribuir = async function(...args) {
+          const res = await orig(...args);
+          setTimeout(()=> loadAndUpdateTotals(), 250);
+          return res;
+        };
+      }
+    } catch(e){ console.warn('wrap carregarETDistribuir fail', e); }
+  })();
+
+  /* ========== init ========== */
+  document.addEventListener('DOMContentLoaded', ()=>{
+    ensureCards();
+    hydrateFromLS();
+    // start load (will update and persist)
+    loadAndUpdateTotals();
+    // expose helper
+    window.statsReloadTotals = loadAndUpdateTotals;
+  });
+})();
+
+// Adicionar no final do código, antes do fechamento do script
+
+class EfetivoPDFExporter {
+  constructor() {
+    this.init();
+  }
+
+  async init() {
+    // Carregar biblioteca PDF apenas quando necessário (lazy loading)
+    await this.loadJsPDF();
+    this.bindEvents();
+  }
+
+  async loadJsPDF() {
+    if (window.jsPDF) return;
+    
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+      script.onload = () => {
+        console.log('jsPDF carregado');
+        resolve();
+      };
+      script.onerror = reject;
+      document.head.appendChild(script);
+    });
+  }
+
+  bindEvents() {
+    const btn = document.getElementById('downloadEfetivoBtn');
+    if (btn) {
+      btn.addEventListener('click', this.exportToPDF.bind(this));
+    }
+  }
+
+  async exportToPDF() {
+    const btn = document.getElementById('downloadEfetivoBtn');
+    const originalText = btn.innerHTML;
+    
+    try {
+      // Feedback visual
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Gerando...</span>';
+      btn.disabled = true;
+
+      const colaboradores = window.efetivoCompleto || [];
+      
+      // Agrupar dados como no accordion
+      const grupos = this.agruparColaboradores(colaboradores);
+      
+      // Gerar PDF
+      await this.gerarPDF(grupos);
+      
+    } catch (error) {
+      console.error('Erro ao gerar PDF:', error);
+      alert('Erro ao gerar PDF. Tente novamente.');
+    } finally {
+      // Restaurar botão
+      btn.innerHTML = originalText;
+      btn.disabled = false;
+    }
+  }
+
+  agruparColaboradores(colaboradores) {
+    const grupos = {};
+    colaboradores.forEach(c => {
+      // Usar mesma lógica do accordion
+      const stNorm = this.normalizeStatusForRouting(c.status);
+      const cargoNorm = this.normalizeForMatch(c.cargo);
+
+      let equipeCan;
+      if (
+        (stNorm && (stNorm.includes('EMPRESTADO') || stNorm.includes('PROCESSAMENTO') || stNorm.includes('INSS') || stNorm.includes('ESTAGIO'))) ||
+        (cargoNorm && (cargoNorm.includes('estagiario') || cargoNorm.includes('estagio')))
+      ) {
+        equipeCan = 'Apoio';
+      } else {
+        const rawEquipe = c.equipeHint || this.equipeFromCargo(c.cargo) || 'Montagem';
+        equipeCan = this.canonicalizeTeamName(rawEquipe) || 'Montagem';
+      }
+
+      if (!grupos[equipeCan]) grupos[equipeCan] = [];
+      grupos[equipeCan].push(c);
+    });
+    return grupos;
+  }
+
+  async gerarPDF(grupos) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    // Configuração
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    let yPos = 20;
+    const margin = 15;
+    const lineHeight = 6;
+
+    // Cabeçalho
+    doc.setFontSize(18);
+    doc.setFont(undefined, 'bold');
+    doc.text('Efetivo - Distribuição de Colaboradores', pageWidth / 2, yPos, { align: 'center' });
+    
+    yPos += 10;
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'normal');
+    doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`, pageWidth / 2, yPos, { align: 'center' });
+    yPos += 15;
+
+    // Processar cada equipe
+    for (const [equipe, colaboradores] of Object.entries(grupos)) {
+      if (colaboradores.length === 0) continue;
+
+      // Verificar se precisa de nova página
+      if (yPos > pageHeight - 50) {
+        doc.addPage();
+        yPos = 20;
+      }
+
+      // Título da equipe
+      doc.setFontSize(14);
+      doc.setFont(undefined, 'bold');
+      doc.text(`${equipe} (${colaboradores.length} colaboradores)`, margin, yPos);
+      yPos += 8;
+
+      // Colaboradores
+      doc.setFontSize(9);
+      doc.setFont(undefined, 'normal');
+      
+      colaboradores.forEach(colab => {
+        if (yPos > pageHeight - 20) {
+          doc.addPage();
+          yPos = 20;
+        }
+
+        const dt = colab.entrada ? (this.excelDateToJSDate(colab.entrada) || new Date(colab.entrada)) : null;
+        const dataTxt = dt && !isNaN(dt) ? dt.toLocaleDateString('pt-BR') : 'N/A';
+        
+        const linha = `• ${colab.nome} - ${colab.matricula || 'S/N'} - ${colab.cargo || '—'} - ${dataTxt}`;
+        doc.text(linha, margin + 5, yPos);
+        yPos += lineHeight;
+      });
+      
+      yPos += 5; // Espaço entre equipes
+    }
+
+    // Download
+    const fileName = `Efetivo_${new Date().toISOString().slice(0,10)}.pdf`;
+    doc.save(fileName);
+  }
+
+  // Funções auxiliares (copiar das existentes)
+  normalizeStatusForRouting(s) {
+    if (!s) return '';
+    return String(s).toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'').trim();
+  }
+
+  normalizeForMatch(s) {
+    if (!s) return '';
+    return String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim();
+  }
+
+  equipeFromCargo(cargo) {
+    if (!cargo) return null;
+    const s = String(cargo).toLowerCase();
+    if (/supervis|encarregad|encarregado|dimensional|inspetor/i.test(s)) return 'Liderança';
+    if (/dimensional/i.test(s)) return 'Dimensional';
+    if (/soldador|solda/i.test(s)) return 'Soldador';
+    if (/andaime|andaimes/i.test(s)) return 'Andaimes';
+    if (/montador|montagem/i.test(s)) return 'Montagem';
+    if (/meio\s*oficial/i.test(s)) return 'Meio Oficial';
+    if (/desempen/i.test(s)) return 'Desempeno';
+    if (/cefap/i.test(s)) return 'CEFAP';
+    return null;
+  }
+
+  canonicalizeTeamName(raw) {
+    if (!raw) return null;
+    const canonicalMap = {
+      'montagem':'Montagem', 'soldador':'Soldador', 'andaimes':'Andaimes',
+      'desempeno':'Desempeno', 'meiooficial':'Meio Oficial', 'cefap':'CEFAP',
+      'lideranca':'Liderança', 'dimensional':'Dimensional', 'apoio':'Apoio'
+    };
+    
+    let s = String(raw).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g, '');
+    return canonicalMap[s] || raw;
+  }
+
+  excelDateToJSDate(v) {
+    if (!v) return null;
+    if (v instanceof Date) return v;
+    if (typeof v === 'number' && v >= 30000 && v < 60000) {
+      const DAYS_TO_UNIX_EPOCH = 25569;
+      return new Date((v - DAYS_TO_UNIX_EPOCH) * 86400 * 1000);
+    }
+    return new Date(v);
+  }
+}
+
+function isDimensional(matricula, cargo) {
+  const dimensionalMatriculas = ['2609', '6615', '6596'];
+  const matStr = String(matricula || '').trim();
+  
+  // Verifica se é uma das matrículas específicas
+  if (dimensionalMatriculas.includes(matStr)) {
+    return true;
+  }
+  
+  // Também verifica pelo cargo (caso adicione mais dimensionais no futuro)
+  if (cargo && /dimensional/i.test(String(cargo))) {
+    return true;
+  }
+  
+  return false;
+}
+
+// Inicializar após carregamento dos dados
+let pdfExporter;
+if (!pdfExporter) {
+  pdfExporter = new EfetivoPDFExporter();
+}
+
+// Controle da sidebar em dispositivos móveis
+    document.addEventListener('DOMContentLoaded', function() {
+      const toggleMenuBtn = document.getElementById('toggleMenu');
+      const sidebar = document.querySelector('.sidebar');
+      
+      if (toggleMenuBtn && sidebar) {
+        toggleMenuBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          sidebar.classList.toggle('active');
+          
+          // Alterar ícone do hamburger quando o menu estiver aberto
+          const icon = toggleMenuBtn.querySelector('i');
+          if (sidebar.classList.contains('active')) {
+            icon.classList.remove('fa-bars');
+            icon.classList.add('fa-times');
+          } else {
+            icon.classList.remove('fa-times');
+            icon.classList.add('fa-bars');
+          }
+        });
+        
+        // Fechar o menu ao clicar fora dele
+        document.addEventListener('click', function(event) {
+          if (!sidebar.contains(event.target) && !toggleMenuBtn.contains(event.target)) {
+            sidebar.classList.remove('active');
+            const icon = toggleMenuBtn.querySelector('i');
+            icon.classList.remove('fa-times');
+            icon.classList.add('fa-bars');
+          }
+        });
+        
+        // Prevenir que cliques dentro do menu fechem ele
+        sidebar.addEventListener('click', function(e) {
+          e.stopPropagation();
+        });
+      }
+    });
+</script>
+
+
+
+
+
+
 </body>
 </html>

@@ -1,657 +1,1029 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Apontamentos</title>
-  <!-- Firebase Compat -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
-  <!-- Font Awesome -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Estrutura | Apontamentos</title>
+
+  <!-- Fonte + Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <!-- favicon (preserve suas paths) -->
   <link rel="icon" type="image/png" href="../favicon/favicon-96x96.png" sizes="96x96" />
-<link rel="icon" type="image/svg+xml" href="../favicon/favicon.svg" />
-<link rel="shortcut icon" href="../favicon/favicon.ico" />
-<link rel="apple-touch-icon" sizes="180x180" href="../favicon/apple-touch-icon.png" />
-<link rel="manifest" href="../favicon/site.webmanifest" />
-<link rel="stylesheet" href="../theme.css">
-  <!-- Estilos -->
+  <link rel="icon" type="image/svg+xml" href="../favicon/favicon.svg" />
+  <link rel="shortcut icon" href="../favicon/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="../favicon/apple-touch-icon.png" />
+  <link rel="manifest" href="../favicon/site.webmanifest" />
+
   <style>
-:root{
-      --bg: #f5f7fa;
-      --card: #ffffff;
-      --text: #2c3e50;
-      --accent: #3b5360;
-      --soft: #ccc;
-      --text2: #1f2a33;
-      --badge-text: black;
-      --submit: #27ae60;
-      --tabela: #f0f0f0;
-      --tabela-text: #333;
-      --text-muted: #34495e;
+    /* ---- THEME (match luxo) ---- */
+    :root{
+      --bg: #0b0c0f;
+      --card: rgba(255,255,255,0.04);
+      --glass: rgba(255,255,255,0.03);
+      --accent: #9fccb1;
+      --accent-strong: #3b82f6;
+      --secondary: #39666b;
+      --text: #e1efe6;
+      --muted: rgba(225,239,230,0.62);
+      --soft-border: rgba(255,255,255,0.04);
+      --btn-grad: linear-gradient(135deg,#4f46e5,#7c3aed);
+      --radius: 12px;
+      --sidebar-w:260px;
     }
-    
-    * {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: Arial, sans-serif;
-}
 
-body {
-  display: flex;
-  min-height: 100vh;
-  background-color: var(--bg);
-}
+    /* reset / base */
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:'Inter',system-ui,Arial;
+      background-color:var(--bg);
+      color:var(--text);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      line-height:1.35;
+    }
 
-/* ---------- SIDEBAR ---------- */
+    /* ===== SIDEBAR ===== */
+    .sidebar {
+      --bg-sidebar: #0b150f;
+      --card-sidebar: rgba(255, 255, 255, 0.06);
+      --glass-sidebar: rgba(255, 255, 255, 0.04);
+      --accent-sidebar: #9fccb1;
+      --secondary-sidebar: #39666b;
+      --text-sidebar: #e1efe6;
+      --muted-sidebar: rgba(225, 239, 230, 0.6);
+      --neumo-shadow-sidebar: 10px 10px 20px rgba(0, 0, 0, 0.6), -6px -6px 16px rgba(255, 255, 255, 0.02);
+      --radius-sidebar: 14px;
+    }
 
-.sidebar {
-      width: 220px;
-      background: #2c3e50;
-      color: #fff;
-      padding: 20px;
+    /* Sidebar styles (copiado - mantive exatamente) */
+    .sidebar {
+      width: 260px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+      color: var(--text-sidebar);
+      padding: 20px 0;
       display: flex;
       flex-direction: column;
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      z-index: 60;
+      backdrop-filter: blur(8px) saturate(120%);
+      border-right: 1px solid rgba(255, 255, 255, 0.03);
+      overflow-y: auto;
     }
+
     .sidebar-header {
       display: flex;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-start;
       position: relative;
+      padding: 0 20px 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+      margin-bottom: 20px;
     }
-    .dark .sidebar {
-  background: var(--card);       /* #090b16 */
-  color: var(--text);            /* #e0e0e0 */
-  border-right: 1px solid var(--soft); /* #3c3f68 como linha */  
-} 
 
-.dark .sidebar a:hover,
-.dark .sidebar a.active {
-  background: var(--soft);       /* #3c3f68 */
-}
-    .hamburger {
-      display: none;
-      background: none;
-      border: none;
-      color: #fff;
-      font-size: 24px;
-      position: absolute;
-      left: 0;
-      cursor: pointer;
+    .brand {
+      display: flex;
+      gap: 14px;
+      align-items: center;
     }
+
     .logo {
-      font-size: 24px;
-      user-select: none;
-    }
-    nav ul {
-      list-style: none;
-      margin-top: 20px;
-    }
-    nav ul li {
-      margin: 15px 0;
-    }
-    nav ul li a {
-      text-decoration: none;
-      color: #fff;
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--accent-sidebar), var(--secondary-sidebar));
+      box-shadow: var(--neumo-shadow-sidebar);
       display: flex;
       align-items: center;
-      padding: 10px;
-      border-radius: 4px;
-      transition: background 0.2s;
+      justify-content: center;
+      font-weight: 800;
+      color: white;
+      font-size: 18px;
     }
+
+    .brand-text h1 {
+      font-size: 16px;
+      margin: 0;
+      color: var(--text-sidebar);
+      font-weight: 600;
+    }
+
+    .brand-text p {
+      margin: 0;
+      font-size: 12px;
+      opacity: 0.75;
+      color: var(--muted-sidebar);
+    }
+
+    .hamburger {
+      display: none;
+      background: var(--glass-sidebar);
+      border: 1px solid rgba(255, 255, 255, 0.02);
+      border-radius: 10px;
+      color: var(--muted-sidebar);
+      font-size: 18px;
+      width: 44px;
+      height: 44px;
+      position: absolute;
+      left: 15px;
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+    }
+
+    nav ul {
+      list-style: none;
+      padding: 0 12px;
+    }
+
+    nav ul li {
+      margin: 8px 0;
+    }
+
+    nav ul li a {
+      text-decoration: none;
+      color: var(--muted-sidebar);
+      display: flex;
+      align-items: center;
+      padding: 10px 14px;
+      border-radius: 10px;
+      transition: all 0.2s;
+      font-weight: 500;
+      font-size: 14px;
+    }
+
     nav ul li a i {
-      margin-right: 10px;
-    }
-    nav ul li a.active,
-    nav ul li a:hover {
-      background: #34495e;
-    }
-    .main-content {
-      flex: 1;
-      padding: 30px;
-    }
-    header h2 {
-      margin-bottom: 20px;
-      color: var(--accent);
-    }
-    .dark header h2{
-      background: rgba(92,124,250, .1);
-      display: inline-block;
-      padding: 6px 10px;
-  border-radius: 4px;
+      margin-right: 12px;
+      width: 20px;
+      text-align: center;
     }
 
-/* ---------- CONTEÚDO PRINCIPAL ---------- */
+    nav ul li a:hover,
+    nav ul li a.active {
+      color: var(--text-sidebar);
+      background: rgba(255, 255, 255, 0.03);
+    }
 
-.main-content {
-  flex: 1;
-  padding: 30px;
+    /* Botão de Observa+ com estilo especial */
+    nav ul li:nth-child(1) a {
+      background: linear-gradient(135deg, var(--accent-sidebar), var(--secondary-sidebar));
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      box-shadow: 0 12px 40px rgba(70, 229, 123, 0.12), inset 0 -6px 18px rgba(255, 255, 255, 0.02);
+      margin-top: 15px;
+    }
+
+    nav ul li:nth-child(1) a:hover {
+      filter: brightness(1.08);
+      box-shadow: 0 2px 80px rgba(70, 229, 150, 0.18), -4px -4px 10px rgba(58, 237, 133, 0.04);
+    }
+    
+    /* Ícone branco para o botão gradiente em desktop também */
+    nav ul li:nth-child(1) a i {
+      color: white;
+    }
+
+    /* ----- MAIN AREA ----- */
+    .main {
+      margin-left: var(--sidebar-w);
+      max-width: var(--max-width);
+      padding: 28px 20px;
+      box-sizing: border-box;
+    }
+
+    header.topbar{
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      padding:12px 16px; border-radius:12px; border:1px solid var(--soft-border);
+      box-shadow: 0 6px 22px rgba(0,0,0,0.6);
+      margin-bottom:16px;
+    }
+    .topbar h2{ margin:0; font-size:18px; letter-spacing:-0.01em; background: linear-gradient(90deg,#2a6df4,#7345a1); background-clip:text; color:transparent; }
+    .topbar .actions{ display:flex; gap:10px; align-items:center }
+
+    .btn-neumo{
+      display:inline-flex; align-items:center; gap:10px; padding:10px 14px; border-radius:12px;
+      background: var(--btn-grad); color: #fff; font-weight:700; border: 1px solid rgba(255,255,255,0.06);
+      box-shadow: 0 12px 40px rgba(79,70,229,0.12), inset 0 -6px 18px rgba(255,255,255,0.02);
+      cursor:pointer; transition: transform .18s, box-shadow .18s;
+    }
+    .btn-neumo.ghost{ background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); color: var(--text); box-shadow: 0 6px 18px rgba(0,0,0,0.6); }
+    .btn-neumo:disabled{ opacity:0.55; cursor:not-allowed; transform:none; box-shadow:none; }
+
+    /* filters area */
+    .filters {
+      display:flex; gap:16px; flex-wrap:wrap; align-items:center; margin-bottom:14px;
+    }
+    label{ color:var(--muted); font-weight:700; font-size:13px; display:block; margin-bottom:6px; }
+    select, input[type="date"]{
+      padding:10px 12px; border-radius:10px; background: rgba(255,255,255,0.02);
+      color:var(--text); border:1px solid var(--soft-border); outline:none; font-size:14px; height:42px;
+    }
+
+    /* report grid */
+    #reportContainer {
+      display:grid;
+      grid-template-columns: repeat( auto-fit, minmax(320px, 1fr) );
+      gap:18px;
+      align-items:start;
+    }
+
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border-radius:12px; padding:0; border:1px solid var(--soft-border); box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+      overflow:hidden;
+      display:flex; flex-direction:column;
+    }
+    .card-header{
+      background: linear-gradient(90deg, rgba(79,70,229,0.12), rgba(124,58,237,0.08));
+      padding:14px 16px;
+    }
+    .card-header h4{ margin:0; font-size:16px; color:var(--text); }
+    .card-header small{ color:var(--muted); display:block; margin-top:6px; font-size:13px; }
+
+    .card-body{ padding:14px 16px; display:flex; flex-direction:column; gap:12px; color:var(--muted); }
+    .members-list{ display:flex; flex-direction:column; gap:8px; margin-top:6px; }
+    .member-item{ background: rgba(255,255,255,0.02); padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.02); }
+
+
+    /* responsive */
+    @media (max-width:1000px){
+      .main{ 
+        margin-left: 0;
+        margin-top: 80px; /* altura da navbar fechada aumentada */
+        padding: 18px; 
+        transition: margin-top 0.4s ease; 
+      }
+      .controls{ grid-template-columns: 1fr; }
+      
+      .sidebar { 
+        width: 100%;
+        height: auto;
+        min-height: 80px; /* altura maior para melhor visibilidade */
+        max-height: 80px;
+        position: fixed;
+        top: 0;
+        left: 0;
+        flex-direction: column;
+        align-items: stretch;
+        padding: 0;
+        overflow: hidden;
+        transition: max-height 0.4s ease;
+        border-right: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08); /* borda mais visível */
+        z-index: 1000;
+        backdrop-filter: blur(12px) saturate(140%); /* blur mais forte */
+      }
+      
+      .sidebar.active {
+        max-height: 520px;
+        overflow-y: auto;
+      }
+      
+      .sidebar-header {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        padding: 18px 20px; /* padding maior */
+        margin: 0;
+        border: none;
+        width: 100%;
+        min-height: 80px;
+        box-sizing: border-box;
+      }
+      
+      .brand {
+        flex-direction: row;
+        gap: 14px; /* gap maior */
+        align-items: center;
+      }
+      
+      .brand-text {
+        display: block;
+      }
+      
+      .brand-text h1 {
+        font-size: 16px; /* fonte maior */
+        font-weight: 700;
+        color: var(--text-sidebar);
+      }
+      
+      .brand-text p {
+        display: none;
+      }
+      
+      .logo {
+        width: 48px; /* logo maior */
+        height: 48px;
+        font-size: 20px;
+        box-shadow: 0 8px 25px rgba(159, 204, 177, 0.15), inset 0 2px 8px rgba(255,255,255,0.05); /* sombra mais visível */
+      }
+      
+      .hamburger {
+        display: flex;
+        position: static;
+        margin: 0;
+        order: 2;
+        width: 48px; /* botão maior */
+        height: 48px;
+        font-size: 20px;
+        background: rgba(255, 255, 255, 0.06); /* fundo mais visível */
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        color: var(--text-sidebar);
+        transition: all 0.3s var(--hover-ease);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      }
+      
+      .hamburger:hover {
+        background: rgba(255, 255, 255, 0.1);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+      }
+      
+      .hamburger:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      }
+      
+      #sidebarNav {
+        width: 100%;
+        padding: 8px 20px 20px;
+        box-shadow: none;
+        display: block !important;
+        opacity: 0;
+        transition: opacity 0.3s ease 0.1s;
+      }
+      
+      .sidebar.active #sidebarNav {
+        opacity: 1;
+      }
+      
+      nav ul {
+        display: flex;
+        flex-direction: column;
+        gap: 14px; /* gap ainda maior para melhor espaçamento */
+        padding: 0;
+        margin: 0;
+      }
+      
+      nav ul li {
+        margin: 0;
+      }
+      
+      nav ul li a {
+        padding: 14px 16px; /* padding maior */
+        font-size: 15px; /* fonte ligeiramente maior */
+        font-weight: 600; /* peso da fonte maior */
+        border-radius: 12px;
+        transition: all 0.25s var(--hover-ease);
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.03);
+        color: var(--text-sidebar);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      }
+      
+      nav ul li a i {
+        margin-right: 14px; /* margem maior do ícone */
+        width: 22px; /* ícones maiores */
+        font-size: 16px;
+        color: var(--accent-sidebar);
+      }
+      
+      nav ul li a:hover,
+      nav ul li a.active {
+        position: relative;
+  color: #ffffff !important;                    /* texto branco */
+  background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+  border-color: rgba(255,255,255,0.14);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.35);
+  transform: translateX(6px) scale(1.01);
+  transition: transform .22s var(--hover-ease), box-shadow .22s var(--hover-ease), background .2s ease;
+  width: 95%;
+  z-index: 6;
+      }
+
+      /* borda lateral colorida — guia visual forte, arredondada */
+nav ul li a.active::before{
+  content: "";
+  position: absolute;
+  left: -10px;                /* ajusta a posição para “saltar” levemente */
+  top: 8px;
+  bottom: 8px;
+  width: 6px;
+  border-radius: 6px;
+  background: linear-gradient(180deg, var(--accent-sidebar), var(--secondary-sidebar));
+  box-shadow: 0 6px 18px rgba(60,150,120,0.12), inset 0 -4px 12px rgba(255,255,255,0.03);
 }
 
-header h2 {
-  margin-bottom: 20px;
-  color: var(--text);
+/* ícone: preenche com cor para reforçar sinal ativo */
+nav ul li a.active i {
+  color: var(--accent-sidebar) !important;
+  filter: drop-shadow(0 4px 14px rgba(0,0,0,0.35));
+  transform: translateX(2px);
+  transition: transform .18s var(--hover-ease), color .18s;
 }
 
-/* ---------- FILTROS ---------- */
-
-.filter-section {
-  display: flex;
-  gap: 20px;
-  flex-wrap: wrap;
-  margin-bottom: 30px;
+/* acessibilidade: foco visível (keyboard/touch) */
+nav ul li a:focus {
+  outline: none;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.45), 0 0 0 3px rgba(155,204,177,0.06);
+  transform: translateX(6px);
 }
+      
+      /* Estilo especial para o botão Observa+ em mobile */
+      nav ul li:nth-child(1) a {
+        background: linear-gradient(135deg, var(--accent-sidebar), var(--secondary-sidebar));
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: 0 6px 20px rgba(70, 229, 123, 0.2), inset 0 1px 0 rgba(255,255,255,0.1);
+        font-weight: 700;
+      }
+      
+      nav ul li:nth-child(1) a i {
+        color: white; /* ícone branco para contraste com fundo verde */
+      }
 
-.filter-section label {
-  font-weight: bold;
-  color: var(--tabela-text);
-}
+      nav ul li:nth-child(1) a:hover {
+        filter: brightness(1.1);
+        transform: translateX(6px) translateY(-2px);
+        box-shadow: 0 8px 25px rgba(70, 229, 150, 0.3);
+      }
+      
+      nav ul li a span {
+        display: inline;
+        letter-spacing: 0.3px; /* espaçamento das letras */
+      }
+    }
+    /* responsive & centralization of cards on small screens */
+    @media (max-width:1000px){
+      #reportContainer { grid-template-columns: 1fr; gap:14px; }
+      /* center cards as requested (only cards, not internal content) */
+      .card { max-width: 880px; margin: 0 auto; }
+    }
 
-.filter-section input,
-.filter-section select {
-  padding: 8px;
-  border: 1px solid var(--soft);
-  border-radius: 4px;
-  background-color: var(--bg);
-      color: var(--text-muted);
-}
-
-/* ---------- CARDS DE APONTAMENTOS ---------- */
-
-#reportContainer {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 24px;
-  padding: 8px;
-}
-
-.card {
-  background-color: var(--card);
-  border-radius: 16px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.10);
-}
-
-.card-header {
-  background-color: var(--accent);
-  color: #f5f7fa;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.card-header h4 {
-  margin: 0;
-  font-size: 1.25rem;
-  font-weight: 600;
-  line-height: 1.2;
-}
-
-.card-header small {
-  font-size: 0.9rem;
-  opacity: 0.75;
-}
-
-.card-body {
-  padding: 20px;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.card-body .info {
-  font-size: 0.95rem;
-  line-height: 1.4;
-  color: var(--text);
-}
-
-.card-body .info span {
-  font-weight: 600;
-  color: var(--text2);
-}
-
-/* ---------- MEMBROS ---------- */
-
-.members-title {
-  text-transform: uppercase;
-  font-weight: bold;
-  color: var(--text);
-  margin-top: 20px;
-}
-
-.members-list {
-  margin-top: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.member-item {
-  background-color: var(--bg);
-  border-radius: 10px;
-  padding: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.member-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-}
-
-.member-name {
-  font-size: 1.05rem;
-  font-weight: 600;
-  color: var(--text2);
-  margin-bottom: 18px;
-}
-
-.member-name i {
-  margin-right: 2px;
-  color: #2c3e50;
-}
-
-.member-matricula {
-  font-size: 0.9rem;
-  font-weight: 400;
-  color: #6b7c93;
-}
-
-.member-details {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 8px 12px;
-  margin-bottom: 8px;
-}
-
-.detail {
-  font-size: 0.9rem;
-  color: var(--text-muted);
-}
-
-.detail strong {
-  color: var(--text);
-  font-weight: 600;
-  margin-right: 4px;
-}
-
-.detail i {
-  margin-right: 2px;
-  color: #2c3e50;
-}
-
-.info-value{
-  color: var(--badge-text);
-}
-
-/* ---------- LABELS ---------- */
-
-.info-label {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--text);
-  margin-bottom: 4px;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  line-height: 1.2;
-  transition: color 0.2s ease;
-}
-
-/* ---------- RESPONSIVO ---------- */
-
-@media (max-width: 768px) {
-  body {
-    flex-direction: column;
-  }
-
-  .sidebar {
-    width: 100%;
-    padding: 15px;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-  }
-
-  .dark .sidebar {
-    border-right: none !important;
-    border-bottom: 1px solid var(--soft);
-  }
-
-  .sidebar-header {
-    width: 100%;
-    justify-content: center;
+    /* ===== ACTIVE somente em DESKTOP (telas maiores que 1000px) ===== */
+@media (min-width:1001px) {
+  /* item ativo na sidebar (desktop) */
+  nav ul li a.active {
     position: relative;
+    color: var(--text-sidebar) !important;
+    background: linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0.01));
+    border-radius: 0 10px 10px 0;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+    padding-left: 18px;
+    transition: background .20s var(--hover-ease), box-shadow .22s var(--hover-ease), transform .18s;
+    z-index: 5;
   }
 
-  .hamburger {
-    display: block;
+  nav ul li a.active::before {
+    content: "";
     position: absolute;
-    left: 15px;
-    top: 50%;
-    transform: translateY(-50%);
+    left: 0;
+    top: 8px;
+    bottom: 8px;
+    width: 8px;
+    border-radius: 0 6px 6px 0;
+    background: linear-gradient(180deg, var(--accent-sidebar), var(--secondary-sidebar));
+    box-shadow: 0 6px 18px rgba(60,150,120,0.12), inset 0 -4px 12px rgba(255,255,255,0.03);
   }
 
-  .logo {
-    font-size: 20px;
-    text-align: center;
-    width: 100%;
+  nav ul li a.active i {
+    color: var(--accent-sidebar) !important;
+    transform: translateX(2px);
+    filter: drop-shadow(0 6px 14px rgba(0,0,0,0.35));
+    transition: transform .18s var(--hover-ease), color .18s;
   }
 
-  nav ul {
-    width: 100%;
-    max-height: 0;
-    overflow: hidden;
-    opacity: 0;
-    transform-origin: top center;
-    transform: translateY(-10px);
-    transition: max-height 0.4s ease, opacity 0.4s ease, transform 0.4s ease;
-    margin-top: 10px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+  /* hover leve só no desktop (não afeta mobile) */
+  nav ul li a:hover:not(.active) {
+    background: rgba(255,255,255,0.02);
+    transform: translateX(4px);
+    box-shadow: none;
   }
 
-  nav ul.active {
-    max-height: 600px;
-    opacity: 1;
-    transform: translateY(0);
+  nav ul li a:focus {
+    outline: none;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 0 4px rgba(155,204,177,0.06);
   }
 
-  .main-content {
-    padding: 15px;
-  }
+  /* Botão de Observa+ com estilo especial */
+    nav ul li:nth-child(1) a {
+      background: linear-gradient(135deg, var(--accent-sidebar), var(--secondary-sidebar)) !important;
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      box-shadow: 0 12px 40px rgba(70, 229, 123, 0.12), inset 0 -6px 18px rgba(255, 255, 255, 0.02);
+      margin-top: 15px;
+    }
+
+    nav ul li:nth-child(1) a:hover {
+      filter: brightness(1.08);
+      box-shadow: 0 2px 80px rgba(70, 229, 150, 0.18), -4px -4px 10px rgba(58, 237, 133, 0.04);
+    }
+    
+    /* Ícone branco para o botão gradiente em desktop também */
+    nav ul li:nth-child(1) a i {
+      color: white;
+    }
+}
+    
+    @media (max-width:560px){
+      header.topbar{ flex-direction:column; align-items:flex-start; gap:10px }
+      .preview .preview-head{ flex-direction:column; align-items:flex-start; gap:8px }
+      
+      .sidebar-header {
+        padding: 16px 18px;
+      }
+      
+      .brand-text h1 {
+        font-size: 15px;
+      }
+      
+      .logo {
+        width: 44px;
+        height: 44px;
+        font-size: 18px;
+      }
+      
+      .hamburger {
+        width: 44px;
+        height: 44px;
+        font-size: 18px;
+      }
+      
+      nav ul li a {
+        padding: 12px 14px;
+        font-size: 14px;
+      }
+      
+      nav ul li a i {
+        width: 20px;
+        font-size: 15px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .sidebar.active {
+        max-height: 100vh;
+      }
+      
+      .main {
+        margin-top: 76px;
+      }
+      
+      .sidebar {
+        min-height: 76px;
+        max-height: 76px;
+      }
+      
+      .sidebar-header {
+        min-height: 76px;
+        padding: 14px 16px;
+      }
+    }
+
+    @media (max-width:420px){
+      .main{ padding:12px; }
+      .filters{ gap:10px; }
+      select, input[type="date"]{ height:40px; padding:9px; font-size:13px; }
+      .card{ max-width: 360px; }
+    }
+
+    /* small helper */
+    .muted-note{ color:var(--muted); font-size:13px; margin-top:8px; }
+
+    /* 1) Forçar aparência escura no select e nas options */
+select, .select-like {
+  color: var(--text) !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
 }
 
+/* garante que o texto do option também fique escuro ao abrir a lista */
+select option {
+  background-color: var(--bg) !important; /* cor do fundo do dropdown */
+  color: var(--text) !important;
+}
 
+/* estado hover/checked nas options (alguns browsers respeitam) */
+select option:hover,
+select option:checked {
+background: var(--accent) !important;
+      color: #0b150f !important;
+}
+
+/* placeholder option (texto mais claro) */
+select option[disabled] {
+  color: var(--input-placeholder) !important;
+}
+
+/* seta custom (SVG data-uri) — mantém aparência consistente */
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24'%3E%3Cpath fill='%23e1efe6' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 12px center !important;
+  background-size: 16px 16px !important;
+}
+
+/* Edge/IE: remove seta nativa */
+select::-ms-expand { display: none; }
+
+/* Firefox: evitar problema do placeholder desaparecer quando focado */
+select:-moz-focusring { color: transparent; text-shadow: 0 0 0 var(--text); }
+
+/* ===== SCROLLBAR STYLING ===== */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(159, 204, 177, 0.3);
+      border-radius: 4px;
+      transition: background 0.3s ease;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(159, 204, 177, 0.5);
+    }
   </style>
 </head>
 <body>
-
-  <!-- SIDEBAR (idêntica à sua) -->
-  <div class="sidebar">
+  <!-- SIDEBAR (exatamente sua versão antiga) -->
+  <div class="sidebar" aria-label="Navegação">
     <div class="sidebar-header">
-      <button id="toggleMenu" class="hamburger">
+      <div class="brand">
+        <div class="logo"><img src="../favicon/favicon.svg" alt="" style="width: 75%;"></div>
+        <div class="brand-text">
+          <h1>Estrutura</h1>
+          <p>Apontamentos</p>
+        </div>
+      </div>
+      <button id="toggleMenu" class="hamburger" aria-label="Abrir menu">
         <i class="fas fa-bars"></i>
       </button>
-      <h1 class="logo">Estrutura</h1>
     </div>
-    <nav>
+    <nav id="sidebarNav">
       <ul id="menuList">
-  <li>
-    <a href="../dashboard.html">
-      <i class="fas fa-file-signature"></i> Apropriações
-    </a>
-  </li>
-  <li>
-    <a href="../equipes/equipe.html">
-      <i class="fas fa-users-cog"></i> Equipes
-    </a>
-  </li>
-  <li>
-    <a href="../apontamentos/apontamentos.html" class="active">
-      <i class="fas fa-clipboard-list"></i> Apontamentos
-    </a>
-  </li>
-  <li>
-    <a href="../diario/diario.html">
-      <i class="fas fa-book"></i> Diário de obra
-    </a>
-  </li>
-  <li>
-    <a href="../efetivo/efetivo.html">
-      <i class="fas fa-user-friends"></i> Efetivo
-    </a>
-  </li>
-  <li>
-    <a href="../anotar/anotar.html">
-      <i class="fas fa-sticky-note" aria-hidden="true"></i> Anotações
-    </a>
-  </li>
-  <li>
-    <a href="#">
-      <i class="fas fa-calendar-check"></i> Abono DSR
-    </a>
-  </li>
-  <li>
-  <a href="https://detroitbrasil.qforms.com.br/QuestionarioWeb/ResponderQuestionarioLink?chave=ADC929D335B064357179BDBAE1686855"
-     target="_blank"
-     rel="noopener noreferrer">
-    <i class="fa-solid fa-shield-halved"></i> Observa+
-  </a>
-</li>
-  <li>
-    <a href="../configurações/configuracao.html">
-      <i class="fas fa-cog"></i> Configurações
-    </a>
-  </li>
-</ul>
+        <li>
+          <a href="../dashboard.html">
+            <i class="fas fa-file-signature"></i><span>Apropriações</span>
+          </a>
+        </li>
+        <li>
+          <a href="../equipes/equipe.html">
+            <i class="fas fa-users-cog"></i><span>Equipes</span>
+          </a>
+        </li>
+        <li>
+          <a href="./apontamentos.html" class="active">
+            <i class="fas fa-clipboard-list"></i><span>Apontamentos</span>
+          </a>
+        </li>
+        <li>
+          <a href="../diario/diario.html">
+            <i class="fas fa-book"></i><span>Diário de obra</span>
+          </a>
+        </li>
+        <li>
+          <a href="../efetivo/efetivo.html">
+            <i class="fas fa-user-friends"></i><span>Efetivo</span>
+          </a>
+        </li>
+        <li>
+          <a href="../anotar/anotar.html">
+            <i class="fas fa-sticky-note" aria-hidden="true"></i><span>Anotações</span>
+          </a>
+        </li>
+        <li>
+          <a href="#">
+            <i class="fas fa-calendar-check"></i><span>Abono DSR</span>
+          </a>
+        </li>
+        <li>
+          <a href="https://detroitbrasil.qforms.com.br/QuestionarioWeb/ResponderQuestionarioLink?chave=ADC929D335B064357179BDBAE1686855"
+            target="_blank" rel="noopener noreferrer">
+            <i class="fa-solid fa-shield-halved"></i><span>Observa+</span>
+          </a>
+        </li>
+        <li>
+          <a href="../configurações/configuração.html">
+            <i class="fas fa-cog"></i><span>Configurações</span>
+          </a>
+        </li>
+      </ul>
     </nav>
   </div>
 
-  <!-- CONTEÚDO PRINCIPAL -->
-  <div class="main-content">
-    <header><h2>Apontamentos</h2></header>
-
-    <!-- FILTROS: data e equipe -->
-    <div class="filter-section">
+  <!-- MAIN -->
+  <main class="main" role="main">
+    <header class="topbar">
       <div>
-        <label for="dateFilter">Data:</label><br/>
-        <input type="date" id="dateFilter" />
+        <h2>Apontamentos</h2>
+        <div class="muted-note">Visualize e filtre por data e equipe — os dados exibidos por dia são limitados para otimização</div>
       </div>
       <div>
-        <label for="teamFilter">Equipe:</label><br/>
+        <button id="refreshBtn" class="btn-neumo ghost"><i class="fas fa-sync"></i> Atualizar</button>
+      </div>
+    </header>
+
+    <section class="filters">
+      <div>
+        <label for="dateFilter">Data</label>
+        <input id="dateFilter" type="date" />
+      </div>
+
+      <div>
+        <label for="teamFilter">Selecionar equipe</label>
         <select id="teamFilter">
           <option value="">-- Todas as equipes --</option>
         </select>
       </div>
-    </div>
 
-    <!-- CONTAINER DOS CARDS -->
-    <div id="reportContainer">
-      <!-- cards gerados via JS -->
-    </div>
-  </div>
-
-  <!-- SCRIPT FIREBASE E LÓGICA -->
- <!-- SCRIPT FIREBASE E LÓGICA -->
-<script>
-  // Config Firebase
-  const firebaseConfig = {
-    apiKey: "AIzaSyDtnzixicBYAQkuoeB5tgCGpDLt1lByMZo",
-    authDomain: "apropriacao-estrutura.firebaseapp.com",
-    projectId: "apropriacao-estrutura",
-    storageBucket: "apropriacao-estrutura.appspot.com",
-    messagingSenderId: "155266586257",
-    appId: "1:155266586257:web:6d70edc967cdbfc56e5130"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-  const db = firebase.firestore();
-
-  let currentUserUid = null;
-  let lastQueryKey = '';
-
-  // Formata Timestamp para 'DD/MM/YYYY HH:mm'
-  function formatDate(ts) {
-    const d = ts.toDate();
-    return d.toLocaleString('pt-BR', {
-      day:'2-digit', month:'2-digit', year:'numeric',
-      hour:'2-digit', minute:'2-digit'
-    });
-  }
-
-  // Carrega equipes no filtro
-  async function loadTeamsFilter() {
-    const sel = document.getElementById('teamFilter');
-    sel.innerHTML = '<option value="">-- Todas as equipes --</option>';
-    const snap = await db.collection('teams')
-                       .where('ownerUid','==', currentUserUid)
-                       .get();
-    snap.forEach(doc => {
-      const t = doc.data();
-      const opt = document.createElement('option');
-      opt.value = doc.id;
-      opt.textContent = t.name;
-      sel.appendChild(opt);
-    });
-  }
-
-  // Busca e renderiza apontamentos filtrados
-  async function fetchAndRender() {
-    const dateVal = document.getElementById('dateFilter').value;
-    const teamId = document.getElementById('teamFilter').value || null;
-    if (!dateVal) return;
-
-    const queryKey = `${dateVal}_${teamId||'all'}`;
-    if (queryKey === lastQueryKey) return;
-    lastQueryKey = queryKey;
-
-    const [y,m,d] = dateVal.split('-').map(n=>parseInt(n));
-    const start = new Date(y,m-1,d,0,0,0);
-    const end   = new Date(y,m-1,d,23,59,59);
-
-    let q = db.collection('records')
-              .where('createdBy','==', currentUserUid)
-              .where('date','>=', firebase.firestore.Timestamp.fromDate(start))
-              .where('date','<=', firebase.firestore.Timestamp.fromDate(end));
-
-    if (teamId) q = q.where('teamId','==', teamId);
-
-    const snap = await q.orderBy('date','desc').get();
-    const docs = snap.docs.map(d=>({ id:d.id, ...d.data() }));
-    renderCards(docs);
-  }
-
-  // Renderiza os cards
-  function renderCards(records) {
-    const container = document.getElementById('reportContainer');
-    container.innerHTML = '';
-    if (records.length === 0) {
-      container.innerHTML = '<p style="color: var(--badge-text);">Nenhum apontamento para esses filtros.</p>';
-      return;
-    }
-
-    const groups = {};
-  records.forEach(r => {
-    const key = formatDate(r.date);       // já retorna "DD/MM/YYYY HH:mm"
-    (groups[key] = groups[key] || []).push(r);
-  });
-
-    Object.entries(groups).forEach(([time, group]) => {
-      const any = group[0];
-      const card = document.createElement('div');
-      card.className = 'card';
-
-      const hdr = document.createElement('div');
-      hdr.className = 'card-header';
-      hdr.innerHTML = `
-        <h4>${any.teamName} — ${any.galpao}</h4>
-        <small>Enviado em ${time}</small>
-      `;
-      card.appendChild(hdr);
-
-      const body = document.createElement('div');
-body.className = 'card-body';
-body.innerHTML = `
-  <div class="info-group">
-    <div class="info-label">Total de Colaboradores:</div>
-    <div class="info-value">${group.length}</div>
-  </div>
-  <div class="info-group">
-    <div class="info-label">Enviado por:</div>
-    <div class="info-value">${any.userName}</div>
-  </div>
-  <div class="members-title">Colaboradores:</div>
-  <div class="members-list">
-    ${group.map(r => `
-      <div class="member-item">
-        <div class="member-name">
-          <i class="fas fa-user"></i>
-          ${r.name}
-          <span class="member-matricula">(${r.memberMatricula})</span>
-        </div>
-        <div class="member-details">
-          <span class="detail">
-            <i class="fas fa-clock"></i>
-            <strong>Turno:</strong> ${r.shift}
-          </span>
-          <span class="detail">
-            <i class="fas fa-layer-group"></i>
-            <strong>Bloco:</strong> ${r.blockShift || '–'}
-          </span>
-          <span class="detail">
-            <i class="fas fa-ship"></i>
-            <strong>Embarcação:</strong> ${r.vesselShift || '–'}
-          </span>
-        </div>
-        <div class="member-details">
-          <span class="detail">
-            <i class="fas fa-map-marker-alt"></i>
-            <strong>Local:</strong> ${r.local || '–'}
-          </span>
-          <span class="detail">
-            <i class="fas fa-sticky-note"></i>
-            <strong>Obs:</strong> ${r.observations || '–'}
-          </span>
-        </div>
+      <div style="align-self:flex-end;">
+        <small style="color:var(--muted)">Os registros mostrados são os do dia selecionado (cache local por data).</small>
       </div>
-    `).join('')}
-  </div>
-`;
-card.appendChild(body);
+    </section>
 
-      container.appendChild(card);
+    <div id="reportContainer" aria-live="polite">
+      <!-- cards inseridos por JS -->
+    </div>
+  </main>
+
+  <!-- Firebase compat libs (placed at end for faster paint) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+
+  <script>
+    /***** FIREBASE CONFIG & INIT *****/
+    const firebaseConfig = {
+      apiKey: "AIzaSyDtnzixicBYAQkuoeB5tgCGpDLt1lByMZo",
+      authDomain: "apropriacao-estrutura.firebaseapp.com",
+      projectId: "apropriacao-estrutura",
+      storageBucket: "apropriacao-estrutura.appspot.com",
+      messagingSenderId: "155266586257",
+      appId: "1:155266586257:web:6d70edc967cdbfc56e5130"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    /***** STATE / CACHE *****/
+    let currentUserUid = null;
+    let cachedDateKey = null;         // "YYYY-MM-DD"
+    let cachedRecords = [];           // records fetched for cachedDateKey
+    let debounceTimer = null;
+
+    const dateEl = document.getElementById('dateFilter');
+    const teamEl = document.getElementById('teamFilter');
+    const refreshBtn = document.getElementById('refreshBtn');
+    const reportContainer = document.getElementById('reportContainer');
+
+    // util: format timestamp (defensivo: aceita Timestamp ou Date)
+    function formatDateTime(tsOrDate) {
+      let d;
+      if (!tsOrDate) return '-';
+      if (tsOrDate.toDate && typeof tsOrDate.toDate === 'function') d = tsOrDate.toDate();
+      else if (tsOrDate instanceof Date) d = tsOrDate;
+      else if (tsOrDate.seconds) d = new Date(tsOrDate.seconds * 1000);
+      else return String(tsOrDate);
+      return d.toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
+    }
+
+    // mostra mensagem simples (modal/alert simplificado)
+    function showToast(text) {
+      // simples fallback para debug; você pode trocar por modal
+      console.log('[INFO]', text);
+    }
+
+    /***** CARREGA EQUIPES (apenas 1 leitura por sessão) *****/
+    async function loadTeamsFilter(ownerUid) {
+      try {
+        const snap = await db.collection('teams')
+                          .where('ownerUid','==', ownerUid)
+                          .orderBy('name','asc')
+                          .get();
+        // limpa
+        teamEl.innerHTML = '<option value="">-- Todas as equipes --</option>';
+        snap.forEach(doc => {
+          const d = doc.data();
+          const opt = document.createElement('option');
+          opt.value = doc.id;                 // guardamos o id (preferível)
+          opt.dataset.teamName = d.name || '';
+          opt.textContent = d.name || doc.id;
+          teamEl.appendChild(opt);
+        });
+      } catch (err) {
+        console.warn('Erro ao carregar equipes', err);
+      }
+    }
+
+    /***** BUSCA REGISTROS PARA UMA DATA (uma única leitura) *****/
+    async function fetchRecordsForDate(dateKey) {
+      // dateKey: "YYYY-MM-DD"
+      if (!currentUserUid) return [];
+      try {
+        const [y,m,d] = dateKey.split('-').map(n=>parseInt(n));
+        const start = new Date(y,m-1,d,0,0,0);
+        const end = new Date(y,m-1,d,23,59,59,999);
+
+        // Firestore: usamos só o filtro de data + createdBy (menor custo),
+        // e aplicamos o filtro de equipe no cliente — evita problemas com índices e garante que a seleção funcione
+        const q = db.collection('records')
+                    .where('createdBy','==', currentUserUid)
+                    .where('date','>=', firebase.firestore.Timestamp.fromDate(start))
+                    .where('date','<=', firebase.firestore.Timestamp.fromDate(end))
+                    .orderBy('date','desc')
+                    .limit(500); // limite de segurança
+        const snap = await q.get();
+        const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        return docs;
+      } catch (err) {
+        console.warn('Erro fetchRecordsForDate', err);
+        return [];
+      }
+    }
+
+    /***** RENDERIZAÇÃO DE CARDS (agrupa por timestamp de envio) *****/
+    function renderCards(records) {
+      reportContainer.innerHTML = '';
+      if (!records || records.length === 0) {
+        reportContainer.innerHTML = `<p style="color:var(--muted)">Nenhum apontamento para esses filtros.</p>`;
+        return;
+      }
+
+      // agrupa por hora/minuto do campo date (formato legível)
+      const groups = {};
+      records.forEach(r => {
+        const key = formatDateTime(r.date);
+        (groups[key] = groups[key] || []).push(r);
+      });
+
+      Object.entries(groups).forEach(([sentAt, group]) => {
+        const any = group[0] || {};
+        const card = document.createElement('article');
+        card.className = 'card';
+
+        const hdr = document.createElement('div');
+        hdr.className = 'card-header';
+        hdr.innerHTML = `<h4>${escapeHtml(any.teamName || any.team || '-') } — ${escapeHtml(any.galpao || '-')}</h4><small>Enviado em ${escapeHtml(sentAt)}</small>`;
+        card.appendChild(hdr);
+
+        const body = document.createElement('div');
+        body.className = 'card-body';
+
+        // sumário
+        const summaryHtml = `
+          <div>
+            <div style="color:var(--muted); font-size:13px;"><strong style="color:var(--text)">${group.length}</strong> colaborador(es)</div>
+            <div style="color:var(--muted); font-size:13px;">Enviado por: <strong style="color:var(--text)">${escapeHtml(any.userName || any.createdBy || '-')}</strong></div>
+          </div>
+        `;
+        body.insertAdjacentHTML('beforeend', summaryHtml);
+
+        // membros
+        const membersHtml = group.map(r => `
+          <div class="member-item">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div style="font-weight:700;color:var(--text)"><i class="fas fa-user" style="margin-right:8px"></i>${escapeHtml(r.name || '-')}</div>
+              <div style="color:var(--muted)">(${escapeHtml(r.memberMatricula || '-')})</div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:8px;color:var(--muted);font-size:13px">
+              <div><i class="fas fa-clock" style="margin-right:6px"></i><strong style="color:var(--text)">Turno:</strong> ${escapeHtml(r.shift || '–')}</div>
+              <div><i class="fas fa-layer-group" style="margin-right:6px"></i><strong style="color:var(--text)">Bloco:</strong> ${escapeHtml(r.blockShift || '–')}</div>
+              <div><i class="fas fa-ship" style="margin-right:6px"></i><strong style="color:var(--text)">Embarcação:</strong> ${escapeHtml(r.vesselShift || '–')}</div>
+              <div><i class="fas fa-map-marker-alt" style="margin-right:6px"></i><strong style="color:var(--text)">Local:</strong> ${escapeHtml(r.local || '–')}</div>
+            </div>
+
+            <div style="margin-top:8px;color:var(--muted);font-size:13px"><i class="fas fa-sticky-note" style="margin-right:6px"></i><strong style="color:var(--text)">Obs:</strong> ${escapeHtml(r.observations || r.obs || '–')}</div>
+          </div>
+        `).join('');
+
+        body.insertAdjacentHTML('beforeend', `<div class="members-list">${membersHtml}</div>`);
+        card.appendChild(body);
+        reportContainer.appendChild(card);
+      });
+    }
+
+    // escape simples
+    function escapeHtml(s){ return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c])); }
+
+    /***** LOGICA PRINCIPAL: aplica cache por data e filtro de equipe no cliente *****/
+    async function applyFilters({ force = false } = {}) {
+      const dateVal = dateEl.value || null;
+      if (!dateVal) {
+        reportContainer.innerHTML = `<p style="color:var(--muted)">Selecione uma data.</p>`;
+        return;
+      }
+
+      // se já temos cache para esta data e não for force, reutiliza
+      if (!force && cachedDateKey === dateVal && Array.isArray(cachedRecords)) {
+        filterAndRenderFromCache();
+        return;
+      }
+
+      // busca do servidor (uma única leitura para a data)
+      cachedRecords = await fetchRecordsForDate(dateVal);
+      cachedDateKey = dateVal;
+      filterAndRenderFromCache();
+    }
+
+    function filterAndRenderFromCache() {
+      const teamId = teamEl.value || '';
+      const teamName = (teamEl.selectedOptions[0] && teamEl.selectedOptions[0].dataset.teamName) || '';
+      let filtered = cachedRecords.slice(); // copia
+
+      if (teamId) {
+        filtered = filtered.filter(r => {
+          // aceita vários formatos de como o registro pode armazenar a equipe
+          return (String(r.teamId || r.team || r.teamName || '').toLowerCase() === String(teamId || teamName).toLowerCase())
+              || (String(r.teamName || '').toLowerCase() === String(teamName || '').toLowerCase())
+              || (String(r.teamId || '').toLowerCase() === String(teamId || '').toLowerCase());
+        });
+      }
+
+      renderCards(filtered);
+    }
+
+    // debounce wrapper para evitar excessivas leituras/updates ao digitar/alterar
+    function debounceApply(delay = 220) {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => applyFilters(), delay);
+    }
+
+    /***** EVENTOS & AUTH *****/
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) {
+        window.location.href = './index.html';
+        return;
+      }
+      currentUserUid = user.uid;
+
+      // inicializa date com hoje (se vazio)
+      const today = new Date();
+      const iso = today.toISOString().slice(0,10);
+      if (!dateEl.value) dateEl.value = iso;
+
+      // carrega equipes e primeiros dados
+      await loadTeamsFilter(currentUserUid);
+      await applyFilters({ force: false });
+
+      // listeners
+      dateEl.addEventListener('change', () => debounceApply(150));
+      teamEl.addEventListener('change', () => debounceApply(100));
+      refreshBtn.addEventListener('click', () => applyFilters({ force:true }));
     });
-  }
 
-  // Quando o estado de autenticação mudar
-  auth.onAuthStateChanged(user => {
-    if (!user) {
-      // não autenticado → volta pro login
-      window.location.href = './index.html';
-      return;
-    }
-    currentUserUid = user.uid;
-
-    // Após autenticação, inicializa filtros e dados
-    const today = new Date();
-    document.getElementById('dateFilter').valueAsDate = today;
-
-    loadTeamsFilter().then(fetchAndRender);
-
-    // liga os eventos de filtro
-    document.getElementById('dateFilter').addEventListener('change', fetchAndRender);
-    document.getElementById('teamFilter').addEventListener('change', fetchAndRender);
-  });
-
-  // Toggle mobile menu
-  document.getElementById('toggleMenu').onclick = () =>
-    document.getElementById('menuList').classList.toggle('active');
-
-    (function(){
-    if (localStorage.getItem('dark') === '1') {
-      document.documentElement.classList.add('dark');
-    }
-  })();
-  window.addEventListener('storage', e => {
-    if (e.key === 'dark') {
-      document.documentElement.classList.toggle('dark', e.newValue === '1');
-    }
-  });
-</script>
-
+    // Controle da sidebar em dispositivos móveis
+    document.addEventListener('DOMContentLoaded', function() {
+      const toggleMenuBtn = document.getElementById('toggleMenu');
+      const sidebar = document.querySelector('.sidebar');
+      
+      if (toggleMenuBtn && sidebar) {
+        toggleMenuBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          sidebar.classList.toggle('active');
+          
+          // Alterar ícone do hamburger quando o menu estiver aberto
+          const icon = toggleMenuBtn.querySelector('i');
+          if (sidebar.classList.contains('active')) {
+            icon.classList.remove('fa-bars');
+            icon.classList.add('fa-times');
+          } else {
+            icon.classList.remove('fa-times');
+            icon.classList.add('fa-bars');
+          }
+        });
+        
+        // Fechar o menu ao clicar fora dele
+        document.addEventListener('click', function(event) {
+          if (!sidebar.contains(event.target) && !toggleMenuBtn.contains(event.target)) {
+            sidebar.classList.remove('active');
+            const icon = toggleMenuBtn.querySelector('i');
+            icon.classList.remove('fa-times');
+            icon.classList.add('fa-bars');
+          }
+        });
+        
+        // Prevenir que cliques dentro do menu fechem ele
+        sidebar.addEventListener('click', function(e) {
+          e.stopPropagation();
+        });
+      }
+    });
+  </script>
 </body>
 </html>

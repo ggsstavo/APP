@@ -1,0 +1,2019 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Estrutura | Configurações</title>
+
+  <!-- Inter Font + FontAwesome + GSAP -->
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.2/dist/gsap.min.js"></script>
+  <link rel="icon" type="image/png" href="../favicon/favicon-96x96.png" sizes="96x96" />
+  <link rel="icon" type="image/svg+xml" href="../favicon/favicon.svg" />
+  <link rel="shortcut icon" href="../favicon/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="../favicon/apple-touch-icon.png" />
+  <link rel="manifest" href="../favicon/site.webmanifest" />
+  
+  <!-- Firebase v9 modular -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+    import {
+      getAuth,
+      onAuthStateChanged,
+      updateEmail,
+      updatePassword,
+      signOut,
+      signInWithEmailAndPassword,
+      deleteUser,
+      EmailAuthProvider,
+      reauthenticateWithCredential
+    } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDtnzixicBYAQkuoeB5tgCGpDLt1lByMZo",
+      authDomain: "apropriacao-estrutura.firebaseapp.com",
+      projectId: "apropriacao-estrutura",
+      storageBucket: "apropriacao-estrutura.appspot.com",
+      messagingSenderId: "155266586257",
+      appId: "1:155266586257:web:6d70edc967cdbfc56e5130",
+    };
+    
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    
+    // Estado global simplificado (sem Firestore por enquanto)
+    let currentUser = null;
+    let userSettings = {};
+    let hasUnsavedChanges = false;
+    let isLoading = false;
+    
+    // LocalStorage como fallback temporário
+    const SETTINGS_KEY = 'estrutura_user_settings';
+    
+    // Função para carregar configurações do localStorage
+    function loadUserSettings(uid) {
+      try {
+        const stored = localStorage.getItem(SETTINGS_KEY + '_' + uid);
+        return stored ? JSON.parse(stored) : getDefaultSettings();
+      } catch (error) {
+        console.warn('Erro ao carregar configurações do localStorage:', error);
+        return getDefaultSettings();
+      }
+    }
+    
+    // Configurações padrão
+    function getDefaultSettings() {
+      return {
+        theme: 'dark',
+        notifications: true,
+        language: 'pt-BR',
+        autoSave: true,
+        sessionPersist: true,
+        displayName: '',
+        phoneNumber: '',
+        department: 'Estrutura',
+        role: 'Usuário',
+        lastLogin: new Date().toISOString(),
+        createdAt: new Date().toISOString()
+      };
+    }
+    
+    // Função para salvar configurações (localStorage por agora)
+    function saveUserSettings(showFeedback = false) {
+      if (!currentUser || isLoading) return Promise.resolve();
+      
+      return new Promise((resolve) => {
+        try {
+          isLoading = true;
+          if (showFeedback) showLoadingState(true);
+          
+          // Salvar no localStorage
+          userSettings.lastUpdated = new Date().toISOString();
+          localStorage.setItem(SETTINGS_KEY + '_' + currentUser.uid, JSON.stringify(userSettings));
+          
+          hasUnsavedChanges = false;
+          updateSaveButtonState();
+          
+          if (showFeedback) {
+            showNotification('Configurações salvas com sucesso!', 'success');
+          }
+          
+          resolve();
+        } catch (error) {
+          console.error('Erro ao salvar configurações:', error);
+          if (showFeedback) {
+            showNotification('Erro ao salvar configurações', 'error');
+          }
+          resolve(); // Não rejeitar para não quebrar o fluxo
+        } finally {
+          isLoading = false;
+          if (showFeedback) showLoadingState(false);
+        }
+      });
+    }
+    
+    // Monitorar estado de autenticação (simplificado)
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        currentUser = user;
+        
+        // Carregar configurações do localStorage
+        userSettings = loadUserSettings(user.uid);
+        
+        // Preencher formulário
+        document.getElementById('email').value = user.email || '';
+        document.getElementById('nome').value = userSettings.displayName || user.email?.split('@')[0] || '';
+        document.getElementById('telefone').value = userSettings.phoneNumber || '';
+        document.getElementById('setor').value = 'Estrutura'; // Fixo como Estrutura
+        document.getElementById('cargo').value = userSettings.role || 'Supervisor';
+        
+        // Configurar tema
+        const themeInput = document.querySelector(`input[name="theme"][value="${userSettings.theme}"]`);
+        if (themeInput) {
+          themeInput.checked = true;
+          applyTheme(userSettings.theme);
+        }
+        
+        // Configurar toggles (notificações e sessão sempre ativadas)
+        document.getElementById('notificationsToggle').checked = true;
+        document.getElementById('notificationsToggle').disabled = true;
+        document.getElementById('autoSaveToggle').checked = userSettings.autoSave;
+        document.getElementById('persistToggle').checked = true;
+        document.getElementById('persistToggle').disabled = true;
+        
+        // Atualizar UI
+        const userName = userSettings.displayName || user.email?.split('@')[0] || 'Usuário';
+        const userNameEl = document.getElementById('user-name');
+        if (userNameEl) userNameEl.textContent = userName;
+        
+        const initials = userName.split(' ').map(n => n[0]).join('').toUpperCase();
+        const avatarEl = document.getElementById('avatar-initials');
+        if (avatarEl) avatarEl.textContent = initials;
+        
+        // Atualizar informações da sessão
+        updateSessionInfo();
+        
+        localStorage.setItem('uid', user.uid);
+        localStorage.setItem('userName', userName);
+        
+        // Resetar estado de changes
+        hasUnsavedChanges = false;
+        updateSaveButtonState();
+      } else {
+        window.location.href = '../index.html';
+      }
+    });
+    
+    // Reautenticação segura
+    async function reauthenticate() {
+      return new Promise((resolve, reject) => {
+        const modal = createPasswordModal();
+        modal.onConfirm = async (password) => {
+          try {
+            if (!currentUser?.email) {
+              throw new Error('Email do usuário não disponível');
+            }
+            const credential = EmailAuthProvider.credential(currentUser.email, password);
+            await reauthenticateWithCredential(currentUser, credential);
+            resolve();
+          } catch (error) {
+            reject(error);
+          }
+        };
+        modal.onCancel = () => reject(new Error('Cancelado pelo usuário'));
+        modal.show();
+      });
+    }
+    
+    // Criar modal para senha
+    function createPasswordModal() {
+      const overlay = document.createElement('div');
+      overlay.style.cssText = `
+        position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.8); z-index: 10000;
+        display: flex; align-items: center; justify-content: center;
+      `;
+      
+      const modal = document.createElement('div');
+      modal.style.cssText = `
+        background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04));
+        border-radius: 16px; padding: 24px; max-width: 400px; width: 90%;
+        border: 1px solid rgba(255,255,255,0.1);
+        box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+      `;
+      
+      modal.innerHTML = `
+        <h3 style="margin: 0 0 16px 0; color: #e1efe6;">Confirmar Senha</h3>
+        <p style="color: rgba(225,239,230,0.6); margin-bottom: 20px;">Digite sua senha atual para continuar:</p>
+        <input type="password" id="modalPassword" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #e1efe6; margin-bottom: 20px; outline: none;">
+        <div style="display: flex; gap: 12px; justify-content: flex-end;">
+          <button id="modalCancel" style="padding: 8px 16px; border: 1px solid rgba(255,255,255,0.1); background: transparent; color: rgba(225,239,230,0.8); border-radius: 8px; cursor: pointer;">Cancelar</button>
+          <button id="modalConfirm" style="padding: 8px 16px; border: none; background: linear-gradient(135deg,#4f46e5,#7c3aed); color: white; border-radius: 8px; cursor: pointer; font-weight: 600;">Confirmar</button>
+        </div>
+      `;
+      
+      const passwordInput = modal.querySelector('#modalPassword');
+      const cancelBtn = modal.querySelector('#modalCancel');
+      const confirmBtn = modal.querySelector('#modalConfirm');
+      
+      const modalObj = {
+        show: () => {
+          document.body.appendChild(overlay);
+          setTimeout(() => passwordInput?.focus(), 100);
+        },
+        hide: () => {
+          if (document.body.contains(overlay)) {
+            document.body.removeChild(overlay);
+          }
+        },
+        onConfirm: null,
+        onCancel: null
+      };
+      
+      confirmBtn.onclick = () => {
+        if (modalObj.onConfirm && passwordInput) {
+          modalObj.onConfirm(passwordInput.value);
+        }
+        modalObj.hide();
+      };
+      
+      cancelBtn.onclick = () => {
+        if (modalObj.onCancel) {
+          modalObj.onCancel();
+        }
+        modalObj.hide();
+      };
+      
+      if (passwordInput) {
+        passwordInput.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') confirmBtn.click();
+        });
+      }
+      
+      return modalObj;
+    }
+    
+    // Funções de atualização
+    window.updateEmail = async function() {
+      if (!currentUser) return;
+      
+      const newEmail = document.getElementById('email')?.value?.trim() || '';
+      const newName = document.getElementById('nome')?.value?.trim() || '';
+      
+      if (!newEmail || !newName) {
+        showNotification('Preencha todos os campos obrigatórios', 'warning');
+        return;
+      }
+      
+      try {
+        showLoadingState(true);
+        
+        if (newEmail !== currentUser.email) {
+          await updateEmail(currentUser, newEmail);
+        }
+        
+        // Atualizar configurações
+        userSettings.displayName = newName;
+        userSettings.phoneNumber = document.getElementById('telefone')?.value?.trim() || '';
+        userSettings.department = 'Estrutura'; // Sempre Estrutura
+        userSettings.role = document.getElementById('cargo')?.value || 'Supervisor';
+        
+        await saveUserSettings(false);
+        
+        // Atualizar UI
+        const userNameEl = document.getElementById('user-name');
+        if (userNameEl) userNameEl.textContent = newName;
+        
+        const initials = newName.split(' ').map(n => n[0]).join('').toUpperCase();
+        const avatarEl = document.getElementById('avatar-initials');
+        if (avatarEl) avatarEl.textContent = initials;
+        
+        localStorage.setItem('userName', newName);
+        
+        showNotification('Perfil atualizado com sucesso!', 'success');
+        
+      } catch (err) {
+        if (err.code === 'auth/requires-recent-login') {
+          try {
+            await reauthenticate();
+            if (newEmail !== currentUser.email) {
+              await updateEmail(currentUser, newEmail);
+            }
+            showNotification('Perfil atualizado com sucesso!', 'success');
+          } catch (reauthErr) {
+            showNotification('Erro na reautenticação: ' + reauthErr.message, 'error');
+          }
+        } else {
+          showNotification('Erro ao atualizar perfil: ' + err.message, 'error');
+        }
+      } finally {
+        showLoadingState(false);
+      }
+    };
+    
+    window.updatePassword = async function() {
+      if (!currentUser) return;
+      
+      const passwordInput = document.getElementById('password');
+      const newPwd = passwordInput?.value || '';
+      
+      if (!newPwd) {
+        showNotification('Digite uma nova senha', 'warning');
+        return;
+      }
+      
+      if (newPwd.length < 6) {
+        showNotification('A senha deve ter ao menos 6 caracteres', 'warning');
+        return;
+      }
+      
+      try {
+        showLoadingState(true);
+        await updatePassword(currentUser, newPwd);
+        if (passwordInput) passwordInput.value = '';
+        showNotification('Senha atualizada com sucesso!', 'success');
+      } catch (err) {
+        if (err.code === 'auth/requires-recent-login') {
+          try {
+            await reauthenticate();
+            await updatePassword(currentUser, newPwd);
+            if (passwordInput) passwordInput.value = '';
+            showNotification('Senha atualizada com sucesso!', 'success');
+          } catch (reauthErr) {
+            showNotification('Erro na reautenticação: ' + reauthErr.message, 'error');
+          }
+        } else {
+          showNotification('Erro ao atualizar senha: ' + err.message, 'error');
+        }
+      } finally {
+        showLoadingState(false);
+      }
+    };
+    
+    // Função para deletar conta
+    window.deleteAccount = async function() {
+      if (!currentUser) return;
+      
+      const confirmed = confirm('⚠️ ATENÇÃO: Esta ação é irreversível!\n\nTodos os seus dados serão permanentemente excluídos.\n\nDeseja realmente excluir sua conta?');
+      if (!confirmed) return;
+      
+      const finalConfirm = prompt('Digite "EXCLUIR" para confirmar a exclusão da conta:');
+      if (finalConfirm !== 'EXCLUIR') {
+        showNotification('Exclusão cancelada', 'info');
+        return;
+      }
+      
+      try {
+        showLoadingState(true);
+        await reauthenticate();
+        
+        // Limpar dados locais
+        localStorage.removeItem(SETTINGS_KEY + '_' + currentUser.uid);
+        
+        // Deletar conta
+        await deleteUser(currentUser);
+        
+        localStorage.clear();
+        window.location.href = '../index.html';
+      } catch (error) {
+        showNotification('Erro ao excluir conta: ' + error.message, 'error');
+      } finally {
+        showLoadingState(false);
+      }
+    };
+    
+    // Logout
+    window.signOutUser = async function() {
+      const confirmed = confirm('Tem certeza que deseja sair da conta?');
+      if (!confirmed) return;
+      
+      try {
+        showLoadingState(true);
+        
+        // Salvar alterações pendentes
+        if (hasUnsavedChanges && currentUser) {
+          await saveUserSettings();
+        }
+        
+        // Limpar localStorage
+        localStorage.removeItem('uid');
+        localStorage.removeItem('userName');
+        
+        await signOut(auth);
+        window.location.href = '../index.html';
+      } catch (err) {
+        showNotification('Erro ao sair: ' + err.message, 'error');
+      } finally {
+        showLoadingState(false);
+      }
+    };
+    
+    // Sistema de notificações
+    function showNotification(message, type = 'info') {
+      const notification = document.createElement('div');
+      notification.style.cssText = `
+        position: fixed; top: 24px; right: 24px; z-index: 10000;
+        padding: 16px 20px; border-radius: 12px; color: white;
+        font-weight: 600; max-width: 400px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+        transform: translateX(100%); transition: transform 0.3s ease;
+      `;
+      
+      const colors = {
+        success: 'linear-gradient(135deg, #10b981, #059669)',
+        error: 'linear-gradient(135deg, #ef4444, #dc2626)',
+        warning: 'linear-gradient(135deg, #f59e0b, #d97706)',
+        info: 'linear-gradient(135deg, #3b82f6, #2563eb)'
+      };
+      
+      notification.style.background = colors[type] || colors.info;
+      notification.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid ${type === 'success' ? 'fa-check' : type === 'error' ? 'fa-times' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info'}"></i>
+          ${message}
+        </div>
+      `;
+      
+      document.body.appendChild(notification);
+      
+      setTimeout(() => {
+        notification.style.transform = 'translateX(0)';
+      }, 100);
+      
+      setTimeout(() => {
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+          if (document.body.contains(notification)) {
+            document.body.removeChild(notification);
+          }
+        }, 300);
+      }, 4000);
+    }
+    
+    // Estado de loading
+    function showLoadingState(show) {
+      const buttons = document.querySelectorAll('.btn:not(.loading-disabled)');
+      buttons.forEach(btn => {
+        if (show) {
+          btn.disabled = true;
+          btn.style.opacity = '0.7';
+          btn.style.cursor = 'not-allowed';
+        } else {
+          btn.disabled = false;
+          btn.style.opacity = '1';
+          btn.style.cursor = 'pointer';
+        }
+      });
+    }
+    
+    // Aplicar tema
+    function applyTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      if (userSettings) {
+        userSettings.theme = theme;
+        hasUnsavedChanges = true;
+        updateSaveButtonState();
+        if (userSettings.autoSave) {
+          setTimeout(() => saveUserSettings(), 500);
+        }
+      }
+    }
+    
+    // Atualizar informações da sessão
+    function updateSessionInfo() {
+      const lastLogin = new Date().toLocaleString('pt-BR');
+      const lastLoginEl = document.getElementById('lastLogin');
+      if (lastLoginEl) lastLoginEl.textContent = lastLogin;
+      
+      if (currentUser?.metadata?.creationTime) {
+        const accountAge = new Date(currentUser.metadata.creationTime).toLocaleDateString('pt-BR');
+        const accountCreatedEl = document.getElementById('accountCreated');
+        if (accountCreatedEl) accountCreatedEl.textContent = accountAge;
+      }
+    }
+    
+    // Atualizar estado do botão salvar
+    function updateSaveButtonState() {
+      const saveBtn = document.getElementById('saveAllBtn');
+      if (saveBtn) {
+        if (hasUnsavedChanges) {
+          saveBtn.classList.add('has-changes');
+          saveBtn.innerHTML = '<i class="fa-solid fa-exclamation-triangle"></i> Alterações pendentes';
+        } else {
+          saveBtn.classList.remove('has-changes');
+          saveBtn.innerHTML = '<i class="fa-solid fa-check"></i> Tudo salvo';
+        }
+      }
+    }
+    
+    // Limpar cache
+    window.clearCache = function() {
+      if (confirm('Isso irá limpar todos os dados em cache. Continuar?')) {
+        if (currentUser) {
+          localStorage.removeItem(SETTINGS_KEY + '_' + currentUser.uid);
+        }
+        localStorage.clear();
+        sessionStorage.clear();
+        showNotification('Cache limpo com sucesso!', 'success');
+        setTimeout(() => window.location.reload(), 1000);
+      }
+    };
+    
+    // Exportar dados
+    window.exportData = function() {
+      if (!currentUser) return;
+      
+      const data = {
+        user: {
+          email: currentUser.email,
+          uid: currentUser.uid,
+          creationTime: currentUser.metadata?.creationTime
+        },
+        settings: userSettings,
+        exportDate: new Date().toISOString()
+      };
+      
+      const blob = new Blob([JSON.stringify(data, null, 2)], {
+        type: 'application/json'
+      });
+      
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `estrutura-backup-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      showNotification('Backup exportado com sucesso!', 'success');
+    };
+    
+    // Salvar todas as configurações
+    window.saveAllSettings = async function() {
+      try {
+        await updateEmail();
+        const passwordField = document.getElementById('password');
+        if (passwordField?.value) {
+          await updatePassword();
+        }
+        await saveUserSettings(true);
+      } catch (error) {
+        console.error('Erro ao salvar configurações:', error);
+        showNotification('Erro ao salvar algumas configurações', 'error');
+      }
+    };
+    
+    // Event listeners quando o DOM estiver pronto
+    document.addEventListener('DOMContentLoaded', () => {
+      // Listener para mudanças nos campos
+      const inputs = ['nome', 'telefone', 'cargo'];
+      inputs.forEach(id => {
+        const input = document.getElementById(id);
+        if (input) {
+          input.addEventListener('input', () => {
+            hasUnsavedChanges = true;
+            updateSaveButtonState();
+            if (userSettings?.autoSave) {
+              setTimeout(() => saveUserSettings(), 1000);
+            }
+          });
+        }
+      });
+      
+      // Theme change listener
+      document.querySelectorAll('input[name="theme"]').forEach(input => {
+        input.addEventListener('change', () => {
+          if (input.checked) {
+            applyTheme(input.value);
+          }
+        });
+      });
+      
+      // Toggle listeners (apenas autoSave pode ser alterado)
+      const autoSaveToggle = document.getElementById('autoSaveToggle');
+      if (autoSaveToggle) {
+        autoSaveToggle.addEventListener('change', () => {
+          if (userSettings) {
+            userSettings.autoSave = autoSaveToggle.checked;
+            hasUnsavedChanges = true;
+            updateSaveButtonState();
+            if (userSettings.autoSave) {
+              setTimeout(() => saveUserSettings(), 500);
+            }
+          }
+        });
+      }
+      
+      // Password toggle
+      const pwdInput = document.getElementById('password');
+      const pwdToggle = document.getElementById('pwdToggle');
+      
+      if (pwdToggle && pwdInput) {
+        function setPwdIcon(hidden) {
+          const i = pwdToggle.querySelector('i');
+          if (i) {
+            i.classList.toggle('fa-eye', hidden);
+            i.classList.toggle('fa-eye-slash', !hidden);
+            pwdToggle.title = hidden ? 'Mostrar senha' : 'Ocultar senha';
+          }
+        }
+        
+        setPwdIcon(true);
+        
+        pwdToggle.addEventListener('click', () => {
+          const isPwd = pwdInput.type === 'password';
+          pwdInput.type = isPwd ? 'text' : 'password';
+          setPwdIcon(!isPwd);
+        });
+        
+        pwdToggle.addEventListener('keydown', (ev) => {
+          if (ev.key === 'Enter' || ev.key === ' ') {
+            ev.preventDefault();
+            pwdToggle.click();
+          }
+        });
+      }
+      
+      // Phone formatting
+      const phoneInput = document.getElementById('telefone');
+      if (phoneInput) {
+        phoneInput.addEventListener('input', function(e) {
+          let value = e.target.value.replace(/\D/g, '');
+          if (value.length >= 11) {
+            value = value.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+          } else if (value.length >= 7) {
+            value = value.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3');
+          } else if (value.length >= 3) {
+            value = value.replace(/(\d{2})(\d{0,5})/, '($1) $2');
+          }
+          e.target.value = value;
+        });
+      }
+      
+      // Department update
+      const deptSelect = document.getElementById('departamento');
+      if (deptSelect) {
+        deptSelect.addEventListener('change', function() {
+          const deptDisplay = document.getElementById('userDepartment');
+          if (deptDisplay) deptDisplay.textContent = this.value;
+        });
+      }
+    });
+    
+    // Aviso antes de sair com alterações não salvas
+    window.addEventListener('beforeunload', (e) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = 'Você tem alterações não salvas. Deseja sair mesmo assim?';
+      }
+    });
+    
+    // Função para botão animação
+    function pulseButton(el) {
+      if (window.gsap && el) {
+        gsap.fromTo(el, {scale: 1}, {
+          scale: 0.98, 
+          duration: 0.06, 
+          yoyo: true, 
+          repeat: 1, 
+          ease: 'power1.inOut'
+        });
+      }
+    }
+    
+    // Tornar função disponível globalmente
+    window.pulseButton = pulseButton;
+
+    // Controle da sidebar em dispositivos móveis
+    document.addEventListener('DOMContentLoaded', function() {
+      const toggleMenuBtn = document.getElementById('toggleMenu');
+      const sidebar = document.querySelector('.sidebar');
+      
+      if (toggleMenuBtn && sidebar) {
+        toggleMenuBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          sidebar.classList.toggle('active');
+          
+          // Alterar ícone do hamburger quando o menu estiver aberto
+          const icon = toggleMenuBtn.querySelector('i');
+          if (sidebar.classList.contains('active')) {
+            icon.classList.remove('fa-bars');
+            icon.classList.add('fa-times');
+          } else {
+            icon.classList.remove('fa-times');
+            icon.classList.add('fa-bars');
+          }
+        });
+        
+        // Fechar o menu ao clicar fora dele
+        document.addEventListener('click', function(event) {
+          if (!sidebar.contains(event.target) && !toggleMenuBtn.contains(event.target)) {
+            sidebar.classList.remove('active');
+            const icon = toggleMenuBtn.querySelector('i');
+            icon.classList.remove('fa-times');
+            icon.classList.add('fa-bars');
+          }
+        });
+        
+        // Prevenir que cliques dentro do menu fechem ele
+        sidebar.addEventListener('click', function(e) {
+          e.stopPropagation();
+        });
+      }
+    });
+  </script>
+
+  <style>
+    /* color system */
+    :root{
+      --bg: #0b150f;
+      --card: rgba(255,255,255,0.06);
+      --glass: rgba(255,255,255,0.04);
+      --accent: #9fccb1;
+      --secondary: #39666b;
+      --text: #e1efe6;
+      --muted: rgba(225,239,230,0.6);
+      --neumo-shadow: 10px 10px 20px rgba(0,0,0,0.6), -6px -6px 16px rgba(255,255,255,0.02);
+      --radius: 14px;
+      --max-width:1200px;
+      --gap:18px;
+      --btn-grad: linear-gradient(135deg,#4f46e5,#7c3aed);
+      --btn-glow-grad: linear-gradient(135deg, rgba(79,70,229,0.28), rgba(124,58,237,0.28));
+      --cta-contrast: #ffffff;
+      --hover-ease: cubic-bezier(.15,.9,.25,1);
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --success: #10b981;
+      --sidebar-w: 260px;
+    }
+
+    /* reset / base */
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:'Inter',system-ui,Arial;
+      background-color: #0b0c0f;
+      color:var(--text);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      line-height:1.35;
+      padding:28px;
+    }
+
+    /* page overlay */
+    body::before{
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background:
+        radial-gradient(900px 340px at 8% 12%, rgba(255,255,255,0.035), transparent 30%),
+        radial-gradient(700px 260px at 85% 78%, rgba(255,255,255,0.02), transparent 35%),
+        linear-gradient(135deg, rgba(255,255,255,0.018), rgba(200,200,200,0.008));
+      filter: blur(20px) saturate(102%);
+      opacity: 0.9;
+      mix-blend-mode:soft-light;
+    }
+
+    .container {
+      margin-left: var(--sidebar-w);
+      max-width: var(--max-width);
+      box-sizing: border-box;
+    }
+
+    /* ===== SIDEBAR ===== */
+    .sidebar {
+      --bg-sidebar: #0b150f;
+      --card-sidebar: rgba(255, 255, 255, 0.06);
+      --glass-sidebar: rgba(255, 255, 255, 0.04);
+      --accent-sidebar: #9fccb1;
+      --secondary-sidebar: #39666b;
+      --text-sidebar: #e1efe6;
+      --muted-sidebar: rgba(225, 239, 230, 0.6);
+      --neumo-shadow-sidebar: 10px 10px 20px rgba(0, 0, 0, 0.6), -6px -6px 16px rgba(255, 255, 255, 0.02);
+      --radius-sidebar: 14px;
+    }
+
+    /* Sidebar styles (copiado - mantive exatamente) */
+    .sidebar {
+      width: 260px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+      color: var(--text-sidebar);
+      padding: 20px 0;
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      z-index: 60;
+      backdrop-filter: blur(8px) saturate(120%);
+      border-right: 1px solid rgba(255, 255, 255, 0.03);
+      overflow-y: auto;
+    }
+
+    .sidebar-header {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      position: relative;
+      padding: 0 20px 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+      margin-bottom: 20px;
+    }
+
+    .brand {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+    }
+
+    .logo {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--accent-sidebar), var(--secondary-sidebar));
+      box-shadow: var(--neumo-shadow-sidebar);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      color: white;
+      font-size: 18px;
+    }
+
+    .brand-text h1 {
+      font-size: 16px;
+      margin: 0;
+      color: var(--text-sidebar);
+      font-weight: 600;
+    }
+
+    .brand-text p {
+      margin: 0;
+      font-size: 12px;
+      opacity: 0.75;
+      color: var(--muted-sidebar);
+    }
+
+    .hamburger {
+      display: none;
+      background: var(--glass-sidebar);
+      border: 1px solid rgba(255, 255, 255, 0.02);
+      border-radius: 10px;
+      color: var(--muted-sidebar);
+      font-size: 18px;
+      width: 44px;
+      height: 44px;
+      position: absolute;
+      left: 15px;
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+    }
+
+    nav ul {
+      list-style: none;
+      padding: 0 12px;
+    }
+
+    nav ul li {
+      margin: 8px 0;
+    }
+
+    nav ul li a {
+      text-decoration: none;
+      color: var(--muted-sidebar);
+      display: flex;
+      align-items: center;
+      padding: 10px 14px;
+      border-radius: 10px;
+      transition: all 0.2s;
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    nav ul li a i {
+      margin-right: 12px;
+      width: 20px;
+      text-align: center;
+    }
+
+    nav ul li a:hover,
+    nav ul li a.active {
+      color: var(--text-sidebar);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    /* Botão de Observa+ com estilo especial */
+    nav ul li:nth-child(1) a {
+      background: linear-gradient(135deg, var(--accent-sidebar), var(--secondary-sidebar));
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      box-shadow: 0 12px 40px rgba(70, 229, 123, 0.12), inset 0 -6px 18px rgba(255, 255, 255, 0.02);
+      margin-top: 15px;
+    }
+
+    nav ul li:nth-child(1) a:hover {
+      filter: brightness(1.08);
+      box-shadow: 0 2px 80px rgba(70, 229, 150, 0.18), -4px -4px 10px rgba(58, 237, 133, 0.04);
+    }
+    
+    /* Ícone branco para o botão gradiente em desktop também */
+    nav ul li:nth-child(1) a i {
+      color: white;
+    }
+
+    /* responsive */
+    @media (max-width:1000px){
+      .container{ 
+        margin-left: 0;
+        margin-top: 80px; /* altura da navbar fechada aumentada */
+        transition: margin-top 0.4s ease; 
+      }
+      .controls{ grid-template-columns: 1fr; }
+      
+      .sidebar { 
+        width: 100%;
+        height: auto;
+        min-height: 80px; /* altura maior para melhor visibilidade */
+        max-height: 80px;
+        position: fixed;
+        top: 0;
+        left: 0;
+        flex-direction: column;
+        align-items: stretch;
+        padding: 0;
+        overflow: hidden;
+        transition: max-height 0.4s ease;
+        border-right: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08); /* borda mais visível */
+        z-index: 1000;
+        backdrop-filter: blur(12px) saturate(140%); /* blur mais forte */
+      }
+      
+      .sidebar.active {
+        max-height: 520px;
+        overflow-y: auto;
+      }
+      
+      .sidebar-header {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        padding: 18px 20px; /* padding maior */
+        margin: 0;
+        border: none;
+        width: 100%;
+        min-height: 80px;
+        box-sizing: border-box;
+      }
+      
+      .brand {
+        flex-direction: row;
+        gap: 14px; /* gap maior */
+        align-items: center;
+      }
+      
+      .brand-text {
+        display: block;
+      }
+      
+      .brand-text h1 {
+        font-size: 16px; /* fonte maior */
+        font-weight: 700;
+        color: var(--text-sidebar);
+      }
+      
+      .brand-text p {
+        display: none;
+      }
+      
+      .logo {
+        width: 48px; /* logo maior */
+        height: 48px;
+        font-size: 20px;
+        box-shadow: 0 8px 25px rgba(159, 204, 177, 0.15), inset 0 2px 8px rgba(255,255,255,0.05); /* sombra mais visível */
+      }
+      
+      .hamburger {
+        display: flex;
+        position: static;
+        margin: 0;
+        order: 2;
+        width: 48px; /* botão maior */
+        height: 48px;
+        font-size: 20px;
+        background: rgba(255, 255, 255, 0.06); /* fundo mais visível */
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        color: var(--text-sidebar);
+        transition: all 0.3s var(--hover-ease);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      }
+      
+      .hamburger:hover {
+        background: rgba(255, 255, 255, 0.1);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+      }
+      
+      .hamburger:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      }
+      
+      #sidebarNav {
+        width: 100%;
+        padding: 8px 20px 20px;
+        box-shadow: none;
+        display: block !important;
+        opacity: 0;
+        transition: opacity 0.3s ease 0.1s;
+      }
+      
+      .sidebar.active #sidebarNav {
+        opacity: 1;
+      }
+      
+      nav ul {
+        display: flex;
+        flex-direction: column;
+        gap: 14px; /* gap ainda maior para melhor espaçamento */
+        padding: 0;
+        margin: 0;
+      }
+      
+      nav ul li {
+        margin: 0;
+      }
+      
+      nav ul li a {
+        padding: 14px 16px; /* padding maior */
+        font-size: 15px; /* fonte ligeiramente maior */
+        font-weight: 600; /* peso da fonte maior */
+        border-radius: 12px;
+        transition: all 0.25s var(--hover-ease);
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.03);
+        color: var(--text-sidebar);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      }
+      
+      nav ul li a i {
+        margin-right: 14px; /* margem maior do ícone */
+        width: 22px; /* ícones maiores */
+        font-size: 16px;
+        color: var(--accent-sidebar);
+      }
+      
+      nav ul li a:hover,
+      nav ul li a.active {
+        position: relative;
+  color: #ffffff !important;                    /* texto branco */
+  background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+  border-color: rgba(255,255,255,0.14);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.35);
+  transform: translateX(6px) scale(1.01);
+  transition: transform .22s var(--hover-ease), box-shadow .22s var(--hover-ease), background .2s ease;
+  width: 95%;
+  z-index: 6;
+      }
+
+      /* borda lateral colorida — guia visual forte, arredondada */
+nav ul li a.active::before{
+  content: "";
+  position: absolute;
+  left: -10px;                /* ajusta a posição para “saltar” levemente */
+  top: 8px;
+  bottom: 8px;
+  width: 6px;
+  border-radius: 6px;
+  background: linear-gradient(180deg, var(--accent-sidebar), var(--secondary-sidebar));
+  box-shadow: 0 6px 18px rgba(60,150,120,0.12), inset 0 -4px 12px rgba(255,255,255,0.03);
+}
+
+/* ícone: preenche com cor para reforçar sinal ativo */
+nav ul li a.active i {
+  color: var(--accent-sidebar) !important;
+  filter: drop-shadow(0 4px 14px rgba(0,0,0,0.35));
+  transform: translateX(2px);
+  transition: transform .18s var(--hover-ease), color .18s;
+}
+
+/* acessibilidade: foco visível (keyboard/touch) */
+nav ul li a:focus {
+  outline: none;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.45), 0 0 0 3px rgba(155,204,177,0.06);
+  transform: translateX(6px);
+}
+      
+      /* Estilo especial para o botão Observa+ em mobile */
+      nav ul li:nth-child(1) a {
+        background: linear-gradient(135deg, var(--accent-sidebar), var(--secondary-sidebar));
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: 0 6px 20px rgba(70, 229, 123, 0.2), inset 0 1px 0 rgba(255,255,255,0.1);
+        font-weight: 700;
+      }
+      
+      nav ul li:nth-child(1) a i {
+        color: white; /* ícone branco para contraste com fundo verde */
+      }
+
+      nav ul li:nth-child(1) a:hover {
+        filter: brightness(1.1);
+        transform: translateX(6px) translateY(-2px);
+        box-shadow: 0 8px 25px rgba(70, 229, 150, 0.3);
+      }
+      
+      nav ul li a span {
+        display: inline;
+        letter-spacing: 0.3px; /* espaçamento das letras */
+      }
+    }
+
+    /* ===== ACTIVE somente em DESKTOP (telas maiores que 1000px) ===== */
+@media (min-width:1001px) {
+  /* item ativo na sidebar (desktop) */
+  nav ul li a.active {
+    position: relative;
+    color: var(--text-sidebar) !important;
+    background: linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0.01));
+    border-radius: 0 10px 10px 0;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+    padding-left: 18px;
+    transition: background .20s var(--hover-ease), box-shadow .22s var(--hover-ease), transform .18s;
+    z-index: 5;
+  }
+
+  nav ul li a.active::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 8px;
+    bottom: 8px;
+    width: 8px;
+    border-radius: 0 6px 6px 0;
+    background: linear-gradient(180deg, var(--accent-sidebar), var(--secondary-sidebar));
+    box-shadow: 0 6px 18px rgba(60,150,120,0.12), inset 0 -4px 12px rgba(255,255,255,0.03);
+  }
+
+  nav ul li a.active i {
+    color: var(--accent-sidebar) !important;
+    transform: translateX(2px);
+    filter: drop-shadow(0 6px 14px rgba(0,0,0,0.35));
+    transition: transform .18s var(--hover-ease), color .18s;
+  }
+
+  /* hover leve só no desktop (não afeta mobile) */
+  nav ul li a:hover:not(.active) {
+    background: rgba(255,255,255,0.02);
+    transform: translateX(4px);
+    box-shadow: none;
+  }
+
+  nav ul li a:focus {
+    outline: none;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 0 4px rgba(155,204,177,0.06);
+  }
+
+  /* Botão de Observa+ com estilo especial */
+    nav ul li:nth-child(1) a {
+      background: linear-gradient(135deg, var(--accent-sidebar), var(--secondary-sidebar)) !important;
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      box-shadow: 0 12px 40px rgba(70, 229, 123, 0.12), inset 0 -6px 18px rgba(255, 255, 255, 0.02);
+      margin-top: 15px;
+    }
+
+    nav ul li:nth-child(1) a:hover {
+      filter: brightness(1.08);
+      box-shadow: 0 2px 80px rgba(70, 229, 150, 0.18), -4px -4px 10px rgba(58, 237, 133, 0.04);
+    }
+    
+    /* Ícone branco para o botão gradiente em desktop também */
+    nav ul li:nth-child(1) a i {
+      color: white;
+    }
+}
+    
+    @media (max-width:560px){
+      header.topbar{ flex-direction:column; align-items:flex-start; gap:10px }
+      .preview .preview-head{ flex-direction:column; align-items:flex-start; gap:8px }
+      
+      .sidebar-header {
+        padding: 16px 18px;
+      }
+      
+      .brand-text h1 {
+        font-size: 15px;
+      }
+      
+      .logo {
+        width: 44px;
+        height: 44px;
+        font-size: 18px;
+      }
+      
+      .hamburger {
+        width: 44px;
+        height: 44px;
+        font-size: 18px;
+      }
+      
+      nav ul li a {
+        padding: 12px 14px;
+        font-size: 14px;
+      }
+      
+      nav ul li a i {
+        width: 20px;
+        font-size: 15px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .sidebar.active {
+        max-height: 100vh;
+      }
+      
+      .container {
+        margin-top: 76px;
+      }
+      
+      .sidebar {
+        min-height: 76px;
+        max-height: 76px;
+      }
+      
+      .sidebar-header {
+        min-height: 76px;
+        padding: 14px 16px;
+      }
+    }
+
+    .page {
+      width:100%;
+      max-width:1200px;
+      display:grid;
+      grid-template-columns: 1fr 360px;
+      gap:28px;
+      align-items:start;
+      z-index:1;
+    }
+
+    .main {
+      display:flex;
+      flex-direction:column;
+      gap:20px;
+    }
+
+    .page-header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .page-header .title{
+      font-size:22px;
+      font-weight:700;
+      letter-spacing:-0.01em;
+    }
+    .page-header .subtitle{ color:var(--muted); font-size:13px; margin-top:4px; }
+
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border-radius:16px;
+      padding:18px;
+      border: 1px solid rgba(255,255,255,0.03);
+      box-shadow: 0 14px 50px rgba(0,0,0,0.6);
+      backdrop-filter: blur(8px);
+    }
+
+    /* Form wrapper para resolver o warning do password field */
+    .settings-form {
+      display:grid; 
+      gap:12px; 
+      margin-top:6px;
+    }
+
+    .profile-card {
+      display:grid;
+      grid-template-columns: 1fr 180px;
+      gap:18px;
+      align-items:start;
+    }
+
+    .avatar{
+      width:120px;height:120px;border-radius:14px;
+      background: linear-gradient(135deg,var(--accent),var(--secondary));
+      display:flex;align-items:center;justify-content:center;font-weight:800;color:#07120f;font-size:38px;
+      box-shadow: var(--neumo-shadow);
+    }
+
+    .profile-meta h3{ margin:0; font-size:18px; font-weight:700; }
+    .profile-meta p{ margin:6px 0 0 0; color:var(--muted); font-size:13px; }
+
+    .field{ display:flex; flex-direction:column; gap:6px; position:relative; }
+    .field-row{ display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
+    
+    label{ font-size:13px; color:var(--muted); }
+    input[type="text"], input[type="email"], input[type="password"], input[type="tel"], select {
+      width:100%; padding:12px 44px 12px 12px; border-radius:12px;
+      border:1px solid rgba(255,255,255,0.03);
+      background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.00));
+      color:var(--text); outline:none; font-size:14px;
+      box-shadow: inset 0 4px 12px rgba(0,0,0,0.4);
+      transition: all .22s var(--hover-ease);
+    }
+    
+    /* Select dropdown styling */
+    select option {
+      background: #1a1a1a;
+      color: var(--text);
+      padding: 8px 12px;
+      border: none;
+    }
+    
+    select option:hover {
+      background: #2a2a2a;
+    }
+    
+    select option:checked {
+      background: var(--accent);
+      color: #0b150f;
+    }
+    
+    input:focus{ transform: translateY(-2px); box-shadow: 0 18px 40px rgba(0,0,0,0.6), 0 0 0 4px rgba(79,70,229,0.06);}
+
+    .icon-right{ position:absolute; right:12px; top:53%; color:var(--muted); cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center; }
+    .icon-right:hover{ color:var(--text); transform:translateY(-10%) scale(1.06); }
+
+    .btn {
+      display:inline-flex; align-items:center; gap:10px;
+      padding:10px 14px; border-radius:12px; font-weight:700; cursor:pointer;
+      border: 1px solid rgba(255,255,255,0.06);
+      background: var(--btn-grad); color:var(--cta-contrast);
+      box-shadow: 0 12px 40px rgba(79,70,229,0.12), inset 0 -6px 18px rgba(255,255,255,0.02);
+      transition: transform .18s ease, box-shadow .18s ease, filter .12s ease;
+      text-decoration: none;
+    }
+    .btn:hover{ transform: translateY(-3px); filter:brightness(1.06); box-shadow: 0 28px 80px rgba(79,70,229,0.18); }
+    .btn.ghost{ background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); color:var(--text); box-shadow: var(--neumo-shadow); }
+    .btn.danger{ background: linear-gradient(135deg, var(--danger), #dc2626); }
+    .btn.danger:hover{ box-shadow: 0 28px 80px rgba(239,68,68,0.18); }
+    .btn.has-changes{ background: linear-gradient(135deg, var(--warning), #d97706); animation: pulse 2s infinite; }
+
+    .actions { display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-top:8px; }
+
+    /* Toggle switch styling */
+    .toggle {
+      position: relative;
+      display: inline-block;
+      width: 48px;
+      height: 24px;
+    }
+    
+    .toggle input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255,255,255,0.1);
+      transition: .3s;
+      border-radius: 24px;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+    
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 2px;
+      bottom: 2px;
+      background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+      transition: .3s;
+      border-radius: 50%;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+    
+    input:checked + .slider {
+      background: var(--btn-grad);
+      box-shadow: 0 0 20px rgba(79,70,229,0.3);
+    }
+    
+    input:checked + .slider:before {
+      transform: translateX(24px);
+      background: white;
+    }
+
+    /* theme toggle */
+    .theme-toggle {
+      display:flex; gap:10px; align-items:center;
+      background: linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.01));
+      padding:8px;border-radius:999px;border:1px solid rgba(255,255,255,0.03);box-shadow: var(--neumo-shadow);
+    }
+    .theme-option{
+      display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;cursor:pointer;color:var(--muted);font-weight:600;
+      transition: all .18s var(--hover-ease);
+      user-select:none;
+    }
+    .theme-option input { display:none; }
+
+    .theme-option .label {
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      line-height:1;
+    }
+
+    .theme-option .dot{
+      width:14px;height:14px;border-radius:50%;border:1px solid rgba(255,255,255,0.04);background:transparent; display:inline-block;
+      box-shadow: inset 0 -2px 4px rgba(0,0,0,0.35);
+    }
+
+    .theme-option input:checked + .label .dot {
+      background: linear-gradient(135deg,var(--accent),var(--secondary));
+      box-shadow: 0 6px 18px rgba(0,0,0,0.45);
+    }
+    .theme-option:hover{ transform:translateY(-3px); color:var(--text); }
+
+    /* Settings group styling */
+    .setting-group {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+    }
+    
+    .setting-group:last-child {
+      border-bottom: none;
+    }
+    
+    .setting-info {
+      flex: 1;
+    }
+    
+    .setting-info h4 {
+      margin: 0 0 4px 0;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    
+    .setting-info p {
+      margin: 0;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    /* Info cards */
+    .info-card {
+      background: linear-gradient(135deg, rgba(79,70,229,0.03), rgba(124,58,237,0.03));
+      border: 1px solid rgba(79,70,229,0.1);
+      border-radius: 12px;
+      padding: 16px;
+      margin: 16px 0;
+    }
+    
+    .info-card .icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: var(--btn-grad);
+      color: white;
+      margin-bottom: 8px;
+    }
+    
+    .info-card h4 {
+      margin: 0 0 8px 0;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    
+    .info-card p {
+      margin: 0;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    /* Panel right */
+    .aside {
+      display:flex; flex-direction:column; gap:18px;
+      position:sticky; top:28px;
+    }
+
+    .version-card{
+      padding:16px;border-radius:12px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.03);
+      box-shadow: var(--neumo-shadow); text-align:center;
+    }
+    .version-card h4{ margin:0;font-size:16px; font-weight:800; background:linear-gradient(90deg,#2a6df4,#7345a1); background-clip:text;color:transparent; }
+    .version-card p{ margin:8px 0 0 0; color:var(--muted); font-size:14px; }
+
+    /* Stats card */
+    .stats-card {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      text-align: center;
+    }
+    
+    .stat-item h5 {
+      margin: 0 0 4px 0;
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .stat-item p {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .signout-btn{
+      width:100%;
+      padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,0.04);
+      background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      color:var(--muted); font-weight:700; cursor:pointer; box-shadow: var(--neumo-shadow);
+      display:inline-flex;align-items:center;gap:10px; justify-content:center;
+    }
+    .signout-btn:hover{ color:#ffdddd; transform:translateY(-3px); box-shadow: 0 18px 40px rgba(0,0,0,0.6); border-color: rgba(255,255,255,0.06); }
+
+    .settings-footer{ color:var(--muted); font-size:13px; text-align:center; margin-top:6px; }
+
+    .dev-note {
+      color:var(--muted);
+      font-size:12px;
+      text-align:center;
+      padding:12px 10px;
+      border-radius:10px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.00));
+      border: 1px solid rgba(255,255,255,0.02);
+      box-shadow: var(--neumo-shadow);
+    }
+    .dev-note strong { color:var(--text); letter-spacing:0.01em; font-weight:700; }
+    .dev-note .meta { display:block; margin-top:6px; color: rgba(225,239,230,0.45); font-size:11px; }
+
+    /* Animations */
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.8; }
+    }
+    
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .reveal{ opacity:0; transform: translateY(8px); filter: blur(6px); transition: all 600ms cubic-bezier(.2,.9,.25,1); }
+    .reveal.in-view{ opacity:1; transform:none; filter:none; }
+
+    /* Autofill dark */
+    input:-webkit-autofill,
+    textarea:-webkit-autofill,
+    select:-webkit-autofill {
+      -webkit-box-shadow: 0 0 0px 1000px rgba(11,12,15,0.78) inset !important;
+      box-shadow: 0 0 0px 1000px rgba(11,12,15,0.78) inset !important;
+      -webkit-text-fill-color: var(--text) !important;
+      transition: background-color 5000s ease-in-out 0s !important;
+    }
+    input:-webkit-autofill:focus{ -webkit-box-shadow: 0 0 0px 1000px rgba(11,12,15,0.78) inset !important; box-shadow: 0 0 0px 1000px rgba(11,12,15,0.78) inset !important; }
+
+    @media (max-width:980px){
+      .page{ grid-template-columns: 1fr; gap:18px; padding: 0 12px; }
+      .aside{ position:relative; top:auto; }
+      .profile-card{ grid-template-columns: 1fr; gap:14px; align-items:start; }
+      .avatar{ width:88px;height:88px; font-size:28px; }
+      .field-row{ grid-template-columns: 1fr; }
+      .stats-card{ grid-template-columns: 1fr; }
+    }
+
+    /* Input readonly styling */
+    input[readonly] {
+      background: rgba(255,255,255,0.02) !important;
+      cursor: not-allowed !important;
+      opacity: 0.7;
+    }
+    
+    /* Disabled toggle styling */
+    .toggle input:disabled + .slider {
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+    
+    .toggle input:disabled + .slider:before {
+      opacity: 0.8;
+    }
+
+    @media (max-width:520px){
+      body{ padding:2px; }
+      .avatar{ width:72px;height:72px; font-size:20px; }
+      .actions{ flex-direction: column; align-items: stretch; }
+      .actions .btn{ justify-content: center; }
+    }
+
+    /* ===== SCROLLBAR STYLING ===== */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(159, 204, 177, 0.3);
+      border-radius: 4px;
+      transition: background 0.3s ease;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(159, 204, 177, 0.5);
+    }
+  </style>
+</head>
+<body>
+  <!-- SIDEBAR (exatamente sua versão antiga) -->
+  <div class="sidebar" aria-label="Navegação">
+    <div class="sidebar-header">
+      <div class="brand">
+        <div class="logo"><img src="../favicon/favicon.svg" alt="" style="width: 75%;"></div>
+        <div class="brand-text">
+          <h1>Estrutura</h1>
+          <p>Configurações</p>
+        </div>
+      </div>
+      <button id="toggleMenu" class="hamburger" aria-label="Abrir menu">
+        <i class="fas fa-bars"></i>
+      </button>
+    </div>
+    <nav id="sidebarNav">
+      <ul id="menuList">
+        <li>
+          <a href="../dashboard.html">
+            <i class="fas fa-file-signature"></i><span>Apropriações</span>
+          </a>
+        </li>
+        <li>
+          <a href="../equipes/equipe.html">
+            <i class="fas fa-users-cog"></i><span>Equipes</span>
+          </a>
+        </li>
+        <li>
+          <a href="../apontamentos/apontamentos.html">
+            <i class="fas fa-clipboard-list"></i><span>Apontamentos</span>
+          </a>
+        </li>
+        <li>
+          <a href="../diario/diario.html">
+            <i class="fas fa-book"></i><span>Diário de obra</span>
+          </a>
+        </li>
+        <li>
+          <a href="../efetivo/efetivo.html">
+            <i class="fas fa-user-friends"></i><span>Efetivo</span>
+          </a>
+        </li>
+        <li>
+          <a href="../anotar/anotar.html">
+            <i class="fas fa-sticky-note" aria-hidden="true"></i><span>Anotações</span>
+          </a>
+        </li>
+        <li>
+          <a href="#">
+            <i class="fas fa-calendar-check"></i><span>Abono DSR</span>
+          </a>
+        </li>
+        <li>
+          <a href="https://detroitbrasil.qforms.com.br/QuestionarioWeb/ResponderQuestionarioLink?chave=ADC929D335B064357179BDBAE1686855"
+            target="_blank" rel="noopener noreferrer">
+            <i class="fa-solid fa-shield-halved"></i><span>Observa+</span>
+          </a>
+        </li>
+        <li>
+          <a href="./configuração.html" class="active">
+            <i class="fas fa-cog"></i><span>Configurações</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+  <div class="container" role="main">
+  <div class="page"ria-label="Configurações de usuário">
+
+    <section class="main">
+      <header class="page-header reveal">
+        <div>
+          <div class="title">Configurações do Usuário</div>
+          <div class="subtitle">Gerencie seu perfil, segurança, preferências e conta.</div>
+        </div>
+
+        <div style="display:flex;gap:12px;align-items:center">
+          <button class="btn" id="saveAllBtn" onclick="saveAllSettings()">
+            <i class="fa-solid fa-floppy-disk"></i> Salvar tudo
+          </button>
+        </div>
+      </header>
+
+      <!-- PROFILE CARD -->
+      <div class="card profile-card reveal">
+        <div class="profile-meta">
+          <h3 id="user-name">Usuário</h3>
+          <p class="muted" style="margin-bottom: 15px;">Configurações | Estrutura</p>
+
+          <!-- Formulário para corrigir o warning do password field -->
+          <form class="settings-form" onsubmit="return false;">
+            <div class="field">
+              <label for="nome">Nome completo *</label>
+              <input id="nome" type="text" autocomplete="name" required />
+            </div>
+
+            <div class="field">
+              <label for="email">Email *</label>
+              <input id="email" type="email" autocomplete="email" required />
+              <span class="icon-right"><i class="fa-solid fa-envelope"></i></span>
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <label for="telefone">Telefone</label>
+                <input id="telefone" type="tel" autocomplete="tel" placeholder="(00) 00000-0000" />
+                <span class="icon-right"><i class="fa-solid fa-phone"></i></span>
+              </div>
+
+              <div class="field">
+                <label for="setor">Setor</label>
+                <input id="setor" type="text" value="Estrutura" readonly style="background: rgba(255,255,255,0.02); cursor: not-allowed;" />
+              </div>
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <label for="cargo">Cargo/Função</label>
+                <select id="cargo">
+                  <option value="Supervisor">Supervisor</option>
+                  <option value="Encarregado">Encarregado</option>
+                  <option value="Chefe de setor">Chefe de setor</option>
+                  <option value="Engenheiro">Engenheiro</option>
+                  <option value="Técnico">Técnico</option>
+                  <option value="Estagiário">Estagiário</option>
+                  <option value="Coordenador">Coordenador</option>
+                  <option value="Gerente">Gerente</option>
+                  <option value="Diretor">Diretor</option>
+                  <option value="Auxiliar">Auxiliar Técnico</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label for="password">Nova senha</label>
+                <input id="password" type="password" placeholder="Deixe vazio para manter atual" autocomplete="new-password" />
+                <span class="icon-right" id="pwdToggle" title="Mostrar senha"><i class="fa-solid fa-eye"></i></span>
+              </div>
+            </div>
+
+            <!-- Theme toggle -->
+            <div class="field">
+              <label>Tema da interface</label>
+              <div class="theme-toggle" role="radiogroup">
+                <label class="theme-option">
+                  <input type="radio" name="theme" value="light" />
+                  <span class="label"><span class="dot"></span><span>Claro</span></span>
+                </label>
+                <label class="theme-option">
+                  <input type="radio" name="theme" value="dark" checked />
+                  <span class="label"><span class="dot"></span><span>Escuro</span></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="actions">
+              <button type="button" class="btn" onclick="updateEmail()">
+                <i class="fa-solid fa-user"></i> Atualizar Perfil
+              </button>
+              <button type="button" class="btn ghost" onclick="updatePassword()">
+                <i class="fa-solid fa-key"></i> Alterar Senha
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div style="display:flex;flex-direction:column;align-items:center;gap:12px;">
+          <div class="avatar" id="avatar-initials">US</div>
+          <div style="font-size:13px;color:var(--muted);text-align:center">
+            <div><strong>Setor:</strong> <span id="userSetor">Estrutura</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PREFERENCES CARD -->
+      <div class="card reveal">
+        <h4 style="margin:0 0 8px 0"><i class="fa-solid fa-sliders" style="margin-right: 8px;"></i>Preferências</h4>
+        <p style="margin:0 0 20px 0;color:var(--muted)">Configure o comportamento do aplicativo.</p>
+
+        <div style="display:flex;flex-direction:column;gap:0;">
+          <div class="setting-group">
+            <div class="setting-info">
+              <h4>Notificações push <span style="color: var(--success); font-size: 11px; margin-left: 8px;">ATIVO</span></h4>
+              <p>Receba alertas sobre atualizações importantes e lembretes. (Sempre ativo)</p>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="notificationsToggle" checked disabled>
+              <span class="slider" style="opacity: 0.7;"></span>
+            </label>
+          </div>
+
+          <div class="setting-group">
+            <div class="setting-info">
+              <h4>Salvamento automático</h4>
+              <p>Salva suas alterações automaticamente a cada 2 segundos.</p>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="autoSaveToggle" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-group">
+            <div class="setting-info">
+              <h4>Sessão persistente <span style="color: var(--success); font-size: 11px; margin-left: 8px;">ATIVO</span></h4>
+              <p>Mantém você conectado em dispositivos confiáveis. (Sempre ativo)</p>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="persistToggle" checked disabled>
+              <span class="slider" style="opacity: 0.7;"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECURITY CARD -->
+      <div class="card reveal">
+        <h4 style="margin:0 0 8px 0"><i class="fa-solid fa-shield-halved" style="margin-right: 8px;"></i>Segurança & Conta</h4>
+        <p style="margin:0 0 20px 0;color:var(--muted)">Gerencie autenticação, sessões e segurança.</p>
+
+        <div class="info-card">
+          <div class="icon">
+            <i class="fa-solid fa-info"></i>
+          </div>
+          <h4>Informações da sessão</h4>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;font-size:13px;">
+            <div>
+              <strong style="color:var(--text);">Último acesso:</strong><br>
+              <span id="lastLogin">Carregando...</span>
+            </div>
+            <div>
+              <strong style="color:var(--text);">Conta criada em:</strong><br>
+              <span id="accountCreated">Carregando...</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:grid;gap:12px;margin-top:20px;">
+          <div style="display:flex;gap:12px;">
+            <button class="btn ghost" onclick="exportData()" style="flex:1">
+              <i class="fa-solid fa-download"></i> Exportar dados
+            </button>
+            <button class="btn ghost" onclick="clearCache()" style="flex:1">
+              <i class="fa-solid fa-broom"></i> Limpar cache
+            </button>
+          </div>
+
+          <div style="display:flex;gap:12px;">
+            <button class="btn" onclick="signOutUser()" style="flex:1">
+              <i class="fa-solid fa-right-from-bracket"></i> Sair da conta
+            </button>
+            <button class="btn danger" onclick="deleteAccount()" style="flex:1">
+              <i class="fa-solid fa-trash"></i> Excluir conta
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ASIDE: version + quick actions -->
+    <aside class="aside">
+      <div class="card version-card reveal">
+        <h4>Sistema Estrutura</h4>
+        <p style="margin:8px 0 0 0; font-weight:800; font-size:18px">v2.0</p>
+        <div class="muted" style="margin-top:8px">Atualizado: 15 Set 2025</div>
+      </div>
+
+      <div class="card reveal">
+        <h4 style="margin:0 0 16px 0">Estatísticas da conta</h4>
+        <div class="stats-card">
+          <div class="stat-item">
+            <h5>Sessions ativas</h5>
+            <p>1 dispositivo</p>
+          </div>
+          <div class="stat-item">
+            <h5>Dados utilizados</h5>
+            <p>2.4 MB</p>
+          </div>
+          <div class="stat-item">
+            <h5>Último backup</h5>
+            <p>Nunca</p>
+          </div>
+          <div class="stat-item">
+            <h5>Status</h5>
+            <p style="color:var(--success)">Ativo</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card reveal">
+        <h4 style="margin:0 0 8px 0">Ações rápidas</h4>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <button class="btn ghost"><i class="fa-solid fa-bell"></i> Central de notificações</button>
+          <button class="btn ghost"><i class="fa-solid fa-language"></i> Alterar idioma</button>
+          <button class="btn ghost"><i class="fa-solid fa-palette"></i> Personalizar tema</button>
+          <button class="btn ghost"><i class="fa-solid fa-keyboard"></i> Atalhos de teclado</button>
+        </div>
+      </div>
+
+      <div class="card reveal" style="text-align:center">
+        <div class="muted" style="margin-bottom:10px">Precisa de ajuda?</div>
+        <a href="#" class="btn" style="width:100%;justify-content:center">
+          <i class="fa-solid fa-headset"></i> Suporte técnico
+        </a>
+        <div style="margin-top:12px;font-size:12px;color:var(--muted)">
+          Segunda à sexta, 8h às 17h
+        </div>
+      </div>
+
+      <div class="dev-note reveal">
+        <div>Sistema desenvolvido por <strong>Gustavo Carvalho</strong></div>
+        <div>Setor de <strong>Estrutura</strong></div>
+        <span class="meta">Agilidade, confiabilidade e design de excelência — pensado para líderes de obra que buscam precisão e confiança • © 2025</span>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    // Initialize animations when DOM is ready
+    document.addEventListener('DOMContentLoaded', () => {
+      // Initialize GSAP animations
+      if (window.gsap) {
+        gsap.utils.toArray('.reveal').forEach((el, i) => {
+          gsap.fromTo(el, 
+            { opacity: 0, y: 12, filter: 'blur(6px)' },
+            { 
+              opacity: 1, 
+              y: 0, 
+              filter: 'blur(0px)', 
+              delay: 0.06 * i, 
+              duration: 0.7, 
+              ease: 'power3.out' 
+            }
+          );
+        });
+      }
+
+      // Intersection Observer for scroll reveals
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+          if (e.isIntersecting) {
+            e.target.classList.add('in-view');
+            io.unobserve(e.target);
+          }
+        });
+      }, { threshold: 0.12 });
+
+      document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+    });
+  </script>
+</body>
+</html>

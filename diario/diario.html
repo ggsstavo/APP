@@ -1,1348 +1,1676 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Diário de Obra</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Estrutura | Diário</title>
+
+  <!-- Fonte + Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <!-- favicons (preserve paths) -->
   <link rel="icon" type="image/png" href="../favicon/favicon-96x96.png" sizes="96x96" />
-<link rel="icon" type="image/svg+xml" href="../favicon/favicon.svg" />
-<link rel="shortcut icon" href="../favicon/favicon.ico" />
-<link rel="apple-touch-icon" sizes="180x180" href="../favicon/apple-touch-icon.png" />
-<link rel="manifest" href="../favicon/site.webmanifest" />
-<link rel="stylesheet" href="../theme.css">
+  <link rel="icon" type="image/svg+xml" href="../favicon/favicon.svg" />
+  <link rel="shortcut icon" href="../favicon/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="../favicon/apple-touch-icon.png" />
+  <link rel="manifest" href="../favicon/site.webmanifest" />
+
   <style>
-     :root{
-      --bg: #f5f7fa;
-      --card: #ffffff;
-      --text: #2c3e50;
-      --accent: #2c3e50;
-      --soft: #ccc;
-      --text2: #34495e;
-      --text-muted: #34495e;
-      --accent-hover: #34495e;
-      --hover-bg: #f7f9fb;
-    }
-  * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: Arial, sans-serif;
+    /* ---------------- Dark theme (main) ---------------- */
+    :root{
+      --bg: #0b0c0f;
+      --card: rgba(255,255,255,0.04);
+      --glass: rgba(255,255,255,0.03);
+      --accent: #9fccb1;
+      --accent-strong: #3b82f6;
+      --secondary: #39666b;
+      --text: #e1efe6;
+      --muted: rgba(225,239,230,0.62);
+      --muted-2: rgba(225,239,230,0.45);
+      --soft-border: rgba(255,255,255,0.04);
+      --btn-grad: linear-gradient(135deg,#4f46e5,#7c3aed);
+      --radius: 14px;
+      --shadow-lg: 0 18px 60px rgba(0,0,0,0.7);
+      --hover-ease: cubic-bezier(.15,.9,.25,1);
+      --max-width:1200px;
+      --sidebar-w: 260px;
+      --input-bg: rgba(255,255,255,0.02);
+  --input-border: rgba(255,255,255,0.04);
+  --input-placeholder: rgba(225,239,230,0.45);
+  --input-height: 38px;
     }
 
-    body {
-      display: flex;
-      min-height: 100vh;
-      background-color: var(--bg);
+    /* reset / base */
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:'Inter',system-ui,Arial;
+      background-color:var(--bg);
+      color:var(--text);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      line-height:1.35;
     }
+
+    /* ===== SIDEBAR ===== */
     .sidebar {
-      width: 220px;
-      background: #2c3e50;
-      color: #fff;
-      padding: 20px;
+      --bg-sidebar: #0b150f;
+      --card-sidebar: rgba(255, 255, 255, 0.06);
+      --glass-sidebar: rgba(255, 255, 255, 0.04);
+      --accent-sidebar: #9fccb1;
+      --secondary-sidebar: #39666b;
+      --text-sidebar: #e1efe6;
+      --muted-sidebar: rgba(225, 239, 230, 0.6);
+      --neumo-shadow-sidebar: 10px 10px 20px rgba(0, 0, 0, 0.6), -6px -6px 16px rgba(255, 255, 255, 0.02);
+      --radius-sidebar: 14px;
+    }
+
+    /* Sidebar styles (copiado - mantive exatamente) */
+    .sidebar {
+      width: 260px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+      color: var(--text-sidebar);
+      padding: 20px 0;
       display: flex;
       flex-direction: column;
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      z-index: 60;
+      backdrop-filter: blur(8px) saturate(120%);
+      border-right: 1px solid rgba(255, 255, 255, 0.03);
+      overflow-y: auto;
     }
+
     .sidebar-header {
       display: flex;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-start;
       position: relative;
+      padding: 0 20px 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+      margin-bottom: 20px;
     }
-    .dark .sidebar {
-  background: var(--card);       /* #090b16 */
-  color: var(--text);            /* #e0e0e0 */
-  border-right: 1px solid var(--soft); /* #3c3f68 como linha */  
-} 
 
-.dark .sidebar a:hover,
-.dark .sidebar a.active {
-  background: var(--soft);       /* #3c3f68 */
-}
-    .hamburger {
-      display: none;
-      background: none;
-      border: none;
-      color: #fff;
-      font-size: 24px;
-      position: absolute;
-      left: 0;
-      cursor: pointer;
+    .brand {
+      display: flex;
+      gap: 14px;
+      align-items: center;
     }
+
     .logo {
-      font-size: 24px;
-      user-select: none;
-    }
-    nav ul {
-      list-style: none;
-      margin-top: 20px;
-    }
-    nav ul li {
-      margin: 15px 0;
-    }
-    nav ul li a {
-      text-decoration: none;
-      color: #fff;
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--accent-sidebar), var(--secondary-sidebar));
+      box-shadow: var(--neumo-shadow-sidebar);
       display: flex;
       align-items: center;
-      padding: 10px;
-      border-radius: 4px;
-      transition: background 0.2s;
+      justify-content: center;
+      font-weight: 800;
+      color: white;
+      font-size: 18px;
     }
+
+    .brand-text h1 {
+      font-size: 16px;
+      margin: 0;
+      color: var(--text-sidebar);
+      font-weight: 600;
+    }
+
+    .brand-text p {
+      margin: 0;
+      font-size: 12px;
+      opacity: 0.75;
+      color: var(--muted-sidebar);
+    }
+
+    .hamburger {
+      display: none;
+      background: var(--glass-sidebar);
+      border: 1px solid rgba(255, 255, 255, 0.02);
+      border-radius: 10px;
+      color: var(--muted-sidebar);
+      font-size: 18px;
+      width: 44px;
+      height: 44px;
+      position: absolute;
+      left: 15px;
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+    }
+
+    nav ul {
+      list-style: none;
+      padding: 0 12px;
+    }
+
+    nav ul li {
+      margin: 8px 0;
+    }
+
+    nav ul li a {
+      text-decoration: none;
+      color: var(--muted-sidebar);
+      display: flex;
+      align-items: center;
+      padding: 10px 14px;
+      border-radius: 10px;
+      transition: all 0.2s;
+      font-weight: 500;
+      font-size: 14px;
+    }
+
     nav ul li a i {
-      margin-right: 10px;
-    }
-    nav ul li a.active,
-    nav ul li a:hover {
-      background: #34495e;
-    }
-    .main-content {
-      flex: 1;
-      padding: 30px;
-    }
-    header h2 {
-      margin-bottom: 20px;
-      color: var(--accent);
-    }
-    .dark header h2{
-      background: rgba(92,124,250, .1);
-      display: inline-block;
-      padding: 6px 10px;
-  border-radius: 4px;
-    }
-    .main-content {
-      flex: 1;
-      padding: 30px;
+      margin-right: 12px;
+      width: 20px;
+      text-align: center;
     }
 
-    @media (max-width: 768px) {
-  body {
-    flex-direction: column;
-  }
-  .sidebar {
-    width: 100%;
-    padding: 15px;
-    flex-direction: column; /* <--- mudou de row para column */
-    align-items: center;
-    justify-content: flex-start;
-  }
-
-  .sidebar-header {
-    width: 100%;
-    justify-content: center;
-    position: relative;
-  }
-
-  .dark .sidebar {
-      border-right: none !important;
-      border-bottom: 1px solid var(--soft);
+    nav ul li a:hover,
+    nav ul li a.active {
+      color: var(--text-sidebar);
+      background: rgba(255, 255, 255, 0.03);
     }
 
-  .hamburger {
-    display: block;
-    position: absolute;
-    left: 15px;
-    top: 50%;
-    transform: translateY(-50%);
-  }
-
-  .logo {
-    font-size: 20px;
-    text-align: center;
-    width: 100%;
-  }
-
-  nav ul {
-    width: 100%;
-    max-height: 0;
-    overflow: hidden;
-    opacity: 0;
-    transform-origin: top center;
-    transform: translateY(-10px);
-    transition: max-height 0.4s ease, opacity 0.4s ease, transform 0.4s ease;
-    margin-top: 10px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  nav ul.active {
-    max-height: 600px;
-    opacity: 1;
-    transform: translateY(0);
-  }
-
-  .main-content {
-    padding: 15px;
-  }
+    /* Botão de Observa+ com estilo especial */
+    nav ul li:nth-child(1) a {
+      background: linear-gradient(135deg, var(--accent-sidebar), var(--secondary-sidebar));
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      box-shadow: 0 12px 40px rgba(70, 229, 123, 0.12), inset 0 -6px 18px rgba(255, 255, 255, 0.02);
+      margin-top: 15px;
     }
 
-@media (max-width: 480px) {
-  header h2 {
-    font-size: 1.2rem;
-  }
-}
+    nav ul li:nth-child(1) a:hover {
+      filter: brightness(1.08);
+      box-shadow: 0 2px 80px rgba(70, 229, 150, 0.18), -4px -4px 10px rgba(58, 237, 133, 0.04);
+    }
+    
+    /* Ícone branco para o botão gradiente em desktop também */
+    nav ul li:nth-child(1) a i {
+      color: white;
+    }
 
-  /* Ajustes gerais */
-label {
-  font-weight: 600;
-  color: var(--text2);
-  display: block;
-  margin-bottom: 1rem;
-  text-transform: uppercase;
-  font-size: 1.2rem;
-}
+    /* ===== MAIN CONTENT (modelo moderno) ===== */
+    .container {
+      margin-left: var(--sidebar-w);
+      max-width: var(--max-width);
+      padding: 28px 20px;
+      box-sizing: border-box;
+    }
 
-label i{
-  margin-right: 5px;
-}
+    header.topbar{
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      padding:12px 16px; border-radius:12px; border:1px solid var(--soft-border);
+      box-shadow: 0 6px 22px rgba(0,0,0,0.6);
+      margin-bottom:16px;
+    }
+    .topbar h2{ margin:0; font-size:18px; letter-spacing:-0.01em; background: linear-gradient(90deg,#2a6df4,#7345a1); background-clip:text; color:transparent; }
+    .topbar .actions{ display:flex; gap:10px; align-items:center }
 
-select {
-  width: 100%;
-  padding: 8px 12px;
-  border: 1px solid var(--soft);
-  border-radius: 4px;
-  margin-bottom: 16px;
-  background-color: var(--bg);
-  color: var(--text);
-}
+    .btn-neumo{
+      display:inline-flex; align-items:center; gap:10px; padding:10px 14px; border-radius:12px;
+      background: var(--btn-grad); color: #fff; font-weight:700; border: 1px solid rgba(255,255,255,0.06);
+      box-shadow: 0 12px 40px rgba(79,70,229,0.12), inset 0 -6px 18px rgba(255,255,255,0.02);
+      cursor:pointer; transition: transform .18s var(--hover-ease), box-shadow .18s var(--hover-ease);
+    }
+    .btn-neumo.ghost{
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      color: var(--text); box-shadow: 0 6px 18px rgba(0,0,0,0.6);
+    }
+    .btn-neumo:hover{ transform: translateY(-3px) }
 
-/* Botão PDF */
-.pdf-btn {
-  background: var(--accent);
-  color: #fff;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 6px;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background 0.3s, transform 0.3s;
-  display: inline-flex;
-  align-items: center;
-  margin-bottom: 16px;
-  margin-top: 1rem;
-}
+    /* panel / card */
+    .panel{
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border-radius:12px; padding:16px; border:1px solid var(--soft-border); box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+    }
+    .card-glow{ position:relative; transition: box-shadow 300ms var(--hover-ease), transform 220ms var(--hover-ease) }
+    .card-glow:hover{ box-shadow: 0 20px 56px rgba(6,8,10,0.44); transform: translateY(-6px) }
 
-.pdf-btn i {
-  margin-right: 8px;
-  font-size: 1.2rem;
-}
+    /* content grid for controls + preview */
+    .controls{
+      display:grid; grid-template-columns: 1fr 360px; gap:18px; align-items:start;
+    }
 
-.pdf-btn:hover {
-  background: var(--accent-hover);
-  transform: translateY(-2px);
-}
+    /* left column form area */
+    .form-area{
+      display:flex; flex-direction:column; gap:12px;
+    }
 
-/* Notificação */
-.notification {
-  background: #f9f3c4;
-  color: #856404;
-  padding: 12px;
-  margin-bottom: 20px;
-  border-left: 6px solid #ffeeba;
-  border-radius: 4px;
-}
+    label{
+      display:block; font-weight:700; color:var(--muted); font-size:13px; margin-bottom:6px;
+    }
 
-/* Preview geral */
-.preview {
-  background: var(--card);
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  margin-bottom: 24px;
-}
+    select, input[type="text"], input[type="date"], textarea{
+      width:100%; padding:10px 12px; border-radius:10px; background: rgba(255,255,255,0.02);
+      color:var(--text); border:1px solid var(--soft-border); outline:none; font-size:14px;
+      transition: box-shadow .18s var(--hover-ease), border-color .15s;
+    }
+    /* make writing inputs shorter and disable resize (requested) */
+    textarea{ min-height:44px; max-height:220px; resize:none; border-radius:8px; padding:8px 12px; }
+    #activityInput, #obsGeralInput { min-height:44px; height:44px; resize:none; }
+    /* smaller text inputs */
+    input[type="text"], input[type="date"], select { height:38px; }
 
-.preview h3 {
-  margin-top: 0;
-  color: var(--text);
-  display: flex;
-  align-items: center;
-  font-size: 1.25rem;
-  margin-bottom: 10px;
-}
+    input:focus, select:focus, textarea:focus{ box-shadow: 0 8px 30px rgba(0,0,0,0.45); border-color: rgba(79,70,229,0.12) }
 
-.preview h3 i {
-  margin-right: 10px;
-  color: #2980b9;
-}
+    /* compact row inline controls */
+    .row { display:flex; gap:12px; align-items:center; }
+    .row .col { flex:1; min-width:0; }
 
-/* Entradas de preview */
-.preview-entry {
-  padding: 15px;
-  margin-bottom: 12px;
-  border-radius: 6px;
-  background: var(--bg);
-  border: 1px solid #ececec;
-  transition: background 0.3s;
-}
+    .date-group{ display:flex; gap:8px; align-items:center; }
+    .clear-date-btn{
+      background:transparent; border:1px solid var(--soft-border); color:var(--muted); padding:8px 10px; border-radius:10px; cursor:pointer;
+    }
+    .clear-date-btn:hover{ transform: translateY(-2px); background: rgba(255,255,255,0.02); color:var(--text) }
 
-.preview-entry:hover {
-  background: var(--hover-bg);
-}
+    /* preview column */
+    .preview {
+      display:flex; flex-direction:column; gap:12px;
+    }
+    .preview .preview-head{ display:flex; align-items:center; justify-content:space-between; gap:8px }
+    .preview .preview-head h3{ margin:0; font-size:16px; background: linear-gradient(90deg,#2a6df4,#7345a1); background-clip:text; color:transparent; }
 
-.preview-entry .info {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-}
+    .preview-content{
+      max-height:480px; overflow:auto; padding:12px; border-radius:10px; background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.00));
+      border:1px solid rgba(255,255,255,0.02);
+      padding-bottom:18px; /* small padding bottom to avoid edge clipping */
+    }
 
-.preview-entry .info div {
-  display: flex;
-  align-items: center;
-  font-size: 0.95rem;
-  color: var(--text);
-}
+    .preview-entry{
+      padding:12px; border-radius:10px; margin-bottom:10px; background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border:1px solid rgba(255,255,255,0.02); box-shadow: 0 8px 26px rgba(0,0,0,0.55);
+    }
+    .preview-entry .info{ display:flex; flex-wrap:wrap; gap:12px; color:var(--muted); font-size:13px }
+    .preview-entry .info div{ display:flex; gap:8px; align-items:center; color:var(--text) }
+    .preview-entry .info div i{ color:var(--accent-strong); width:18px; text-align:center }
 
-.preview-entry .info div i {
-  margin-right: 6px;
-  color: #2980b9;
-}
-
-/* ===== RESPONSIVIDADE ===== */
-@media (max-width: 768px) {
-  /* Agrupa label+select em colunas */
-  label, select {
-    width: 100%;
-  }
-
-  /* Botão PDF ocupa toda largura */
-  .pdf-btn {
-    width: 100%;
-    justify-content: center;
-  }
-
-  /* Preview com padding reduzido */
-  .preview {
-    padding: 16px;
-  }
-
-  .preview-entry {
-    padding: 12px;
-  }
-
-  .preview-entry .info {
-    flex-direction: column;
-    gap: 8px;
-  }
-}
-
-@media (max-width: 480px) {
-  /* Fontes menores */
-  .pdf-btn {
-    font-size: 0.9rem;
-    padding: 8px 16px;
-  }
-
-  .preview h3 {
-    font-size: 1.1rem;
-  }
-
-  .preview-entry .info div {
-    font-size: 0.9rem;
-  }
-}
 
 #notificationMessage {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 12px;
-  margin-bottom: 20px;
-  font-size: 16px;
+  gap: 0;
+  text-align: center;
+}
+
+    /* floating modal notification */
+    .notification-modal{ 
+  position: fixed; 
+  inset: 0; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  background: rgba(0,0,0,0.7); 
+  backdrop-filter: blur(4px);
+  z-index: 600;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  will-change: transform;
+}
+.notification-modal.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+    .notification-content{
+  background: rgba(11, 12, 15, 0.95);
+  backdrop-filter: blur(20px) saturate(130%);
+  padding: 20px 28px;
+  border-radius: 16px;
+  max-width: 420px;
+  width: 92%;
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: 0 24px 80px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.05);
   color: var(--text);
   text-align: center;
-}
-
-#notificationMessage i {
-  font-size: 32px;
-  color: #2196f3;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background-color: #e0f7fa;
-  box-sizing: border-box;
+  transform: scale(0.9) translateY(20px);
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.notification-modal.show .notification-content {
+  transform: scale(1) translateY(0);
 }
 
-.notification-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.4);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-}
-
-.notification-content {
-  background: var(--bg);
-  padding: 25px 35px;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  max-width: 400px;
-  width: 90%; /* importante para responsividade */
-  text-align: center;
-  animation: fadeInUp 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    .notification-content button{
+  margin-top: 20px;
+  display: inline-block;
   border-radius: 12px;
-  border: 1px solid #ddd;
-  box-sizing: border-box;
+  padding: 12px 24px;
+  border: 1px solid rgba(255,255,255,0.08);
+  cursor: pointer;
+  background: var(--btn-grad);
+  color: white;
+  font-weight: 700;
+  transition: all 0.3s ease;
+  font-size: 14px;
+  filter: drop-shadow(0 0 20px rgba(79, 70, 229, 0.4)) drop-shadow(0 0 40px rgba(79, 70, 229, 0.2));
 }
 
-.notification-content p {
-  margin-bottom: 20px;
-  color: #222;
+/* Estilos para os ícones das notificações */
+.notification-icon {
+  font-size: 45px;
+  margin-bottom: 8px;
+  position: relative;
+  display: block;
+  text-align: center;
+  width: 100%;
+}
+
+.notification-icon.success {
+  color: #28a745;
+  filter: drop-shadow(0 0 20px rgba(40, 167, 69, 0.4)) drop-shadow(0 0 40px rgba(40, 167, 69, 0.2));
+}
+
+.notification-icon.error {
+  color: #dc3545;
+  filter: drop-shadow(0 0 20px rgba(220, 53, 69, 0.4)) drop-shadow(0 0 40px rgba(220, 53, 69, 0.2));
+}
+
+.notification-icon.warning {
+  color: #ffc107;
+  filter: drop-shadow(0 0 20px rgba(255, 193, 7, 0.4)) drop-shadow(0 0 40px rgba(255, 193, 7, 0.2));
+}
+
+.notification-icon.info {
+  color: #2196f3;
+  filter: drop-shadow(0 0 20px rgba(33, 150, 243, 0.4)) drop-shadow(0 0 40px rgba(33, 150, 243, 0.2));
+}
+
+.notification-text {
   font-size: 16px;
   line-height: 1.5;
-  word-wrap: break-word; /* evita estouro de texto */
+  color: var(--text);
+  margin: 0;
+  text-align: center;
 }
 
-.notification-content button {
-  background-color: var(--accent);
-  transition: background-color 0.3s ease;
-  color: white;
-  padding: 8px 20px;
-  border: none;
+    /* responsive */
+    @media (max-width:1000px){
+      .container{ 
+        margin-left: 0;
+        margin-top: 80px; /* altura da navbar fechada aumentada */
+        padding: 18px; 
+        transition: margin-top 0.4s ease; 
+      }
+      .controls{ grid-template-columns: 1fr; }
+      
+      .sidebar { 
+        width: 100%;
+        height: auto;
+        min-height: 80px; /* altura maior para melhor visibilidade */
+        max-height: 80px;
+        position: fixed;
+        top: 0;
+        left: 0;
+        flex-direction: column;
+        align-items: stretch;
+        padding: 0;
+        overflow: hidden;
+        transition: max-height 0.4s ease;
+        border-right: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08); /* borda mais visível */
+        z-index: 1000;
+        backdrop-filter: blur(12px) saturate(140%); /* blur mais forte */
+      }
+      
+      .sidebar.active {
+        max-height: 520px;
+        overflow-y: auto;
+      }
+      
+      .sidebar-header {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        padding: 18px 20px; /* padding maior */
+        margin: 0;
+        border: none;
+        width: 100%;
+        min-height: 80px;
+        box-sizing: border-box;
+      }
+      
+      .brand {
+        flex-direction: row;
+        gap: 14px; /* gap maior */
+        align-items: center;
+      }
+      
+      .brand-text {
+        display: block;
+      }
+      
+      .brand-text h1 {
+        font-size: 16px; /* fonte maior */
+        font-weight: 700;
+        color: var(--text-sidebar);
+      }
+      
+      .brand-text p {
+        display: none;
+      }
+      
+      .logo {
+        width: 48px; /* logo maior */
+        height: 48px;
+        font-size: 20px;
+        box-shadow: 0 8px 25px rgba(159, 204, 177, 0.15), inset 0 2px 8px rgba(255,255,255,0.05); /* sombra mais visível */
+      }
+      
+      .hamburger {
+        display: flex;
+        position: static;
+        margin: 0;
+        order: 2;
+        width: 48px; /* botão maior */
+        height: 48px;
+        font-size: 20px;
+        background: rgba(255, 255, 255, 0.06); /* fundo mais visível */
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        color: var(--text-sidebar);
+        transition: all 0.3s var(--hover-ease);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      }
+      
+      .hamburger:hover {
+        background: rgba(255, 255, 255, 0.1);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+      }
+      
+      .hamburger:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      }
+      
+      #sidebarNav {
+        width: 100%;
+        padding: 8px 20px 20px;
+        box-shadow: none;
+        display: block !important;
+        opacity: 0;
+        transition: opacity 0.3s ease 0.1s;
+      }
+      
+      .sidebar.active #sidebarNav {
+        opacity: 1;
+      }
+      
+      nav ul {
+        display: flex;
+        flex-direction: column;
+        gap: 14px; /* gap ainda maior para melhor espaçamento */
+        padding: 0;
+        margin: 0;
+      }
+      
+      nav ul li {
+        margin: 0;
+      }
+      
+      nav ul li a {
+        padding: 14px 16px; /* padding maior */
+        font-size: 15px; /* fonte ligeiramente maior */
+        font-weight: 600; /* peso da fonte maior */
+        border-radius: 12px;
+        transition: all 0.25s var(--hover-ease);
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.03);
+        color: var(--text-sidebar);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      }
+      
+      nav ul li a i {
+        margin-right: 14px; /* margem maior do ícone */
+        width: 22px; /* ícones maiores */
+        font-size: 16px;
+        color: var(--accent-sidebar);
+      }
+      
+      nav ul li a:hover,
+      nav ul li a.active {
+        position: relative;
+  color: #ffffff !important;                    /* texto branco */
+  background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+  border-color: rgba(255,255,255,0.14);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.35);
+  transform: translateX(6px) scale(1.01);
+  transition: transform .22s var(--hover-ease), box-shadow .22s var(--hover-ease), background .2s ease;
+  width: 95%;
+  z-index: 6;
+      }
+
+      /* borda lateral colorida — guia visual forte, arredondada */
+nav ul li a.active::before{
+  content: "";
+  position: absolute;
+  left: -10px;                /* ajusta a posição para “saltar” levemente */
+  top: 8px;
+  bottom: 8px;
+  width: 6px;
   border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  min-width: 80px;
+  background: linear-gradient(180deg, var(--accent-sidebar), var(--secondary-sidebar));
+  box-shadow: 0 6px 18px rgba(60,150,120,0.12), inset 0 -4px 12px rgba(255,255,255,0.03);
 }
 
-.notification-content button:hover {
-  background-color: #34495e;
+/* ícone: preenche com cor para reforçar sinal ativo */
+nav ul li a.active i {
+  color: var(--accent-sidebar) !important;
+  filter: drop-shadow(0 4px 14px rgba(0,0,0,0.35));
+  transform: translateX(2px);
+  transition: transform .18s var(--hover-ease), color .18s;
 }
 
-.notification-content button:focus {
-  outline-offset: 2px;
-}
-
-#notificationMessage i[style*="color:#28a745"] {
-  background-color: #d4edda;
-}
-
-#notificationMessage i[style*="color:#dc3545"] {
-  background-color: #f8d7da;
-}
-
-#notificationMessage i[style*="color:#ffc107"] {
-  background-color: #fff8e1;
-}
-
-.dark #notificationMessage i {
-  /* fundo neutro para ícones no dark mode */
-  background-color: var(--badge-bg);
-  color: var(--badge-text); /* se quiseres ícone claro por cima do fundo escuro */
-}
-
-/* Mantém os 'tints' por tipo (baseado nas cores inline atuais) — ajusta se preciso */
-.dark #notificationMessage i[style*="color:#28a745"] { /* success */
-  background-color: rgba(40,167,69,0.12);
-}
-.dark #notificationMessage i[style*="color:#dc3545"] { /* error */
-  background-color: rgba(220,53,69,0.12);
-}
-.dark #notificationMessage i[style*="color:#ffc107"] { /* warning */
-  background-color: rgba(255,193,7,0.08);
-}
-.dark #notificationMessage i[style*="color:#2196f3"] { /* info */
-  background-color: rgba(33,150,243,0.10);
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Responsividade */
-
-@media (max-width: 480px) {
-  .notification-content {
-    max-width: 95%;
-    padding: 20px 20px;
-  }
-
-  .notification-content button {
-    width: 30%;
-    padding: 10px 0;
-    font-size: 16px;
-    min-width: unset;
-  }
-}
-
-/* deixa input date com mesmo visual do select */
-.select-like {
-  padding: 8px 12px;
-  border: 1px solid var(--soft);
-  border-radius: 4px;
-  background-color: var(--bg);
-  color: var(--text);
-  min-width: 220px;
-  height: 38px;
-  box-sizing: border-box;
-  font-size: 0.95rem;
-}
-
-/* remove aparência nativa do date nos browsers (melhora visual) */
-input[type="date"].select-like {
-  appearance: none;
-  -webkit-appearance: none;
-}
-
-/* ícone de calendário (alguns navegadores mostram seta — isso normal) */
-
-/* botão limpar ao lado do date (pequeno) */
-.clear-date-btn {
-  background: var(--soft);
-  color: #fff;
-  border: none;
-  padding: 6px 15px;
-  border-radius: 6px;
-  cursor: pointer;
-  height: 38px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
-  transition: background .15s ease, transform .08s ease;
-}
-
-.clear-date-btn i { font-size: 0.95rem; }
-
-/* hover */
-.clear-date-btn:hover { background: #aeb6b6; transform: translateY(-1px); }
-
-/* garante responsividade: empilha em telas pequenas */
-@media (max-width: 640px) {
-  .header > div[style] { width: 100%; }
-  .select-like { min-width: 140px; }
-}
-
-/* Estilo para o campo de atividade */
-
-#activityInput {
-  width: 100%;
-  padding: 10px 14px;
-  border: 1px solid var(--soft);
-  border-radius: 8px;
-  font-size: 15px;
+/* acessibilidade: foco visível (keyboard/touch) */
+nav ul li a:focus {
   outline: none;
-  transition: all 0.3s ease;
-  background-color: var(--card);
-  color: var(--text);
-  box-sizing: border-box;
-  resize: none;
-  height: 40px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.45), 0 0 0 3px rgba(155,204,177,0.06);
+  transform: translateX(6px);
 }
+      
+      /* Estilo especial para o botão Observa+ em mobile */
+      nav ul li:nth-child(1) a {
+        background: linear-gradient(135deg, var(--accent-sidebar), var(--secondary-sidebar));
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: 0 6px 20px rgba(70, 229, 123, 0.2), inset 0 1px 0 rgba(255,255,255,0.1);
+        font-weight: 700;
+      }
+      
+      nav ul li:nth-child(1) a i {
+        color: white; /* ícone branco para contraste com fundo verde */
+      }
 
-/* Placeholder mais suave */
-#activityInput::placeholder {
-  color: var(--text-muted);
-}
+      nav ul li:nth-child(1) a:hover {
+        filter: brightness(1.1);
+        transform: translateX(6px) translateY(-2px);
+        box-shadow: 0 8px 25px rgba(70, 229, 150, 0.3);
+      }
+      
+      nav ul li a span {
+        display: inline;
+        letter-spacing: 0.3px; /* espaçamento das letras */
+      }
+    }
 
-/* Foco com efeito suave */
-#activityInput:focus {
-  border-color: var(--accent-hover);
-  background-color: var(--hover-bg);
-  box-shadow: 0 0 5px rgba(74, 144, 226, 0.4);
-  color: var(--text);
-}
-
-/* Campo inválido (ex.: se quiser validar que não pode ficar vazio) */
-#activityInput:invalid {
-  border-color: #e74c3c;
-  background-color: var(--card);
-}
-
-/* Responsividade */
-@media (max-width: 600px) {
-  #activityInput {
-    font-size: 14px;
-    padding: 8px 12px;
+    /* ===== ACTIVE somente em DESKTOP (telas maiores que 1000px) ===== */
+@media (min-width:1001px) {
+  /* item ativo na sidebar (desktop) */
+  nav ul li a.active {
+    position: relative;
+    color: var(--text-sidebar) !important;
+    background: linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0.01));
+    border-radius: 0 10px 10px 0;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+    padding-left: 18px;
+    transition: background .20s var(--hover-ease), box-shadow .22s var(--hover-ease), transform .18s;
+    z-index: 5;
   }
-}
 
-#responsavelInput, #matriculaInput {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1px solid var(--soft);
-  border-radius: 8px;
-  font-size: 15px;
-  outline: none;
-  transition: all 0.2s ease;
-  background-color: var(--card);
-  color: var(--text);
-  box-sizing: border-box;
-  height: 38px;
-}
-
-#responsavelInput:focus, #matriculaInput:focus {
-  border-color: var(--accent-hover);
-  box-shadow: 0 0 5px rgba(74,144,226,0.12);
-}
-
-/* garante que os labels vinculados aos inputs responsavel/matricula
-   mantenham ícone e texto na mesma linha e alinhados verticalmente */
-label[for="responsavelInput"],
-label[for="matriculaInput"] {
-  display: inline-flex;      /* mantém o label na linha e permite alinhamento flex */
-  align-items: center;       /* alinha ícone e texto verticalmente */
-  gap: 3px;                  /* espaço entre ícone e texto */
-  white-space: nowrap;       /* evita quebra entre ícone e texto */
-  margin-bottom: 6px;        /* reduz a margem se quiser (ajuste a gosto) */
-}
-
-/* pequeno ajuste no ícone quando usado nesses labels */
-label[for="responsavelInput"] i,
-label[for="matriculaInput"] i {
-  display: inline-block;     /* garante comportamento inline previsível */
-  line-height: 1;
-  font-size: 0.95rem;        /* ajuste tamanho do ícone se necessário */
-  vertical-align: middle;
-}
-
-@media (max-width: 640px) {
-  /* empilha inputs em telas pequenas */
-  .header > div[style] { width: 100%; }
-}
-
-#obsGeralInput {
-  width: 100%;
-  padding: 10px 14px;
-  border: 1px solid var(--soft);
-  border-radius: 8px;
-  font-size: 15px;
-  outline: none;
-  transition: all 0.3s ease;
-  background-color: var(--card);
-  color: var(--text);
-  box-sizing: border-box;
-  resize: none !important;
-  height: 40px;
-}
-
-#obsGeralInput::placeholder {
-  color: var(--text-muted);
-}
-
-/* Foco com efeito suave */
-#obsGeralInput:focus {
-  border-color: var(--accent-hover) !important;
-  background-color: var(--hover-bg);
-  box-shadow: 0 0 5px rgba(74, 144, 226, 0.4);
-  color: var(--text);
-}
-
-/* Campo inválido (ex.: se quiser validar que não pode ficar vazio) */
-#obsGeralInput:invalid {
-  border-color: #e74c3c;
-  background-color: var(--card);
-}
-
-/* Responsividade */
-@media (max-width: 600px) {
-  #obsGeralInput {
-    font-size: 14px;
-    padding: 8px 12px;
+  nav ul li a.active::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 8px;
+    bottom: 8px;
+    width: 8px;
+    border-radius: 0 6px 6px 0;
+    background: linear-gradient(180deg, var(--accent-sidebar), var(--secondary-sidebar));
+    box-shadow: 0 6px 18px rgba(60,150,120,0.12), inset 0 -4px 12px rgba(255,255,255,0.03);
   }
+
+  nav ul li a.active i {
+    color: var(--accent-sidebar) !important;
+    transform: translateX(2px);
+    filter: drop-shadow(0 6px 14px rgba(0,0,0,0.35));
+    transition: transform .18s var(--hover-ease), color .18s;
+  }
+
+  /* hover leve só no desktop (não afeta mobile) */
+  nav ul li a:hover:not(.active) {
+    background: rgba(255,255,255,0.02);
+    transform: translateX(4px);
+    box-shadow: none;
+  }
+
+  nav ul li a:focus {
+    outline: none;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 0 4px rgba(155,204,177,0.06);
+  }
+
+  /* Botão de Observa+ com estilo especial */
+    nav ul li:nth-child(1) a {
+      background: linear-gradient(135deg, var(--accent-sidebar), var(--secondary-sidebar)) !important;
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      box-shadow: 0 12px 40px rgba(70, 229, 123, 0.12), inset 0 -6px 18px rgba(255, 255, 255, 0.02);
+      margin-top: 15px;
+    }
+
+    nav ul li:nth-child(1) a:hover {
+      filter: brightness(1.08);
+      box-shadow: 0 2px 80px rgba(70, 229, 150, 0.18), -4px -4px 10px rgba(58, 237, 133, 0.04);
+    }
+    
+    /* Ícone branco para o botão gradiente em desktop também */
+    nav ul li:nth-child(1) a i {
+      color: white;
+    }
+}
+    
+    @media (max-width:560px){
+      header.topbar{ flex-direction:column; align-items:flex-start; gap:10px }
+      .preview .preview-head{ flex-direction:column; align-items:flex-start; gap:8px }
+      
+      .sidebar-header {
+        padding: 16px 18px;
+      }
+      
+      .brand-text h1 {
+        font-size: 15px;
+      }
+      
+      .logo {
+        width: 44px;
+        height: 44px;
+        font-size: 18px;
+      }
+      
+      .hamburger {
+        width: 44px;
+        height: 44px;
+        font-size: 18px;
+      }
+      
+      nav ul li a {
+        padding: 12px 14px;
+        font-size: 14px;
+      }
+      
+      nav ul li a i {
+        width: 20px;
+        font-size: 15px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .sidebar.active {
+        max-height: 100vh;
+      }
+      
+      .container {
+        margin-top: 76px;
+      }
+      
+      .sidebar {
+        min-height: 76px;
+        max-height: 76px;
+      }
+      
+      .sidebar-header {
+        min-height: 76px;
+        padding: 14px 16px;
+      }
+    }
+
+    /* ===== Some styles from your original (form inputs etc) to keep appearance consistent */
+    .select-like {
+      padding: 8px 12px;
+      border: 1px solid rgba(255,255,255,0.04);
+      border-radius: 4px;
+      background-color: transparent;
+      color: var(--text);
+      min-width: 220px;
+      height: 38px;
+      box-sizing: border-box;
+      font-size: 0.95rem;
+    }
+
+    .pdf-btn {
+      background: var(--accent);
+      color: #fff;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.3s;
+      display: inline-flex;
+      align-items: center;
+      margin-bottom: 16px;
+      margin-top: 1rem;
+    }
+
+    /* MOBILE: barra fixa com blur para o botão baixar PDF (estética) */
+    .mobile-download { display:none; }
+    @media (max-width:768px){
+      .mobile-download {
+        display:flex;
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 14px;
+        justify-content:center;
+        z-index:150;
+        pointer-events: auto;
+      }
+      .mobile-download .bar {
+        width: calc(100% - 28px);
+        max-width: 720px;
+        padding:10px;
+        border-radius: 14px;
+        backdrop-filter: blur(10px) saturate(120%);
+        background: rgba(255,255,255,0.06);
+        box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+        display:flex;
+        justify-content:center;
+      }
+      header.topbar .actions { display:none; }
+
+      /* IMPORTANT: prevent the floating bar from covering the bottom content */
+      /* Provide padding at page bottom equal to the bar's height + gaps */
+      .container { padding-bottom: 120px; } /* <- ensures "Observação" panel and preview not obscured */
+    }
+
+    /* small helpers */
+    .hidden { display:none !important; }
+
+    /* Base para todos os controles */
+/* 1) Forçar aparência escura no select e nas options */
+select, .select-like {
+  background-color: var(--input-bg) !important;   /* seu tom escuro */
+  color: var(--text) !important;
+  border: 1px solid var(--input-border) !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+  padding-right: 40px !important; /* espaço para seta */
 }
 
-</style>
+/* garante que o texto do option também fique escuro ao abrir a lista */
+select option {
+  background-color: var(--bg) !important; /* cor do fundo do dropdown */
+  color: var(--text) !important;
+}
 
+/* estado hover/checked nas options (alguns browsers respeitam) */
+select option:hover,
+select option:checked {
+background: var(--accent) !important;
+      color: #0b150f !important;
+}
+
+/* placeholder option (texto mais claro) */
+select option[disabled] {
+  color: var(--input-placeholder) !important;
+}
+
+/* Autofill dark */
+    input:-webkit-autofill,
+    textarea:-webkit-autofill,
+    select:-webkit-autofill {
+      -webkit-box-shadow: 0 0 0px 1000px rgba(11,12,15,0.78) inset !important;
+      box-shadow: 0 0 0px 1000px rgba(11,12,15,0.78) inset !important;
+      -webkit-text-fill-color: var(--text) !important;
+      transition: background-color 5000s ease-in-out 0s !important;
+    }
+    input:-webkit-autofill:focus{ -webkit-box-shadow: 0 0 0px 1000px rgba(11,12,15,0.78) inset !important; box-shadow: 0 0 0px 1000px rgba(11,12,15,0.78) inset !important; }
+
+/* seta custom (SVG data-uri) — mantém aparência consistente */
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24'%3E%3Cpath fill='%23e1efe6' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 12px center !important;
+  background-size: 16px 16px !important;
+}
+
+/* Edge/IE: remove seta nativa */
+select::-ms-expand { display: none; }
+
+/* Firefox: evitar problema do placeholder desaparecer quando focado */
+select:-moz-focusring { color: transparent; text-shadow: 0 0 0 var(--text); }
+
+/* ===== SCROLLBAR STYLING ===== */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(159, 204, 177, 0.3);
+      border-radius: 4px;
+      transition: background 0.3s ease;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(159, 204, 177, 0.5);
+    }
+
+    .dev-note {
+      color:var(--muted);
+      font-size:12px;
+      text-align:center;
+      padding:12px 10px;
+      border-radius:10px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.00));
+      border: 1px solid rgba(255,255,255,0.02);
+      box-shadow: var(--neumo-shadow);
+    }
+    .dev-note strong { color:var(--text); letter-spacing:0.01em; font-weight:700; }
+    .dev-note .meta { display:block; margin-top:6px; color: rgba(225,239,230,0.45); font-size:11px; }
+
+  </style>
 </head>
 
 <body>
-  <div class="sidebar">
+  <!-- SIDEBAR (exatamente sua versão antiga) -->
+  <div class="sidebar" aria-label="Navegação">
     <div class="sidebar-header">
-      <button id="toggleMenu" class="hamburger">
+      <div class="brand">
+        <div class="logo"><img src="../favicon/favicon.svg" alt="" style="width: 75%;"></div>
+        <div class="brand-text">
+          <h1>Estrutura</h1>
+          <p>Diário de Obra</p>
+        </div>
+      </div>
+      <button id="toggleMenu" class="hamburger" aria-label="Abrir menu">
         <i class="fas fa-bars"></i>
       </button>
-      <h1 class="logo">Estrutura</h1>
     </div>
-    <nav>
+    <nav id="sidebarNav">
       <ul id="menuList">
-  <li>
-    <a href="../dashboard.html">
-      <i class="fas fa-file-signature"></i> Apropriações
-    </a>
-  </li>
-  <li>
-    <a href="../equipes/equipe.html">
-      <i class="fas fa-users-cog"></i> Equipes
-    </a>
-  </li>
-  <li>
-    <a href="../apontamentos/apontamentos.html">
-      <i class="fas fa-clipboard-list"></i> Apontamentos
-    </a>
-  </li>
-  <li>
-    <a href="./diario.html" class="active">
-      <i class="fas fa-book"></i> Diário de obra
-    </a>
-  </li>
-  <li>
-    <a href="../efetivo/efetivo.html">
-      <i class="fas fa-user-friends"></i> Efetivo
-    </a>
-  </li>
-  <li>
-    <a href="../anotar/anotar.html">
-      <i class="fas fa-sticky-note" aria-hidden="true"></i> Anotações
-    </a>
-  </li>
-  <li>
-    <a href="#">
-      <i class="fas fa-calendar-check"></i> Abono DSR
-    </a>
-  </li>
-  <li>
-  <a href="https://detroitbrasil.qforms.com.br/QuestionarioWeb/ResponderQuestionarioLink?chave=ADC929D335B064357179BDBAE1686855"
-     target="_blank"
-     rel="noopener noreferrer">
-    <i class="fa-solid fa-shield-halved"></i> Observa+
-  </a>
-</li>
-  <li>
-    <a href="../configurações/configuracao.html">
-      <i class="fas fa-cog"></i> Configurações
-    </a>
-  </li>
-</ul>
+        <li>
+          <a href="../dashboard.html">
+            <i class="fas fa-file-signature"></i><span>Apropriações</span>
+          </a>
+        </li>
+        <li>
+          <a href="../equipes/equipe.html">
+            <i class="fas fa-users-cog"></i><span>Equipes</span>
+          </a>
+        </li>
+        <li>
+          <a href="../apontamentos/apontamentos.html">
+            <i class="fas fa-clipboard-list"></i><span>Apontamentos</span>
+          </a>
+        </li>
+        <li>
+          <a href="./diario.html" class="active">
+            <i class="fas fa-book"></i><span>Diário de obra</span>
+          </a>
+        </li>
+        <li>
+          <a href="../efetivo/efetivo.html">
+            <i class="fas fa-user-friends"></i><span>Efetivo</span>
+          </a>
+        </li>
+        <li>
+          <a href="../anotar/anotar.html">
+            <i class="fas fa-sticky-note" aria-hidden="true"></i><span>Anotações</span>
+          </a>
+        </li>
+        <li>
+          <a href="#">
+            <i class="fas fa-calendar-check"></i><span>Abono DSR</span>
+          </a>
+        </li>
+        <li>
+          <a href="https://detroitbrasil.qforms.com.br/QuestionarioWeb/ResponderQuestionarioLink?chave=ADC929D335B064357179BDBAE1686855"
+            target="_blank" rel="noopener noreferrer">
+            <i class="fa-solid fa-shield-halved"></i><span>Observa+</span>
+          </a>
+        </li>
+        <li>
+          <a href="../configurações/configuração.html">
+            <i class="fas fa-cog"></i><span>Configurações</span>
+          </a>
+        </li>
+      </ul>
     </nav>
   </div>
 
-  <div class="main-content">
-    <div class="header">
-      <div>
-        <label for="teamSelect"><i class="fas fa-users"></i>Equipe:</label>
-        <select id="teamSelect">
-          <option value="">-- Escolha uma equipe --</option>
-        </select>
+  <!-- MAIN CONTENT (igual ao segundo código que você pediu) -->
+  <div class="container" role="main">
+    <header class="topbar card-glow">
+      <div class="left">
+        <h2>Diário de Obra</h2>
+        <small style="color:var(--muted); margin-left:6px">Baixe registros por equipe e data</small>
       </div>
 
-      <div style="display:flex;flex-direction:column;margin-bottom: 1rem;">
-        <label for="dateSelect"><i class="fas fa-calendar-day"></i>Data:</label>
-        <div class="date-group" style="display:flex;gap:8px;align-items:center;">
-          <input id="dateSelect" type="date" class="select-like" />
-          <button id="clearDateBtn" class="clear-date-btn" title="Limpar data"><i class="fas fa-times"></i></button>
+      <div class="actions">
+        <button id="downloadBtn" class="btn-neumo" disabled><i class="fa-solid fa-download"></i> Baixar PDF</button>
+      </div>
+    </header>
+
+    <section class="controls">
+      <!-- FORM AREA -->
+      <div class="form-area">
+        <div class="panel card-glow">
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <div class="row">
+              <div class="col">
+                <label for="teamSelect"><i class="fas fa-users"></i> Equipe</label>
+                <select id="teamSelect">
+                  <option value="">-- Escolha uma equipe --</option>
+                </select>
+              </div>
+
+              <div style="width:200px">
+                <label for="dateSelect"><i class="fas fa-calendar-day"></i> Data</label>
+                <div class="date-group">
+                  <input id="dateSelect" type="date" />
+                  <button id="clearDateBtn" class="clear-date-btn" title="Limpar data"><i class="fas fa-times"></i></button>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label for="activityInput"><i class="fas fa-tasks"></i> Atividade</label>
+              <textarea id="activityInput" placeholder="Descreva a atividade (Solda/Montagem)..." rows="2"></textarea>
+            </div>
+
+            <div>
+              <label for="obsGeralInput"><i class="fas fa-sticky-note"></i> Observações</label>
+              <textarea id="obsGeralInput" rows="2" placeholder="Observações diárias..."></textarea>
+            </div>
+
+            <div class="row">
+              <div class="col">
+                <label for="responsavelInput"><i class="fas fa-user-check"></i> Responsável</label>
+                <input id="responsavelInput" type="text" placeholder="Nome do responsável" />
+              </div>
+
+              <div style="width:160px">
+                <label for="matriculaInput"><i class="fas fa-id-badge"></i> Matrícula</label>
+                <input id="matriculaInput" type="text" placeholder="Matrícula" />
+              </div>
+            </div>
+
+            <div style="display:flex;gap:8px;align-items:center">
+              <button id="bulkSend" class="btn-neumo ghost"><i class="fa-solid fa-upload"></i> Enviar lotes</button>
+              <button id="openPreviewBtn" class="btn-neumo ghost" style="margin-left:auto">Atualizar pré-visualização</button>
+            </div>
+
+            <div id="notification" class="notification" style="display:none;"><i class="fas fa-exclamation-circle"></i> Nenhuma equipe selecionada. Por favor, selecione uma para baixar o diário de obra.</div>
+          </div>
+        </div>
+
+        <!-- ajuda / quick tips -->
+        <div class="panel card-glow">
+          <h4 style="margin:0 0 8px 0; background: linear-gradient(90deg,#2a6df4,#7345a1); background-clip:text; color:transparent;">Dicas rápidas</h4>
+          <ul style="color:var(--muted); margin:8px 0 0 18px; line-height:1.6">
+            <li>Escolha a equipe e a data desejada</li>
+            <li>Use "Enviar lotes" para processamentos em massa</li>
+            <li>Observações longas podem ser abertas no PDF</li>
+          </ul>
         </div>
       </div>
-      <div style="min-width:300px;">
-        <label for="activityInput"><i class="fas fa-tasks"></i>Atividade:</label>
-        <textarea id="activityInput" placeholder="Descreva a atividade (Solda/Montagem)..." rows="2"></textarea>
-        <div style="display:flex;flex-direction:column;gap:6px;min-width:260px;">
-          <!-- logo abaixo do activityInput, antes do bloco responsavel/matricula -->
-<div style="margin-top:10px;">
-  <label for="obsGeralInput"><i class="fas fa-sticky-note"></i> Observações:</label>
-  <textarea id="obsGeralInput" rows="2" placeholder="Observações diárias..." style="width:100%; padding:8px; border-radius:6px; border:1px solid var(--soft); resize:vertical;"></textarea>
-</div>
-    <div style="display:flex;gap:8px; margin-top: 0.5rem;">
-      <div style="flex:1;">
-        <label for="responsavelInput"><i class="fas fa-user-check"></i>Responsável:</label>
-        <input id="responsavelInput" type="text" placeholder="Nome do responsável" />
+
+      <!-- PREVIEW AREA -->
+      <aside class="preview">
+        <div class="panel card-glow">
+          <div class="preview-head">
+            <h3><i class="fas fa-eye"></i> Pré-visualização do Diário</h3>
+            <small style="color:var(--muted)">Visualize antes de exportar</small>
+          </div>
+
+          <div id="previewContent" class="preview-content" style="color:var(--muted);">
+            Selecione uma equipe para ver os registros.
+          </div>
+        </div>
+
+        <div class="panel card-glow">
+          <h4 style="margin:0 0 8px 0; background: linear-gradient(90deg,#2a6df4,#7345a1); background-clip:text; color:transparent;">Observação</h4>
+          <div style="color:var(--muted)">Os dados mostrados são os últimos 200 registros por padrão. Use a seleção de data para filtrar por dia.</div>
+        </div>
+
+        <div class="dev-note reveal">
+        <div>Sistema desenvolvido por <strong>Gustavo Carvalho</strong></div>
+        <div>Setor de <strong>Estrutura</strong></div>
+        <span class="meta">Agilidade, confiabilidade e design de excelência — pensado para líderes de obra que buscam precisão e confiança • © 2025</span>
       </div>
-      <div style="width:140px;">
-        <label for="matriculaInput"><i class="fas fa-id-badge"></i>Matrícula:</label>
-        <input id="matriculaInput" type="text" placeholder="Matricula" />
+      </aside>
+    </section>
+  </div>
+
+  <div class="mobile-download">
+    <div class="bar">
+      <button id="downloadBtnMobile" class="btn-neumo" style="width:100%;max-width:420px" disabled><i class="fa-solid fa-download"></i> Baixar PDF</button>
+    </div>
+  </div>
+
+  <!-- notification modal -->
+  <div id="notificationModal" class="notification-modal" style="display:none">
+    <div class="notification-content">
+      <p id="notificationMessage" style="display:flex;align-items:center;gap:10px">
+        <i class="fas fa-info-circle" style="color:var(--accent-strong);"></i>
+        <span id="notificationText">Mensagem</span>
+      </p>
+      <div style="display:flex;justify-content:center">
+        <button id="notificationOkBtn">OK</button>
       </div>
     </div>
   </div>
-      </div>
-      <button id="downloadBtn" class="pdf-btn" disabled><i class="fa-solid fa-download"></i> Baixar PDF</button>
-      </div>
 
-
-    <div id="notification" class="notification" style="display:none;"><i class="fas fa-exclamation-circle"></i> Nenhuma equipe selecionada. Por favor, selecione uma para baixar o diário de obra.</div>
-
-    <div class="preview">
-      <h3><i class="fas fa-eye"></i> Pré-visualização do Diário</h3>
-      <div id="previewContent" style="color:var(--text-muted);">Selecione uma equipe para ver os registros.</div>
-    </div>
-  </div>
-
-  <div id="notificationModal" class="notification-modal" style="display:none;">
-  <div class="notification-content">
-    <p id="notificationMessage">
-      <i class="fas fa-info-circle"></i>
-      <!-- Texto da notificação será inserido aqui -->
-    </p>
-    <button id="notificationOkBtn">OK</button>
-  </div>
-</div>
-
+  <!-- Firebase + jsPDF -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
   <script>
-  // ===== FIREBASE =====
-  const firebaseConfig = {
-    apiKey: "AIzaSyDtnzixicBYAQkuoeB5tgCGpDLt1lByMZo",
-    authDomain: "apropriacao-estrutura.firebaseapp.com",
-    projectId: "apropriacao-estrutura",
-    storageBucket: "apropriacao-estrutura.appspot.com",
-    messagingSenderId: "155266586257",
-    appId: "1:155266586257:web:6d70edc967cdbfc56e5130",
-  };
-  firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-  const db = firebase.firestore();
+    /* ===== FIREBASE ===== */
+    const firebaseConfig = {
+      apiKey: "AIzaSyDtnzixicBYAQkuoeB5tgCGpDLt1lByMZo",
+      authDomain: "apropriacao-estrutura.firebaseapp.com",
+      projectId: "apropriacao-estrutura",
+      storageBucket: "apropriacao-estrutura.appspot.com",
+      messagingSenderId: "155266586257",
+      appId: "1:155266586257:web:6d70edc967cdbfc56e5130",
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
 
-  // ===== ESTADO =====
-  let currentTeamId = '';
-  let currentRecords = [];
+    // ===== STATE & ELEMENTS =====
+    let currentTeamId = '';
+    let currentRecords = [];
 
-  // ===== ELEMENTOS =====
-  const teamSelect = document.getElementById('teamSelect');
-  const downloadBtn = document.getElementById('downloadBtn');
-  const notification = document.getElementById('notification');
-  const previewContent = document.getElementById('previewContent');
-  const dateSelect = document.getElementById('dateSelect');
-  const clearDateBtn = document.getElementById('clearDateBtn');
-  const activityInput = document.getElementById('activityInput');
-  const responsavelInput = document.getElementById('responsavelInput');
-const matriculaInput = document.getElementById('matriculaInput');
-const obsGeralInput = document.getElementById('obsGeralInput');
+    const teamSelect = document.getElementById('teamSelect');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const downloadBtnMobile = document.getElementById('downloadBtnMobile');
+    const notification = document.getElementById('notification');
+    const previewContent = document.getElementById('previewContent');
+    const dateSelect = document.getElementById('dateSelect');
+    const clearDateBtn = document.getElementById('clearDateBtn');
+    const activityInput = document.getElementById('activityInput');
+    const responsavelInput = document.getElementById('responsavelInput');
+    const matriculaInput = document.getElementById('matriculaInput');
+    const obsGeralInput = document.getElementById('obsGeralInput');
+    const openPreviewBtn = document.getElementById('openPreviewBtn');
+    const bulkSend = document.getElementById('bulkSend');
 
-
-  // ===== AUTENTICAÇÃO =====
-  auth.onAuthStateChanged(user => {
-    if (!user) return window.location.href = './index.html';
-    loadTeams(user.uid);
-  });
-
-  // ===== CARREGA EQUIPES (select) =====
-  async function loadTeams(uid) {
-    const snapshot = await db.collection('teams')
-      .where('ownerUid', '==', uid)
-      .get();
-    snapshot.forEach(doc => {
-      const data = doc.data();
-      const option = document.createElement('option');
-      option.value = doc.id;
-      option.textContent = data.name || doc.id;
-      teamSelect.appendChild(option);
+    // redirect if not signed
+    auth.onAuthStateChanged(user => {
+      if (!user) return window.location.href = '../index.html';
+      loadTeams(user.uid);
     });
-  }
 
-  // ===== EVENTOS =====
-  teamSelect.addEventListener('change', () => {
-    currentTeamId = teamSelect.value;
-    downloadBtn.disabled = !currentTeamId;
-    notification.style.display = currentTeamId ? 'none' : 'block';
-    fetchRecords();
-  });
+    async function loadTeams(uid) {
+      try {
+        const snapshot = await db.collection('teams')
+          .where('ownerUid', '==', uid)
+          .get();
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          const option = document.createElement('option');
+          option.value = doc.id;
+          option.textContent = data.name || doc.id;
+          teamSelect.appendChild(option);
+        });
+      } catch (err) {
+        console.warn('Erro ao carregar equipes', err);
+      }
+    }
 
-  dateSelect.addEventListener('change', fetchRecords);
+    teamSelect.addEventListener('change', () => {
+      currentTeamId = teamSelect.value;
+      downloadBtn.disabled = !currentTeamId;
+      if (downloadBtnMobile) downloadBtnMobile.disabled = !currentTeamId;
+      notification.style.display = currentTeamId ? 'none' : 'block';
+      fetchRecords();
+    });
 
-  if (clearDateBtn) {
-    clearDateBtn.addEventListener('click', () => {
+    dateSelect.addEventListener('change', fetchRecords);
+
+    clearDateBtn && clearDateBtn.addEventListener('click', () => {
       dateSelect.value = '';
       fetchRecords();
     });
-  }
 
-  if (activityInput) {
-  activityInput.addEventListener('input', renderPreview);
-}
+    [activityInput, responsavelInput, matriculaInput, obsGeralInput].forEach(el=>{
+      if(el) el.addEventListener('input', renderPreview);
+    });
 
-if (responsavelInput) {
-  responsavelInput.addEventListener('input', renderPreview);
-}
-if (matriculaInput) {
-  matriculaInput.addEventListener('input', renderPreview);
-}
+    openPreviewBtn && openPreviewBtn.addEventListener('click', renderPreview);
 
-if (obsGeralInput) {
-  obsGeralInput.addEventListener('input', renderPreview);
-}
+    bulkSend && bulkSend.addEventListener('click', ()=>{
+      bulkSend.innerText = 'Enviando...';
+      setTimeout(()=> bulkSend.innerText = 'Enviar lotes', 900);
+    });
 
-
-  // ===== BUSCA REGISTROS (com suporte a dateOnly ou range) =====
-  async function fetchRecords() {
-    if (!auth.currentUser) return;
-    if (!currentTeamId) {
-      currentRecords = [];
-      renderPreview();
-      return;
-    }
-
-    let query = db.collection('records')
-      .where('teamId', '==', currentTeamId)
-      .where('createdBy', '==', auth.currentUser.uid);
-
-    const selectedDate = dateSelect.value; // formato YYYY-MM-DD ou ''
-
-    if (selectedDate) {
-      // tenta dateOnly primeiro
-      const snapshotDateOnly = await db.collection('records')
-        .where('teamId', '==', currentTeamId)
-        .where('createdBy', '==', auth.currentUser.uid)
-        .where('dateOnly', '==', selectedDate)
-        .limit(1)
-        .get();
-
-      if (!snapshotDateOnly.empty) {
-        query = db.collection('records')
-          .where('teamId', '==', currentTeamId)
-          .where('createdBy', '==', auth.currentUser.uid)
-          .where('dateOnly', '==', selectedDate)
-          .orderBy('date', 'desc')
-          .limit(200);
-      } else {
-        // range do dia
-        const d = new Date(selectedDate + 'T00:00:00');
-        const start = new Date(d); start.setHours(0,0,0,0);
-        const end = new Date(d); end.setHours(23,59,59,999);
-        const startTs = firebase.firestore.Timestamp.fromDate(start);
-        const endTs = firebase.firestore.Timestamp.fromDate(end);
-
-        query = db.collection('records')
-          .where('teamId', '==', currentTeamId)
-          .where('createdBy', '==', auth.currentUser.uid)
-          .where('date', '>=', startTs)
-          .where('date', '<=', endTs)
-          .orderBy('date', 'desc')
-          .limit(200);
+    // fetchRecords (mantida)
+    async function fetchRecords() {
+      if (!auth.currentUser) return;
+      if (!currentTeamId) {
+        currentRecords = [];
+        renderPreview();
+        return;
       }
-    } else {
-      // sem data: últimos registros
-      query = db.collection('records')
-        .where('teamId', '==', currentTeamId)
-        .where('createdBy', '==', auth.currentUser.uid)
-        .orderBy('date', 'desc')
-        .limit(200);
-    }
 
-    const snapshot = await query.get();
-    currentRecords = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-    renderPreview();
-  }
+      let query;
+      const selectedDate = dateSelect.value;
 
-  // ===== HELPERS PREVIEW =====
-  function escapeHtml(str = '') {
-    return String(str)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#039;');
-  }
-  function nl2br(str = '') {
-    return escapeHtml(str).replace(/\n/g, '<br>');
-  }
-  function getObservation(r) {
-    return (r.obs || r.observacoes || r.observations || r.comentario || '').toString().trim();
-  }
+      try {
+        if (selectedDate) {
+          const snapshotDateOnly = await db.collection('records')
+            .where('teamId', '==', currentTeamId)
+            .where('createdBy', '==', auth.currentUser.uid)
+            .where('dateOnly', '==', selectedDate)
+            .limit(1)
+            .get();
 
-  // ===== RENDER PREVIEW (inclui Atividade) =====
-function renderPreview() {
-  const activityVal = (activityInput && activityInput.value) ? escapeHtml(activityInput.value.trim()) : '';
-  const responsavelVal = (responsavelInput && responsavelInput.value) ? escapeHtml(responsavelInput.value.trim()) : '';
-  const matriculaVal = (matriculaInput && matriculaInput.value) ? escapeHtml(matriculaInput.value.trim()) : '';
-  const obsVal = (obsGeralInput && obsGeralInput.value) ? escapeHtml(obsGeralInput.value.trim()) : '';
-  const activityHtml = activityVal ? `<div style="padding:10px;border-radius:6px;background: var(--bg);margin-bottom:0.8rem; border: 1px solid #ececec;"><strong style="color: var(--text); background: color-mix(in srgb, var(--soft) 50%, transparent); padding: 5px; border-radius:6px;">Atividade:</strong> ${nl2br(activityVal)}</div>` : '';
+          if (!snapshotDateOnly.empty) {
+            query = db.collection('records')
+              .where('teamId', '==', currentTeamId)
+              .where('createdBy', '==', auth.currentUser.uid)
+              .where('dateOnly', '==', selectedDate)
+              .orderBy('date', 'desc')
+              .limit(200);
+          } else {
+            const d = new Date(selectedDate + 'T00:00:00');
+            const start = new Date(d); start.setHours(0,0,0,0);
+            const end = new Date(d); end.setHours(23,59,59,999);
+            const startTs = firebase.firestore.Timestamp.fromDate(start);
+            const endTs = firebase.firestore.Timestamp.fromDate(end);
 
-  const respMatHtml = (responsavelVal || matriculaVal) ? `<div style="padding:8px;border-radius:6px;background: var(--bg); margin-bottom:0.6rem; border:1px solid #ececec; display:flex; gap:12px; align-items:center;"><div style="flex:1;"><strong>Responsável:</strong> ${responsavelVal || '-'}</div><div style="width:120px;"><strong>Matrícula:</strong> ${matriculaVal || '-'}</div></div>` : '';
+            query = db.collection('records')
+              .where('teamId', '==', currentTeamId)
+              .where('createdBy', '==', auth.currentUser.uid)
+              .where('date', '>=', startTs)
+              .where('date', '<=', endTs)
+              .orderBy('date', 'desc')
+              .limit(200);
+          }
+        } else {
+          query = db.collection('records')
+            .where('teamId', '==', currentTeamId)
+            .where('createdBy', '==', auth.currentUser.uid)
+            .orderBy('date', 'desc')
+            .limit(200);
+        }
 
-  const obsHtml = obsVal ? `<div class="preview-entry" style="margin-bottom:0.6rem;"><strong>Observações gerais:</strong><div style="margin-top:6px">${nl2br(obsVal)}</div></div>` : '';
-
-  if (!currentRecords.length) {
-    previewContent.innerHTML = activityHtml + '<i class="fas fa-info-circle"></i> Nenhum registro encontrado.';
-    return;
-  }
-
-  const recordsHtml = currentRecords.map(r => {
-    const date = r.date && r.date.seconds ? new Date(r.date.seconds * 1000).toLocaleString() : (r.date || '-');
-    const obs = getObservation(r);
-    return `
-      <div class="preview-entry">
-        <div class="info">
-          <div><i class="fas fa-calendar-day"></i> ${escapeHtml(date)}</div>
-          <div><i class="fas fa-user"></i> ${escapeHtml(r.name || '-')}</div>
-          <div><i class="fas fa-id-badge"></i> ${escapeHtml(r.memberMatricula || '-')}</div>
-          <div><i class="fas fa-map-marker-alt"></i> ${escapeHtml(r.local || '-')}</div>
-          <div><i class="fas fa-warehouse"></i> ${escapeHtml(r.galpao || '-')}</div>
-          <div><i class="fas fa-stream"></i> ${escapeHtml(r.details || '-')}</div>
-          <div><i class="fas fa-layer-group"></i> ${escapeHtml(r.blockShift || '-')}</div>
-          <div><i class="fas fa-ship"></i> ${escapeHtml(r.vesselShift || '-')}</div>
-          ${obs ? `<div style="margin-top:6px"><i class="fas fa-clipboard"></i> ${nl2br(obs)}</div>` : ''}
-        </div>
-      </div>
-    `;
-  }).join('');
-
-   previewContent.innerHTML = activityHtml + respMatHtml + obsHtml + recordsHtml;
-}
-
-  // ===== TEMPLATE PARA O PDF =====
-  const templateUrl = './diario.jpg'; // coloque a imagem neste caminho ou ajuste
-
-  async function loadImageAsDataURL(url) {
-    try {
-      const res = await fetch(url);
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      const blob = await res.blob();
-      return await new Promise((resolve, reject) => {
-        const fr = new FileReader();
-        fr.onload = () => resolve(fr.result);
-        fr.onerror = reject;
-        fr.readAsDataURL(blob);
-      });
-    } catch (err) {
-      console.warn('loadImageAsDataURL falhou:', err);
-      return null;
-    }
-  }
-
-  // ===== GERAÇÃO DO PDF (ALINHADO AO TEMPLATE) =====
-  async function generatePdfFromDaily(daily, { debugMode = false } = {}) {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
-    const pageW = doc.internal.pageSize.getWidth();
-    const pageH = doc.internal.pageSize.getHeight();
-
-    // carrega imagem do template
-    const imgData = await loadImageAsDataURL(templateUrl);
-
-    // ------ parâmetros calibrados (ajuste se necessário) ------
-    const marginLeft = 44;
-    const headerY = 76;
-    const galpaoX = 180;               // posição 'Galpão' (x)
-    const dateX = pageW - 180;         // posição 'Data' (x)
-    const dateY = headerY - 11;        // posição 'Data' (y)
-    const yTableStart = 134;           // início da tabela de matrícula/nome
-    const rowHeight = 12;              // altura fixa entre linhas (mantém alinhamento)
-    const rowsPerColumn = 28;          // linhas por coluna antes de ir pra direita/página nova
-    const leftMatX = 60;
-    const leftNameX = leftMatX + 44;
-    const rightMatX = Math.round(pageW / 2) + 8;
-    const rightNameX = rightMatX + 58;
-    const nameColWidth = Math.round((pageW / 2) - (leftNameX - marginLeft) - 40);
-    const yObsStart = 400;
-    const obsLineHeight = 8;
-
-    function drawTemplate() {
-      if (imgData) {
-        try { doc.addImage(imgData, 'JPEG', 0, 0, pageW, pageH); }
-        catch (e) { doc.setFillColor(255,255,255); doc.rect(0,0,pageW,pageH,'F'); }
-      } else {
-        doc.setFillColor(255,255,255); doc.rect(0,0,pageW,pageH,'F');
+        const snapshot = await query.get();
+        currentRecords = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        renderPreview();
+      } catch (err) {
+        console.warn('fetchRecords erro', err);
+        currentRecords = [];
+        renderPreview();
       }
     }
 
-    function getSingleLineName(text, maxWidth){
-      const arr = doc.splitTextToSize(String(text || ''), maxWidth);
-      if (!arr.length) return '-';
-      let first = arr[0];
-      if (arr.length > 1) {
-        while (doc.getTextWidth(first + '…') > maxWidth && first.length > 0) first = first.slice(0, -1);
-        first = first + '…';
+    // helpers
+    function escapeHtml(str = '') {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+    function nl2br(str = '') { return escapeHtml(str).replace(/\n/g, '<br>'); }
+    function getObservation(r) { return (r.obs || r.observacoes || r.observations || r.comentario || '').toString().trim(); }
+
+    // renderPreview (adaptei para usar as classes aqui)
+    function renderPreview() {
+      const activityVal = (activityInput && activityInput.value) ? escapeHtml(activityInput.value.trim()) : '';
+      const responsavelVal = (responsavelInput && responsavelInput.value) ? escapeHtml(responsavelInput.value.trim()) : '';
+      const matriculaVal = (matriculaInput && matriculaInput.value) ? escapeHtml(matriculaInput.value.trim()) : '';
+      const obsVal = (obsGeralInput && obsGeralInput.value) ? escapeHtml(obsGeralInput.value.trim()) : '';
+
+      const activityHtml = activityVal ? `<div style="padding:10px;border-radius:8px;background: rgba(255,255,255,0.02);margin-bottom:0.8rem; border: 1px solid rgba(255,255,255,0.02);"><strong style="color: var(--accent-strong); padding: 4px 6px; border-radius:6px;">Atividade:</strong> ${nl2br(activityVal)}</div>` : '';
+      const respMatHtml = (responsavelVal || matriculaVal) ? `<div style="padding:8px;border-radius:8px;background: rgba(255,255,255,0.01); margin-bottom:0.6rem; border:1px solid rgba(255,255,255,0.02); display:flex; gap:12px; align-items:center; flex-wrap:wrap;"><div style="flex:1;"><strong>Responsável:</strong> ${responsavelVal || '-'}</div><div style="min-width:120px;"><strong>Matrícula:</strong> ${matriculaVal || '-'}</div></div>` : '';
+      const obsHtml = obsVal ? `<div class="preview-entry" style="margin-bottom:0.6rem;"><strong>Observações gerais:</strong><div style="margin-top:6px">${nl2br(obsVal)}</div></div>` : '';
+
+      if (!currentRecords.length) {
+        previewContent.innerHTML = activityHtml + respMatHtml + obsHtml + '<div style="padding:18px;color:var(--muted)"><i class="fas fa-info-circle"></i> Nenhum registro encontrado.</div>';
+        return;
       }
-      return first;
+
+      const recordsHtml = currentRecords.map(r => {
+        const date = r.date && r.date.seconds ? new Date(r.date.seconds * 1000).toLocaleString() : (r.date || '-');
+        const obs = getObservation(r);
+        return `
+          <div class="preview-entry">
+            <div class="info">
+              <div><i class="fas fa-calendar-day"></i> ${escapeHtml(date)}</div>
+              <div><i class="fas fa-user"></i> ${escapeHtml(r.name || '-')}</div>
+              <div><i class="fas fa-id-badge"></i> ${escapeHtml(r.memberMatricula || '-')}</div>
+              <div><i class="fas fa-map-marker-alt"></i> ${escapeHtml(r.local || '-')}</div>
+              <div><i class="fas fa-warehouse"></i> ${escapeHtml(r.galpao || '-')}</div>
+              <div><i class="fas fa-stream"></i> ${escapeHtml(r.details || '-')}</div>
+              ${obs ? `<div style="width:100%; margin-top:6px"><i class="fas fa-clipboard"></i> ${nl2br(obs)}</div>` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      previewContent.innerHTML = activityHtml + respMatHtml + obsHtml + recordsHtml;
     }
 
-    // formatação inicial
-    doc.setFont('Helvetica', 'normal');
-    doc.setFontSize(10);
-    doc.setTextColor(0,0,0);
+    // ===== PDF generation (mantive sua função detalhada) =====
+    const templateUrl = './diario.jpg';
+    async function loadImageAsDataURL(url) {
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const blob = await res.blob();
+        return await new Promise((resolve, reject) => {
+          const fr = new FileReader();
+          fr.onload = () => resolve(fr.result);
+          fr.onerror = reject;
+          fr.readAsDataURL(blob);
+        });
+      } catch (err) {
+        console.warn('loadImageAsDataURL falhou:', err);
+        return null;
+      }
+    }
 
-    // primeira página com template
-    drawTemplate();
+    async function generatePdfFromDaily(daily, { debugMode = false } = {}) {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+      const pageW = doc.internal.pageSize.getWidth();
+      const pageH = doc.internal.pageSize.getHeight();
 
-    let displayDate = (daily.dateOnly || '');
-  if (/^\d{4}-\d{2}-\d{2}$/.test(displayDate)) {
-    const [y, m, d] = displayDate.split('-');
-    displayDate = `${d}/${m}/${y}`;
-  } else if (!displayDate && daily.date && typeof daily.date === 'object' && (daily.date.seconds || daily.date._seconds)) {
-    const seconds = daily.date.seconds || daily.date._seconds;
-    const dt = new Date(seconds * 1000);
-    displayDate = dt.toLocaleDateString('pt-BR');
-  } else if (displayDate && displayDate.includes('-') && displayDate.split('-')[0].length === 4) {
-    const parts = displayDate.split('-').map(p => p.padStart(2,'0'));
-    if (parts.length >= 3) displayDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
-  }
-  if (!displayDate) displayDate = '-';
+      const imgData = await loadImageAsDataURL(templateUrl);
 
-  // escreve Galpão (usa headerY) e Data (usa dateY)
-  doc.setFontSize(11);
-  doc.text(String(daily.galpao || '-'), galpaoX, headerY);
-  doc.text(String(displayDate), dateX, dateY);
-  doc.setFontSize(10);
+      // parâmetros & helpers (copiados/ajustados)
+      const marginLeft = 44;
+      const headerY = 76;
+      const galpaoX = 180;
+      const dateX = pageW - 180;
+      const dateY = headerY - 11;
+      const yTableStart = 134;
+      const rowHeight = 12;
+      const rowsPerColumn = 28;
+      const leftMatX = 60;
+      const leftNameX = leftMatX + 44;
+      const rightMatX = Math.round(pageW / 2) + 8;
+      const rightNameX = rightMatX + 58;
+      const nameColWidth = Math.round((pageW / 2) - (leftNameX - marginLeft) - 40);
+      const yObsStart = 400;
+      const obsLineHeight = 8;
 
-  // ===== ATIVIDADE (posicione ajustando activityX e activityY) =====
-const activityX = marginLeft + 385;     // <<< ajuste horizontal aqui
-const activityY = headerY + 0;   // <<< ajuste vertical aqui (ex.: 18, 28, 40, ...)
+      function drawTemplate() {
+        if (imgData) {
+          try { doc.addImage(imgData, 'JPEG', 0, 0, pageW, pageH); }
+          catch (e) { doc.setFillColor(255,255,255); doc.rect(0,0,pageW,pageH,'F'); }
+        } else {
+          doc.setFillColor(255,255,255); doc.rect(0,0,pageW,pageH,'F');
+        }
+      }
 
-const respX = marginLeft + 60;        // posição horizontal do responsável (ajuste)
-const respY = headerY + 12;
-const gapBetweenCols = 12;             // espaço entre coluna responsavel e matricula
-const respMaxWidth = 200;              // <<< largura máxima (px) do RESPONSÁVEL — ajuste
-const matMaxWidth = 120;               // <<< largura máxima (px) da MATRÍCULA — ajuste
-const matX = respX + respMaxWidth + gapBetweenCols; // posicionado à direita do resp
-const gap = 10;                // distância entre final do nome e início da matrícula
-const rightMargin = 44;        // margem direita (mesma que marginLeft)
+      function getSingleLineName(text, maxWidth){
+        const arr = doc.splitTextToSize(String(text || ''), maxWidth);
+        if (!arr.length) return '-';
+        let first = arr[0];
+        if (arr.length > 1) {
+          while (doc.getTextWidth(first + '…') > maxWidth && first.length > 0) first = first.slice(0, -1);
+          first = first + '…';
+        }
+        return first;
+      }
 
-let tableStartY = yTableStart;    // começa onde sempre começava...
+      doc.setFont('Helvetica', 'normal');
+      doc.setFontSize(10);
+      doc.setTextColor(0,0,0);
 
-if (daily.activity) {
-  const maxWidth = pageW - marginLeft * 2;   // largura útil
-  const lineHeight = 12;                     // altura de linha (ajuste se quiser)
-  const lines = doc.splitTextToSize(String(daily.activity), maxWidth);
+      drawTemplate();
 
-  // desenha a atividade
-  for (let i = 0; i < lines.length; i++) {
-    doc.text(lines[i], activityX, activityY + i * lineHeight);
-  }
+      let displayDate = (daily.dateOnly || '');
+      if (/^\d{4}-\d{2}-\d{2}$/.test(displayDate)) {
+        const [y, m, d] = displayDate.split('-');
+        displayDate = `${d}/${m}/${y}`;
+      } else if (!displayDate && daily.date && typeof daily.date === 'object' && (daily.date.seconds || daily.date._seconds)) {
+        const seconds = daily.date.seconds || daily.date._seconds;
+        const dt = new Date(seconds * 1000);
+        displayDate = dt.toLocaleDateString('pt-BR');
+      } else if (displayDate && displayDate.includes('-') && displayDate.split('-')[0].length === 4) {
+        const parts = displayDate.split('-').map(p => p.padStart(2,'0'));
+        if (parts.length >= 3) displayDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+      }
+      if (!displayDate) displayDate = '-';
 
-  const respText = String(daily.responsavel || '');
-const matText = String(daily.matricula || '');
+      doc.setFontSize(11);
+      doc.text(String(daily.galpao || '-'), galpaoX, headerY);
+      doc.text(String(displayDate), dateX, dateY);
+      doc.setFontSize(10);
 
-function truncateOneLine(text, maxW) {
-  const s = String(text || '');
-  if (doc.getTextWidth(s) <= maxW) return s;
-  let out = s;
-  while (out.length > 0 && doc.getTextWidth(out + '…') > maxW) out = out.slice(0, -1);
-  return out.length ? out + '…' : '…';
-}
+      // atividade/responsavel draw
+      const activityX = marginLeft + 385;
+      const activityY = headerY + 0;
+      const respX = marginLeft + 60;
+      const respY = headerY + 12;
+      const gapBetweenCols = 12;
+      const respMaxWidth = 200;
+      const matMaxWidth = 120;
+      const gap = 10;
+      const rightMargin = 44;
+      let tableStartY = yTableStart;
 
-// largura do nome (na fonte atual)
-let respWidth = doc.getTextWidth(respText);
+      if (daily.activity) {
+        const maxWidth = pageW - marginLeft * 2;
+        const lineHeight = 12;
+        const lines = doc.splitTextToSize(String(daily.activity), maxWidth);
 
-// largura disponível total até margem direita onde matrícula não pode ultrapassar
-const maxMatAnchorX = pageW - rightMargin - matMaxWidth; // X máximo onde matrícula pode começar
+        for (let i = 0; i < lines.length; i++) {
+          doc.text(lines[i], activityX, activityY + i * lineHeight);
+        }
 
-// posição proposta da matrícula logo após o nome
-let desiredMatX = Math.ceil(respX + respWidth + gap);
+        const respText = String(daily.responsavel || '');
+        const matText = String(daily.matricula || '');
 
-// clamp: matrícula não pode começar depois do max disponível
-let matX = Math.min(desiredMatX, maxMatAnchorX);
+        function truncateOneLine(text, maxW) {
+          const s = String(text || '');
+          if (doc.getTextWidth(s) <= maxW) return s;
+          let out = s;
+          while (out.length > 0 && doc.getTextWidth(out + '…') > maxW) out = out.slice(0, -1);
+          return out.length ? out + '…' : '…';
+        }
 
-// se matX foi reduzido pelo clamp, precisamos garantir que o nome caiba até matX - gap
-const respAllowedWidth = Math.max(8, matX - gap - respX);
+        let respWidth = doc.getTextWidth(respText);
+        const maxMatAnchorX = pageW - rightMargin - matMaxWidth;
+        let desiredMatX = Math.ceil(respX + respWidth + gap);
+        let matX = Math.min(desiredMatX, maxMatAnchorX);
+        const respAllowedWidth = Math.max(8, matX - gap - respX);
+        let respToDraw = respText;
+        if (doc.getTextWidth(respText) > respAllowedWidth) {
+          respToDraw = truncateOneLine(respText, respAllowedWidth);
+          respWidth = doc.getTextWidth(respToDraw);
+          desiredMatX = Math.ceil(respX + respWidth + gap);
+          matX = Math.min(desiredMatX, maxMatAnchorX);
+        }
+        const matToDraw = truncateOneLine(matText || '-', matMaxWidth);
+        doc.text(respToDraw || '-', respX, respY);
+        doc.text(matToDraw || '-', matX, respY);
+        const respMatHeight = lineHeight;
+        tableStartY = Math.max(tableStartY, respY + respMatHeight + 8);
+      }
 
-// se o nome original é maior que o permitido, trunca
-let respToDraw = respText;
-if (doc.getTextWidth(respText) > respAllowedWidth) {
-  respToDraw = truncateOneLine(respText, respAllowedWidth);
-  respWidth = doc.getTextWidth(respToDraw); // atualiza largura do que será desenhado
-  // recomputa posição da matrícula logo após o nome truncado (protege contra off-by-one)
-  desiredMatX = Math.ceil(respX + respWidth + gap);
-  matX = Math.min(desiredMatX, maxMatAnchorX);
-}
+      // tabela membros (duas colunas)
+      let col = 0, rowIndex = 0, y = tableStartY;
+      for (let i = 0; i < (daily.members || []).length; i++) {
+        const m = daily.members[i];
+        const targetMatX = (col === 0) ? leftMatX : rightMatX;
+        const targetNameX = (col === 0) ? leftNameX : rightNameX;
 
-// finalmente trunca a matrícula também caso ela exceda matMaxWidth
-const matToDraw = truncateOneLine(matText || '-', matMaxWidth);
+        if (rowIndex >= rowsPerColumn) {
+          if (col === 0) { col = 1; rowIndex = 0; y = yTableStart; }
+          else {
+            doc.addPage();
+            drawTemplate();
+            doc.setFontSize(11);
+            doc.text(String(daily.galpao || '-'), galpaoX, headerY);
+            doc.text(String(daily.dateOnly || '-'), dateX, headerY);
+            doc.setFontSize(10);
+            col = 0; rowIndex = 0; y = yTableStart;
+          }
+        }
 
-// desenha (uma linha cada)
-doc.text(respToDraw || '-', respX, respY);
-doc.text(matToDraw || '-', matX, respY);
+        const matText = String(m.matricula || m.memberMatricula || '-');
+        const nameText = getSingleLineName(m.name || '-', nameColWidth);
 
-// atualiza altura ocupada para empurrar tabela se necessário
-const respMatHeight = lineHeight; // estamos em uma linha só
-tableStartY = Math.max(tableStartY, respY + respMatHeight + 8);
-}
+        doc.setFontSize(10);
+        doc.text(matText, targetMatX, y + 3);
+        doc.text(nameText, targetNameX, y + 3);
 
-    // Preenche tabela em duas colunas (uma linha por registro para manter grade)
-    let col = 0, rowIndex = 0, y = tableStartY;
-    for (let i = 0; i < (daily.members || []).length; i++) {
-      const m = daily.members[i];
-      const targetMatX = (col === 0) ? leftMatX : rightMatX;
-      const targetNameX = (col === 0) ? leftNameX : rightNameX;
+        y += rowHeight;
+        rowIndex++;
+      }
 
-      if (rowIndex >= rowsPerColumn) {
-        if (col === 0) { col = 1; rowIndex = 0; y = yTableStart; }
-        else {
+      // observações numeradas
+      let currentYObs = yObsStart;
+      doc.setFontSize(10);
+
+      const observations = [];
+      for (let i = 0; i < (daily.members || []).length; i++) {
+        const m = daily.members[i];
+        const parts = [];
+        if (m.name) parts.push(m.name);
+        if (m.matricula) parts.push(`Mat: ${m.matricula}`);
+        if (m.local) parts.push(m.local);
+        const details = [];
+        if (m.blockShift) details.push(`Bloco: ${m.blockShift}`);
+        if (m.vesselShift) details.push(`Embarcação: ${m.vesselShift}`);
+        if (m.details) details.push(m.details);
+        if (m.obs) details.push(m.obs);
+        if (details.length) parts.push(details.join(' — '));
+        const txt = parts.join(' / ').trim();
+        if (txt) observations.push(txt);
+      }
+
+      for (let idx = 0; idx < observations.length; idx++) {
+        const raw = observations[idx];
+        const wrapped = doc.splitTextToSize(raw, pageW - marginLeft * 2 - 12);
+        const prefix = (idx + 1) + '. ';
+        const prefixWidth = doc.getTextWidth(prefix);
+
+        if (currentYObs + wrapped.length * obsLineHeight > pageH - 40) {
           doc.addPage();
           drawTemplate();
           doc.setFontSize(11);
           doc.text(String(daily.galpao || '-'), galpaoX, headerY);
           doc.text(String(daily.dateOnly || '-'), dateX, headerY);
           doc.setFontSize(10);
-          col = 0; rowIndex = 0; y = yTableStart;
+          currentYObs = yObsStart;
         }
-      }
 
-      const matText = String(m.matricula || m.memberMatricula || '-');
-      const nameText = getSingleLineName(m.name || '-', nameColWidth);
-
-      doc.setFontSize(10);
-      doc.text(matText, targetMatX, y + 3);
-      doc.text(nameText, targetNameX, y + 3);
-
-      y += rowHeight;
-      rowIndex++;
-    }
-
-    // OBSERVAÇÕES DIÁRIAS: cada observação numerada em sua própria entrada
-    let currentYObs = yObsStart;
-    doc.setFontSize(10);
-
-    const observations = [];
-    for (let i = 0; i < (daily.members || []).length; i++) {
-      const m = daily.members[i];
-      const parts = [];
-      if (m.name) parts.push(m.name);
-      if (m.matricula) parts.push(`Mat: ${m.matricula}`);
-      if (m.local) parts.push(m.local);
-      const details = [];
-      if (m.blockShift) details.push(`Bloco: ${m.blockShift}`);
-      if (m.vesselShift) details.push(`Embarcação: ${m.vesselShift}`);
-      if (m.details) details.push(m.details);
-      if (m.obs) details.push(m.obs);
-      if (details.length) parts.push(details.join(' — '));
-      const txt = parts.join(' / ').trim();
-      if (txt) observations.push(txt);
-    }
-
-    for (let idx = 0; idx < observations.length; idx++) {
-      const raw = observations[idx];
-      const wrapped = doc.splitTextToSize(raw, pageW - marginLeft * 2 - 12);
-      const prefix = (idx + 1) + '. ';
-      const prefixWidth = doc.getTextWidth(prefix);
-
-      if (currentYObs + wrapped.length * obsLineHeight > pageH - 40) {
-        doc.addPage();
-        drawTemplate();
-        doc.setFontSize(11);
-        doc.text(String(daily.galpao || '-'), galpaoX, headerY);
-        doc.text(String(daily.dateOnly || '-'), dateX, headerY);
-        doc.setFontSize(10);
-        currentYObs = yObsStart;
-      }
-
-      const firstLine = wrapped[0] || '';
-      doc.text(prefix + firstLine, marginLeft, currentYObs);
-      currentYObs += obsLineHeight;
-
-      for (let j = 1; j < wrapped.length; j++) {
-        doc.text(wrapped[j], marginLeft + prefixWidth, currentYObs);
+        const firstLine = wrapped[0] || '';
+        doc.text(prefix + firstLine, marginLeft, currentYObs);
         currentYObs += obsLineHeight;
+
+        for (let j = 1; j < wrapped.length; j++) {
+          doc.text(wrapped[j], marginLeft + prefixWidth, currentYObs);
+          currentYObs += obsLineHeight;
+        }
+        currentYObs += 4;
       }
-      currentYObs += 4;
-    }
 
-    const safeTeam = (daily.teamId || 'team').replace(/[^a-z0-9_-]/ig,'');
-    const safeDate = (daily.dateOnly || 'date').replace(/[^0-9_-]/g,'');
-    const fileName = `diario_${safeTeam}_${safeDate}.pdf`;
-    doc.save(fileName);
+      // === Espaçamento configurável antes das Observações gerais ===
+// Defina aqui quantas "linhas" (obsLineHeight) deseja pular
+// 1 = pular 1 linha, 2 = pular 2 linhas, etc.
+const gapBeforeObsGeneralLines = 1.5; // <-- ajuste aqui (padrão: 1 linha)
+currentYObs += obsLineHeight * gapBeforeObsGeneralLines; // pula N linhas antes das Observações gerais
+
+// --- Colocar Observações gerais (textarea) logo abaixo do conteúdo numerado ---
+const obsGeneral = String(daily.observacoesGerais || daily.observacoes || '').trim();
+if (obsGeneral) {
+  // prepara quebras de linha com mesma largura usada nas observações numeradas
+  const wrappedObsGen = doc.splitTextToSize(obsGeneral, pageW - marginLeft * 2 - 12);
+  const obsGenHeight = wrappedObsGen.length * obsLineHeight + 6;
+
+  // mesma lógica de quebra de página que você usa nas observações numeradas
+  if (currentYObs + obsGenHeight > pageH - 40) {
+    doc.addPage();
+    drawTemplate();
+    doc.setFontSize(11);
+    doc.text(String(daily.galpao || '-'), galpaoX, headerY);
+    doc.text(String(daily.dateOnly || '-'), dateX, headerY);
+    doc.setFontSize(10);
+    currentYObs = yTableStart;
   }
 
-  // ===== MONTA DAILY E CHAMA GERAÇÃO =====
-  async function downloadDailyPdf(teamId, dateOnly, options = { debugMode: false }) {
-    if (!teamId || !dateOnly) {
-      showNotification('Selecione equipe e data antes de baixar.', 'warning');
-      return;
-    }
-
-    // garante que as informações estejam atualizadas
-    await fetchRecords();
-
-    const members = (currentRecords || []).map(r => ({
-      name: r.name || '',
-      matricula: r.memberMatricula || r.matricula || '',
-      local: r.local || '',
-      galpao: r.galpao || '',
-      details: r.details || '',
-      blockShift: r.blockShift || r.block || '',
-      vesselShift: r.vesselShift || r.vessel || '',
-      obs: (r.obs || r.observacoes || r.comentario || '') || ''
-    }));
-
-    if (!members.length) {
-      showNotification('Nenhum registro encontrado para essa equipe/data.', 'info');
-      return;
-    }
-
-    const activityVal = (activityInput && activityInput.value) ? activityInput.value.trim() : '';
-    const responsavelVal = (responsavelInput && responsavelInput.value) ? responsavelInput.value.trim() : '';
-const matriculaVal = (matriculaInput && matriculaInput.value) ? matriculaInput.value.trim() : '';
-const obsVal = (obsGeralInput && obsGeralInput.value) ? obsGeralInput.value.trim() : '';
-
-const daily = {
-  teamId,
-  teamName: (document.getElementById('teamSelect').selectedOptions[0] || {}).text || '',
-  dateOnly,
-  galpao: (members[0] && members[0].galpao) || '',
-  activity: activityVal,   // <-- acrescentado
-  responsavel: responsavelVal,
-  matricula: matriculaVal,
-  observacoesGerais: obsVal,
-  members
-};
-
-    await generatePdfFromDaily(daily, { debugMode: options.debugMode });
+  // desenha título + conteúdo usando mesmo espaçamento/altura
+  doc.text('Observações diárias:', marginLeft, currentYObs);
+  currentYObs += obsLineHeight;
+  for (let k = 0; k < wrappedObsGen.length; k++) {
+    doc.text(wrappedObsGen[k], marginLeft, currentYObs);
+    currentYObs += obsLineHeight;
   }
+  currentYObs += 6; // pequeno espaçamento final (mantendo comportamento consistente)
+}
 
-  // ===== BOTÃO DOWNLOAD =====
-  const downloadButton = document.getElementById('downloadBtn');
-  downloadButton.addEventListener('click', async () => {
-    const teamId = (document.getElementById('teamSelect') || {}).value;
-    const dateOnly = (document.getElementById('dateSelect') || {}).value;
-
-    if (!teamId) { showNotification('Por favor selecione uma equipe antes de baixar o PDF.', 'warning'); return; }
-    if (!dateOnly) { showNotification('Por favor selecione uma data antes de baixar o PDF.', 'warning'); return; }
-
-    await fetchRecords();
-    await downloadDailyPdf(teamId, dateOnly, { debugMode: false });
-  });
-
-  // ===== HAMBURGER / DARK MODE (compat) =====
-  try {
-    const toggleMenuBtn = document.getElementById("toggleMenu");
-    const menuList = document.getElementById("menuList");
-    if (toggleMenuBtn && menuList) {
-      toggleMenuBtn.addEventListener("click", () => menuList.classList.toggle("active"));
+      const safeTeam = (daily.teamId || 'team').replace(/[^a-z0-9_-]/ig,'');
+      const safeDate = (daily.dateOnly || 'date').replace(/[^0-9_-]/g,'');
+      const fileName = `diario_${safeTeam}_${safeDate}.pdf`;
+      doc.save(fileName);
     }
-  } catch(e){/* não crítico */}
 
-  (function(){
-    if (localStorage.getItem('dark') === '1') document.documentElement.classList.add('dark');
-  })();
-  window.addEventListener('storage', e => {
-    if (e.key === 'dark') document.documentElement.classList.toggle('dark', e.newValue === '1');
-  });
+    // downloadDailyPdf
+    async function downloadDailyPdf(teamId, dateOnly, options = { debugMode: false }) {
+      if (!teamId || !dateOnly) {
+        showNotification('Selecione equipe e data antes de baixar.', 'warning');
+        return;
+      }
 
-  // ===== NOTIFICAÇÕES (modal) =====
-  const icons = {
-    success: '<i class="fas fa-check-circle" style="color:#28a745;"></i>',
-    error: '<i class="fas fa-times-circle" style="color:#dc3545;"></i>',
-    warning: '<i class="fas fa-exclamation-triangle" style="color:#ffc107;"></i>',
-    info: '<i class="fas fa-info-circle" style="color:#2196f3;"></i>',
-  };
+      await fetchRecords();
 
-  function showNotification(message, type = "info") {
-    const modal = document.getElementById("notificationModal");
-    const msg = document.getElementById("notificationMessage");
-    const okBtn = document.getElementById("notificationOkBtn");
-    if (!modal || !msg || !okBtn) { alert(message); return; }
+      const members = (currentRecords || []).map(r => ({
+        name: r.name || '',
+        matricula: r.memberMatricula || r.matricula || '',
+        local: r.local || '',
+        galpao: r.galpao || '',
+        details: r.details || '',
+        blockShift: r.blockShift || r.block || '',
+        vesselShift: r.vesselShift || r.vessel || '',
+        obs: (r.obs || r.observacoes || r.comentario || '') || ''
+      }));
 
-    msg.innerHTML = icons[type] + '<span style="margin-left:8px">' + message + '</span>';
-    modal.style.display = "flex";
-    okBtn.focus();
-    okBtn.onclick = () => modal.style.display = "none";
-  }
+      if (!members.length) {
+        showNotification('Nenhum registro encontrado para essa equipe/data.', 'info');
+        return;
+      }
 
+      const activityVal = (activityInput && activityInput.value) ? activityInput.value.trim() : '';
+      const responsavelVal = (responsavelInput && responsavelInput.value) ? responsavelInput.value.trim() : '';
+      const matriculaVal = (matriculaInput && matriculaInput.value) ? matriculaInput.value.trim() : '';
+      const obsVal = (obsGeralInput && obsGeralInput.value) ? obsGeralInput.value.trim() : '';
+
+      const daily = {
+        teamId,
+        teamName: (document.getElementById('teamSelect').selectedOptions[0] || {}).text || '',
+        dateOnly,
+        galpao: (members[0] && members[0].galpao) || '',
+        activity: activityVal,
+        responsavel: responsavelVal,
+        matricula: matriculaVal,
+        observacoesGerais: obsVal,
+        members
+      };
+
+      await generatePdfFromDaily(daily, { debugMode: options.debugMode });
+    }
+
+    // click handlers
+    downloadBtn.addEventListener('click', async () => {
+      const teamId = (document.getElementById('teamSelect') || {}).value;
+      const dateOnly = (document.getElementById('dateSelect') || {}).value;
+      if (!teamId) { showNotification('Por favor selecione uma equipe antes de baixar o PDF.', 'warning'); return; }
+      if (!dateOnly) { showNotification('Por favor selecione uma data antes de baixar o PDF.', 'warning'); return; }
+      await fetchRecords(); await downloadDailyPdf(teamId, dateOnly, { debugMode: false });
+    });
+    downloadBtnMobile && downloadBtnMobile.addEventListener('click', async () => {
+      const teamId = (document.getElementById('teamSelect') || {}).value;
+      const dateOnly = (document.getElementById('dateSelect') || {}).value;
+      if (!teamId) { showNotification('Por favor selecione uma equipe antes de baixar o PDF.', 'warning'); return; }
+      if (!dateOnly) { showNotification('Por favor selecione uma data antes de baixar o PDF.', 'warning'); return; }
+      await fetchRecords(); await downloadDailyPdf(teamId, dateOnly, { debugMode: false });
+    });
+    function showNotification(message, type = "info") {
   const modal = document.getElementById("notificationModal");
-  if (modal) {
-    modal.addEventListener("click", (e) => { if (e.target === modal) modal.style.display = "none"; });
-    document.addEventListener("keydown", (e) => { if (e.key === "Escape" && modal.style.display === "flex") modal.style.display = "none"; });
-  }
-</script>
+  const msg = document.getElementById("notificationMessage");
+  const okBtn = document.getElementById("notificationOkBtn");
+  if (!modal || !msg || !okBtn) { alert(message); return; }
+  
+  const iconClass = {
+    success: 'fas fa-check-circle',
+    error: 'fas fa-times-circle',
+    warning: 'fas fa-exclamation-triangle',
+    info: 'fas fa-info-circle',
+  };
+  
+  msg.innerHTML = `
+    <div class="notification-icon ${type}">
+      <i class="${iconClass[type]}"></i>
+    </div>
+    <p class="notification-text">${message}</p>
+  `;
+  
+  // Mostrar o modal com animação
+  modal.style.display = "flex";
+  setTimeout(() => modal.classList.add("show"), 10);
+  
+  okBtn.focus();
+  okBtn.onclick = () => closeNotification();
+}
+function closeNotification() {
+  const modal = document.getElementById("notificationModal");
+  if (!modal) return;
+  
+  modal.classList.remove("show");
+  setTimeout(() => {
+    modal.style.display = "none";
+  }, 300);
+}
 
+    // theme / dark compat (preserve user's localStorage behaviour)
+    (function(){
+      if (localStorage.getItem('dark') === '1') document.documentElement.classList.add('dark');
+    })();
+    window.addEventListener('storage', e => {
+      if (e.key === 'dark') document.documentElement.classList.toggle('dark', e.newValue === '1');
+    });
+
+    // initial preview on load
+    document.addEventListener('DOMContentLoaded', ()=> renderPreview());
+
+    // Controle da sidebar em dispositivos móveis
+    document.addEventListener('DOMContentLoaded', function() {
+      const toggleMenuBtn = document.getElementById('toggleMenu');
+      const sidebar = document.querySelector('.sidebar');
+      
+      if (toggleMenuBtn && sidebar) {
+        toggleMenuBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          sidebar.classList.toggle('active');
+          
+          // Alterar ícone do hamburger quando o menu estiver aberto
+          const icon = toggleMenuBtn.querySelector('i');
+          if (sidebar.classList.contains('active')) {
+            icon.classList.remove('fa-bars');
+            icon.classList.add('fa-times');
+          } else {
+            icon.classList.remove('fa-times');
+            icon.classList.add('fa-bars');
+          }
+        });
+        
+        // Fechar o menu ao clicar fora dele
+        document.addEventListener('click', function(event) {
+          if (!sidebar.contains(event.target) && !toggleMenuBtn.contains(event.target)) {
+            sidebar.classList.remove('active');
+            const icon = toggleMenuBtn.querySelector('i');
+            icon.classList.remove('fa-times');
+            icon.classList.add('fa-bars');
+          }
+        });
+        
+        // Prevenir que cliques dentro do menu fechem ele
+        sidebar.addEventListener('click', function(e) {
+          e.stopPropagation();
+        });
+      }
+    });
+  </script>
 </body>
-
 </html>

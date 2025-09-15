@@ -23,7 +23,7 @@
         uid,
         userData,
         timestamp: Date.now(),
-        version: 1 // Para futuras migrações de estrutura se necessário
+        version: 1
       };
       localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
       sessionStorage.setItem('auth_validated', 'true');
@@ -35,7 +35,6 @@
         if (!cached) return null;
         
         const cache = JSON.parse(cached);
-        // Só valida estrutura, não expira por tempo
         if (!cache.uid || !cache.timestamp) {
           localStorage.removeItem(CACHE_KEY);
           sessionStorage.removeItem('auth_validated');
@@ -43,7 +42,6 @@
         }
         return cache;
       } catch {
-        // Cache corrompido, limpa
         localStorage.removeItem(CACHE_KEY);
         sessionStorage.removeItem('auth_validated');
         return null;
@@ -56,18 +54,48 @@
       sessionStorage.removeItem(SESSION_KEY);
     }
 
-    // Cache só é limpo em situações específicas:
-    // 1. Logout explícito do usuário
-    // 2. Erro de autenticação (token inválido)
-    // 3. Cache corrompido/inválido
     function clearAuthCacheOnError() {
       clearAuthCache();
       console.log('Cache limpo devido a erro de autenticação');
     }
 
-    // Verifica se já validou na sessão atual (evita múltiplas checagens)
     function isSessionValidated() {
       return sessionStorage.getItem('auth_validated') === 'true';
+    }
+
+    // Detecta se veio de um logout
+    function detectLogout() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const fromLogout = urlParams.get('logout') === 'true' || 
+                         sessionStorage.getItem('logout_performed') === 'true';
+      
+      if (fromLogout) {
+        console.log('🚪 Logout detectado - garantindo limpeza total');
+        
+        try {
+          localStorage.removeItem('auth_session');
+          sessionStorage.removeItem('auth_validated');
+          sessionStorage.removeItem('firebase_initialized');
+          sessionStorage.removeItem('logout_performed');
+        } catch (error) {
+          console.warn('Erro na limpeza pós-logout:', error);
+        }
+        
+        if (urlParams.get('logout')) {
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+        
+        // Mostra mensagem de logout bem-sucedido após carregar a API
+        setTimeout(() => {
+          if (window.firebaseAuth?.showNotification) {
+            window.firebaseAuth.showNotification('Logout realizado com sucesso!', 'success');
+          }
+        }, 100);
+        
+        return true;
+      }
+      
+      return false;
     }
 
     // Inicialização condicional do Firebase
@@ -78,7 +106,6 @@
     async function initFirebaseIfNeeded() {
       if (firebaseApp) return { app: firebaseApp, auth, modules: firebaseModules };
       
-      // Só importa Firebase se realmente precisar
       const [
         { initializeApp },
         { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged }
@@ -108,46 +135,52 @@
       return { app: firebaseApp, auth, modules: firebaseModules };
     }
 
-    // Verificação de autenticação ultra-otimizada com fallback offline
+    // Verificação de autenticação modificada com detecção de logout
     window.addEventListener('DOMContentLoaded', async () => {
-      // 1. Primeira verificação: cache válido + sessão validada (0 requests Firebase)
+      // 1. PRIMEIRO: Detecta e processa logout
+      const wasLogout = detectLogout();
+      if (wasLogout) {
+        console.log('Processando logout - não verificará autenticação');
+        return; // Para aqui
+      }
+      
+      // 2. Primeira verificação: cache válido + sessão validada (0 requests Firebase)
       const cachedAuth = getAuthCache();
       if (cachedAuth && isSessionValidated()) {
+        console.log('Redirecionando para dashboard - usuário já autenticado');
         window.location.href = './dashboard.html';
         return;
       }
 
-      // 2. Segunda verificação: cache válido mas sessão não validada (0 requests Firebase)
+      // 3. Segunda verificação: cache válido mas sessão não validada
       if (cachedAuth && cachedAuth.uid) {
-        // Confia no cache, validação será feita no dashboard se necessário
         sessionStorage.setItem('auth_validated', 'true');
+        console.log('Cache válido encontrado - redirecionando');
         window.location.href = './dashboard.html';
         return;
       }
 
-      // 3. Verificação de conectividade antes de tentar Firebase
+      // 4. Verificação de conectividade antes de tentar Firebase
       if (!navigator.onLine) {
-        console.warn('Offline - skipping Firebase check');
+        console.warn('Offline - aguardando login manual');
         return;
       }
 
-      // 4. Só inicializa Firebase se não tiver cache válido E estiver online
+      // 5. Só inicializa Firebase se não tiver cache válido E estiver online
       try {
         const { auth: firebaseAuth, modules } = await initFirebaseIfNeeded();
         
-        // Timeout para evitar espera infinita
         const timeoutPromise = new Promise((_, reject) => 
           setTimeout(() => reject(new Error('Auth timeout')), 5000)
         );
         
         const authPromise = new Promise((resolve) => {
           const unsubscribe = modules.onAuthStateChanged(firebaseAuth, (user) => {
-            unsubscribe(); // Remove imediatamente
+            unsubscribe();
             resolve(user);
           });
         });
         
-        // Race entre timeout e auth
         const user = await Promise.race([authPromise, timeoutPromise]);
         
         if (user) {
@@ -155,15 +188,17 @@
             email: user.email,
             lastLogin: Date.now()
           });
+          console.log('Usuário ainda logado no Firebase - redirecionando');
           window.location.href = './dashboard.html';
+        } else {
+          console.log('Nenhum usuário logado - aguardando login manual');
         }
       } catch (error) {
         console.warn('Firebase init failed or timed out:', error);
-        // App continua funcionando sem Firebase
       }
     });
 
-    // Traduz erros do Firebase (otimizado)
+    // Traduz erros do Firebase
     const ERROR_MESSAGES = {
       'auth/email-already-in-use': 'Este e-mail já está cadastrado.',
       'auth/invalid-email': 'O e-mail inserido é inválido.',
@@ -178,7 +213,7 @@
       return ERROR_MESSAGES[codigoErro] || 'Ocorreu um erro. Tente novamente.';
     }
 
-    // Notificação otimizada (reutiliza elemento)
+    // Notificação otimizada
     let notificationElement = null;
     function showNotification(message, type = 'error') {
       if (!notificationElement) {
@@ -204,9 +239,9 @@
       }, 4000);
     }
 
-    // Rate limiting para evitar spam de requests
+    // Rate limiting
     let lastRequest = 0;
-    const REQUEST_COOLDOWN = 2000; // 2 segundos
+    const REQUEST_COOLDOWN = 2000;
 
     function canMakeRequest() {
       const now = Date.now();
@@ -217,7 +252,7 @@
       return true;
     }
 
-    // Expor API otimizada com cache inteligente
+    // API otimizada
     window.firebaseAuth = {
       async authenticate(email, password, isRegister = false) {
         if (!canMakeRequest()) {
@@ -226,7 +261,6 @@
         }
 
         try {
-          // Verifica conectividade antes de tentar Firebase
           if (!navigator.onLine) {
             showNotification('Sem conexão. Verifique sua internet.', 'error');
             return { success: false };
@@ -238,7 +272,6 @@
             ? modules.createUserWithEmailAndPassword 
             : modules.signInWithEmailAndPassword;
           
-          // Timeout para requests lentos
           const authPromise = authMethod(firebaseAuth, email, password);
           const timeoutPromise = new Promise((_, reject) => 
             setTimeout(() => reject(new Error('Request timeout')), 10000)
@@ -246,7 +279,6 @@
           
           const credential = await Promise.race([authPromise, timeoutPromise]);
           
-          // Cache imediato com dados extras
           setAuthCache(credential.user.uid, {
             email: credential.user.email,
             lastLogin: Date.now(),
@@ -264,10 +296,8 @@
       
       showNotification,
       clearAuthCache,
-      clearAuthCacheOnError, // Para uso em caso de erros específicos
+      clearAuthCacheOnError,
       getAuthCache,
-      
-      // Método para verificar se está online
       isOnline: () => navigator.onLine
     };
   </script>
@@ -458,18 +488,18 @@
 
         <div class="field" id="field-name">
           <label for="name">Nome completo</label>
-          <input id="name" name="name" type="text" placeholder="Nome e sobrenome" />
+          <input id="name" name="name" type="text" placeholder="Nome e sobrenome" autocomplete="name" />
         </div>
 
         <div class="field">
           <label for="email">Email</label>
-          <input id="email" name="email" type="email" placeholder="seunome@empresa.com" required />
+          <input id="email" name="email" type="email" placeholder="seunome@empresa.com" required autocomplete="email" />
           <i class="fa-solid fa-envelope icon-right" aria-hidden="true" title="Email"></i>
         </div>
 
         <div class="field">
           <label for="password">Senha</label>
-          <input id="password" name="password" type="password" placeholder="Mínimo 8 caracteres" required aria-describedby="pwdHelp" />
+          <input id="password" name="password" type="password" placeholder="Mínimo 8 caracteres" required aria-describedby="pwdHelp" autocomplete="current-password" />
           <i class="fa-solid fa-eye icon-right" id="togglePwd" title="Mostrar senha" aria-hidden="false"></i>
         </div>
 
@@ -512,16 +542,27 @@
 
     function setMode(m){
       mode = m;
+      const nameField = document.getElementById('name');
+      
       if(mode === 'register'){
-        tabRegister.classList.add('active'); tabRegister.setAttribute('aria-selected','true');
-        tabLogin.classList.remove('active'); tabLogin.setAttribute('aria-selected','false');
+        tabRegister.classList.add('active'); 
+        tabRegister.setAttribute('aria-selected','true');
+        tabLogin.classList.remove('active'); 
+        tabLogin.setAttribute('aria-selected','false');
         btnLabel.textContent = 'Registrar';
         altAction.textContent = 'Já tem conta? Entrar';
+        fieldName.style.display = 'flex';
+        if(nameField) nameField.setAttribute('autocomplete', 'name');
+        passwordInput.setAttribute('autocomplete', 'new-password');
       } else {
-        tabLogin.classList.add('active'); tabLogin.setAttribute('aria-selected','true');
-        tabRegister.classList.remove('active'); tabRegister.setAttribute('aria-selected','false');
+        tabLogin.classList.add('active'); 
+        tabLogin.setAttribute('aria-selected','true');
+        tabRegister.classList.remove('active'); 
+        tabRegister.setAttribute('aria-selected','false');
         btnLabel.textContent = 'Entrar';
         altAction.textContent = 'Criar nova conta';
+        fieldName.style.display = 'none';
+        passwordInput.setAttribute('autocomplete', 'current-password');
       }
     }
 
@@ -554,13 +595,12 @@
       const pwd = passwordInput.value;
       const name = document.getElementById('name').value.trim();
 
-      // Validações básicas
-      if(!email || !pwd || name.length < 2){
+      // Validações ajustadas por modo
+      if(!email || !pwd || (mode === 'register' && name.length < 2)){
         if(window.gsap) gsap.fromTo(submitBtn,{x:-6},{x:6,duration:0.08,yoyo:true,repeat:3,ease:'power1.inOut'});
         return;
       }
 
-      // Previne múltiplos submits
       isSubmitting = true;
       submitBtn.disabled = true;
       const originalText = btnLabel.textContent;
@@ -575,7 +615,6 @@
             'success'
           );
           
-          // Show success overlay
           successText.textContent = mode === 'register' ? 'Registro concluído!' : 'Login bem-sucedido!';
           successOverlay.style.pointerEvents = 'auto';
           
@@ -622,8 +661,14 @@
     });
 
     // Accessibility
-    document.addEventListener('keydown', (e)=>{ if(e.key==='Escape'){ passwordInput.setAttribute('type','password'); setPwdIcon(true); } });
+    document.addEventListener('keydown', (e)=>{ 
+      if(e.key==='Escape'){ 
+        passwordInput.setAttribute('type','password'); 
+        setPwdIcon(true); 
+      } 
+    });
 
+    // Inicializa no modo registro
     setMode('register');
   </script>
 </body>

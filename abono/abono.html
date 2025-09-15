@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Estrutura | Abono DSR</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="../theme.css" />
+  <style>
+    .main-content { padding: 20px; }
+    .stats { display: flex; gap: 20px; margin-bottom: 20px; }
+    .card { background: var(--card); padding: 15px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 10px; border-bottom: 1px solid var(--soft); text-align: left; }
+    th { background: var(--soft); }
+    .btn { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; }
+    .btn-abonar { background: #27ae60; color: #fff; }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <!-- copie o menu existente e marque Abono DSR como ativo -->
+    <nav>
+      <ul>
+        <!-- ...demais links... -->
+        <li><a href="./abono.html" class="active"><i class="fas fa-calendar-check"></i> Abono DSR</a></li>
+      </ul>
+    </nav>
+  </div>
+  <div class="main-content">
+    <header><h2>Abono DSR</h2></header>
+    <div class="stats">
+      <div class="card"><strong>Total Colaboradores:</strong> <span id="totalCount">0</span></div>
+      <div class="card"><strong>Presentes:</strong> <span id="presentCount">0</span></div>
+      <div class="card"><strong>Ausentes:</strong> <span id="absentCount">0</span></div>
+      <div class="card"><strong>Abonos:</strong> <span id="abonoCount">0</span></div>
+    </div>
+    <div class="table-wrapper">
+      <table id="absenceTable">
+        <thead>
+          <tr><th>Nome</th><th>Matrícula</th><th>Equipe</th><th>Status</th><th>Abonar</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+    import {
+      getFirestore, collection, query, where, getDocs, Timestamp, addDoc
+    } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+  apiKey: "AIzaSyDtnzixicBYAQkuoeB5tgCGpDLt1lByMZo",
+  authDomain: "apropriacao-estrutura.firebaseapp.com",
+  projectId: "apropriacao-estrutura",
+  storageBucket: "apropriacao-estrutura.appspot.com",
+  messagingSenderId: "155266586257",
+  appId: "1:155266586257:web:6d70edc967cdbfc56e5130",
+};
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    async function loadAbonoDSR() {
+      // 1. Buscar todas equipes do usuário
+      const teamsSnap = await getDocs(query(collection(db, 'teams'), where('ownerUid', '==', auth.currentUser.uid)));
+      const members = [];
+      teamsSnap.forEach(doc => {
+        const data = doc.data();
+        data.members.forEach(m => members.push({
+          name: m.name,
+          matricula: m.matricula,
+          team: data.name
+        }));
+      });
+
+      // 2. Buscar records de hoje
+      const start = Timestamp.fromDate(new Date(new Date().setHours(0,0,0,0)));
+      const end = Timestamp.fromDate(new Date(new Date().setHours(23,59,59,999)));
+      const recSnap = await getDocs(query(collection(db,'records'), where('date', '>=', start), where('date', '<=', end)));
+      const presentSet = new Set();
+      recSnap.forEach(doc => presentSet.add(doc.data().memberMatricula));
+
+      // 3. Buscar abonos já lançados
+      const abonoSnap = await getDocs(collection(db,'abonosDSR'));
+      const abonoSet = new Set();
+      abonoSnap.forEach(doc => abonoSet.add(doc.data().matricula));
+
+      // Estatísticas
+      const total = members.length;
+      const present = members.filter(m=>presentSet.has(m.matricula)).length;
+      const absentList = members.filter(m=>!presentSet.has(m.matricula));
+      const abonos = [...abonoSet].length;
+      document.getElementById('totalCount').textContent = total;
+      document.getElementById('presentCount').textContent = present;
+      document.getElementById('absentCount').textContent = absentList.length;
+      document.getElementById('abonoCount').textContent = abonos;
+
+      // 4. Renderizar tabela
+      const tbody = document.querySelector('#absenceTable tbody');
+      tbody.innerHTML = '';
+      absentList.forEach(m => {
+        const tr = document.createElement('tr');
+        const isAbonado = abonoSet.has(m.matricula);
+        tr.innerHTML = `
+          <td>${m.name}</td>
+          <td>${m.matricula}</td>
+          <td>${m.team}</td>
+          <td>${isAbonado ? 'Abonado' : 'Ausente'}</td>
+          <td><button class="btn btn-abonar" data-mat="${m.matricula}" ${isAbonado?'disabled':''}>${isAbonado?'✔':'Abonar'}</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      // 5. Ações de abono
+      document.querySelectorAll('.btn-abonar').forEach(btn=>{
+        btn.addEventListener('click', async e=>{
+          const mat = e.target.dataset.mat;
+          await addDoc(collection(db,'abonosDSR'), { matricula: mat, date: new Date(), by: auth.currentUser.uid });
+          e.target.textContent = '✔'; e.target.disabled = true;
+          document.getElementById('abonoCount').textContent = parseInt(document.getElementById('abonoCount').textContent) + 1;
+        });
+      });
+    }
+  </script>
+</body>
+</html>

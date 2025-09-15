@@ -1,118 +1,1509 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Anotações</title>
-  <link rel="stylesheet" href="./anotar.css">
-  <script src="./anotar.js" defer></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Estrutura | Anotações</title>
+
+  <!-- Fonte + Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <!-- jsPDF (UMD build) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <!-- favicons (ajuste caminhos conforme seu projeto) -->
   <link rel="icon" type="image/png" href="../favicon/favicon-96x96.png" sizes="96x96" />
-<link rel="icon" type="image/svg+xml" href="../favicon/favicon.svg" />
-<link rel="shortcut icon" href="../favicon/favicon.ico" />
-<link rel="apple-touch-icon" sizes="180x180" href="../favicon/apple-touch-icon.png" />
-<link rel="manifest" href="../favicon/site.webmanifest" />
-<link rel="stylesheet" href="../theme.css">
+  <link rel="icon" type="image/svg+xml" href="../favicon/favicon.svg" />
+  <link rel="shortcut icon" href="../favicon/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="../favicon/apple-touch-icon.png" />
+  <link rel="manifest" href="../favicon/site.webmanifest" />
+
+  <style>
+    /* ---------------- Dark luxury theme (shared with Dashboard/Diário) ---------------- */
+    :root{
+      --bg: #0b0c0f;
+      --card: rgba(255,255,255,0.04);
+      --glass: rgba(255,255,255,0.03);
+      --accent: #9fccb1;
+      --accent-strong: #3b82f6;
+      --secondary: #39666b;
+      --text: #e1efe6;
+      --muted: rgba(225,239,230,0.82);
+      --muted-2: rgba(225,239,230,0.55);
+      --soft-border: rgba(255,255,255,0.06);
+      --btn-grad: linear-gradient(135deg,#4f46e5,#7c3aed);
+      --text-grad: linear-gradient(90deg,#2a6df4,#7345a1);
+      --radius: 14px;
+      --shadow-lg: 0 28px 80px rgba(0,0,0,0.75);
+      --hover-ease: cubic-bezier(.15,.9,.25,1);
+      --sidebar-w: 260px;
+      --max-width:1200px;
+      --note-enter-dur: 360ms;
+    }
+
+    /* reset / base */
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:'Inter',system-ui,Arial;
+      background-color:var(--bg);
+      color:var(--text);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      line-height:1.35;
+    }
+
+    /* ===== SIDEBAR ===== */
+    .sidebar {
+      --bg-sidebar: #0b150f;
+      --card-sidebar: rgba(255, 255, 255, 0.06);
+      --glass-sidebar: rgba(255, 255, 255, 0.04);
+      --accent-sidebar: #9fccb1;
+      --secondary-sidebar: #39666b;
+      --text-sidebar: #e1efe6;
+      --muted-sidebar: rgba(225, 239, 230, 0.6);
+      --neumo-shadow-sidebar: 10px 10px 20px rgba(0, 0, 0, 0.6), -6px -6px 16px rgba(255, 255, 255, 0.02);
+      --radius-sidebar: 14px;
+    }
+
+    /* Sidebar styles (copiado - mantive exatamente) */
+    .sidebar {
+      width: 260px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+      color: var(--text-sidebar);
+      padding: 20px 0;
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      z-index: 60;
+      backdrop-filter: blur(8px) saturate(120%);
+      border-right: 1px solid rgba(255, 255, 255, 0.03);
+      overflow-y: auto;
+    }
+
+    .sidebar-header {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      position: relative;
+      padding: 0 20px 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+      margin-bottom: 20px;
+    }
+
+    .brand {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+    }
+
+    .logo {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--accent-sidebar), var(--secondary-sidebar));
+      box-shadow: var(--neumo-shadow-sidebar);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      color: white;
+      font-size: 18px;
+    }
+
+    .brand-text h1 {
+      font-size: 16px;
+      margin: 0;
+      color: var(--text-sidebar);
+      font-weight: 600;
+    }
+
+    .brand-text p {
+      margin: 0;
+      font-size: 12px;
+      opacity: 0.75;
+      color: var(--muted-sidebar);
+    }
+
+    .hamburger {
+      display: none;
+      background: var(--glass-sidebar);
+      border: 1px solid rgba(255, 255, 255, 0.02);
+      border-radius: 10px;
+      color: var(--muted-sidebar);
+      font-size: 18px;
+      width: 44px;
+      height: 44px;
+      position: absolute;
+      left: 15px;
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+    }
+
+    nav ul {
+      list-style: none;
+      padding: 0 12px;
+    }
+
+    nav ul li {
+      margin: 8px 0;
+    }
+
+    nav ul li a {
+      text-decoration: none;
+      color: var(--muted-sidebar);
+      display: flex;
+      align-items: center;
+      padding: 10px 14px;
+      border-radius: 10px;
+      transition: all 0.2s;
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    nav ul li a i {
+      margin-right: 12px;
+      width: 20px;
+      text-align: center;
+    }
+
+    nav ul li a:hover,
+    nav ul li a.active {
+      color: var(--text-sidebar);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    /* Botão de Observa+ com estilo especial */
+    nav ul li:nth-child(1) a {
+      background: linear-gradient(135deg, var(--accent-sidebar), var(--secondary-sidebar));
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      box-shadow: 0 12px 40px rgba(70, 229, 123, 0.12), inset 0 -6px 18px rgba(255, 255, 255, 0.02);
+      margin-top: 15px;
+    }
+
+    nav ul li:nth-child(1) a:hover {
+      filter: brightness(1.08);
+      box-shadow: 0 2px 80px rgba(70, 229, 150, 0.18), -4px -4px 10px rgba(58, 237, 133, 0.04);
+    }
+    
+    /* Ícone branco para o botão gradiente em desktop também */
+    nav ul li:nth-child(1) a i {
+      color: white;
+    }
+    /* Main container */
+    .container {
+      margin-left: var(--sidebar-w);
+      max-width: var(--max-width);
+      padding: 28px 20px;
+      box-sizing: border-box;
+    }
+
+    header.topbar{
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      padding:12px 16px; border-radius:12px; border:1px solid var(--soft-border);
+      box-shadow: 0 6px 22px rgba(0,0,0,0.6);
+      margin-bottom:16px;
+    }
+    .topbar h2{ margin:0; font-size:18px; letter-spacing:-0.01em; background: linear-gradient(90deg,#2a6df4,#7345a1); background-clip:text; color:transparent; }
+    .topbar .actions{ display:flex; gap:10px; align-items:center }
+    .left h2{ margin:0; font-size:18px; letter-spacing:-0.01em; background: var(--text-grad); background-clip:text; -webkit-background-clip:text; color:transparent; }
+    .left small{ color:var(--muted); margin-left:6px; display:block; font-size:13px }
+
+    /* Controls row */
+    .controls-row{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+    .search {
+      display:flex; align-items:center; gap:8px;
+      background: rgba(255,255,255,0.02);
+      padding:8px 10px; border-radius:10px; border:1px solid rgba(255,255,255,0.02);
+      color:var(--muted-2);
+    }
+    .search input{ background:transparent; border:0; outline:none; color:var(--muted); min-width:220px; }
+
+    .btn-neumo{
+      display:inline-flex; align-items:center; gap:10px; padding:10px 14px; border-radius:12px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      color: var(--text); font-weight:700; border: 1px solid rgba(255,255,255,0.04);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.6);
+      cursor:pointer; transition: transform .18s var(--hover-ease), box-shadow .18s var(--hover-ease);
+    }
+    .btn-important{
+      background: var(--btn-grad);
+      color:#fff;
+      border: 1px solid rgba(255,255,255,0.06);
+      box-shadow: 0 12px 40px rgba(79,70,229,0.10), inset 0 -6px 18px rgba(255,255,255,0.02);
+    }
+    .btn-ghost{ background: rgba(255,255,255,0.02); color:var(--muted); border:1px solid rgba(255,255,255,0.02); }
+
+    /* Notes grid */
+    .notes-grid{
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap:18px;
+      margin-top:12px;
+    }
+
+    .note-card{
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border-radius:12px;
+      padding:14px;
+      border:1px solid rgba(255,255,255,0.02);
+      box-shadow: 0 8px 26px rgba(0,0,0,0.55);
+      position:relative;
+      overflow:hidden;
+      transform-origin:center;
+      animation: noteEnter var(--note-enter-dur) var(--hover-ease) both;
+    }
+
+    /* enter animation: fade + scale subtle */
+    @keyframes noteEnter {
+      from { opacity:0; transform: translateY(10px) scale(0.995); }
+      to   { opacity:1; transform: translateY(0) scale(1); }
+    }
+
+    .note-title{
+      font-size:16px; font-weight:700; margin-bottom:8px;
+      background: var(--text-grad); background-clip:text; -webkit-background-clip:text; color:transparent;
+    }
+    .note-content{ color:var(--muted); white-space:pre-wrap; line-height:1.5; }
+
+    .note-meta{ margin-top:10px; color:var(--muted-2); font-size:13px; display:flex; gap:8px; align-items:center; }
+
+    .note-actions{
+      position:absolute; top:12px; right:12px; display:flex; gap:8px;
+    }
+
+    /* colored icon buttons */
+    .icon-btn{
+      width:38px; height:38px; border-radius:10px; display:inline-flex; align-items:center; justify-content:center;
+      border:1px solid rgba(255,255,255,0.03); cursor:pointer; transition: transform .12s var(--hover-ease), box-shadow .12s var(--hover-ease);
+      background: rgba(255,255,255,0.02); color:var(--text);
+    }
+    .icon-btn:active{ transform: translateY(1px); }
+    .edit-btn{
+      background: linear-gradient(135deg,#3b82f6,#7c3aed); color:white; box-shadow: 0 8px 22px rgba(79,70,229,0.12);
+    }
+    .delete-btn{
+      background: linear-gradient(135deg,#f97373,#ef4444); color:white; box-shadow: 0 8px 22px rgba(239,68,68,0.12);
+    }
+    .share-btn{
+      background: linear-gradient(135deg,#2dd4bf,#06b6d4); color:white; box-shadow: 0 8px 22px rgba(6,182,212,0.12);
+    }
+    .icon-btn:hover{ transform: translateY(-3px); box-shadow: 0 18px 44px rgba(0,0,0,0.55); }
+
+    /* -------------------------- DIALOG (improved glass + contrast) -------------------------- */
+
+    /* dialog shell (native element) */
+    dialog{
+      border:none;
+      border-radius:14px;
+      padding:0;
+      max-width:720px;
+      width:94%;
+      background: linear-gradient(180deg, rgba(20,22,26,0.72), rgba(11,12,15,0.86));
+      border: 1px solid rgba(255,255,255,0.06);
+      box-shadow: var(--shadow-lg);
+      color:var(--text);
+      backdrop-filter: blur(10px) saturate(140%);
+      -webkit-backdrop-filter: blur(10px) saturate(140%);
+      transform-origin: center;
+      animation: dialogIn .22s cubic-bezier(.2,.9,.3,1);
+    }
+
+    /* darker, more contrasted backdrop for focus */
+    dialog::backdrop{
+      background: rgba(2,6,23,0.6);
+      backdrop-filter: blur(4px) brightness(.6);
+      -webkit-backdrop-filter: blur(4px) brightness(.6);
+    }
+
+    @keyframes dialogIn {
+      from { opacity: 0; transform: translateY(6px) scale(.995); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .dialog-content{
+      padding:20px;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      /* inner panel with slightly lighter glass so inputs pop */
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border-radius:12px;
+      border: 1px solid rgba(255,255,255,0.02);
+    }
+
+    .dialog-header{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    .dialog-title{ margin:0; font-size:18px; color:var(--muted); }
+
+    /* improved inputs for contrast & legibility (glass + inset) */
+    label{ display:block; font-weight:700; color:var(--muted); margin-bottom:6px; font-size:13px; }
+    input[type="text"], textarea{
+      width:100%;
+      padding:12px 14px;
+      border-radius:10px;
+      background: rgba(255,255,255,0.03);
+      color:var(--text);
+      border:1px solid rgba(255,255,255,0.08);
+      outline:none;
+      font-size:14px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.02), 0 6px 16px rgba(0,0,0,0.6);
+      transition: box-shadow .14s var(--hover-ease), border-color .14s var(--hover-ease), transform .14s var(--hover-ease);
+    }
+    input[type="text"]::placeholder, textarea::placeholder { color: rgba(225,239,230,0.4); }
+
+    input[type="text"]:focus, textarea:focus{
+      border-color: rgba(124,58,237,0.9);
+      box-shadow: 0 8px 28px rgba(79,70,229,0.12), inset 0 1px 0 rgba(255,255,255,0.02);
+      transform: translateY(-1px);
+    }
+
+    textarea{ min-height:160px; resize: vertical; }
+
+    .dialog-actions{ display:flex; gap:12px; justify-content:flex-end; margin-top:8px; }
+    .cancel-btn{
+      background: transparent;
+      color:var(--muted);
+      border:1px solid rgba(255,255,255,0.04);
+      padding:10px 12px; border-radius:10px; cursor:pointer;
+      box-shadow: none;
+    }
+    .save-btn{
+      background: var(--btn-grad);
+      color:white;
+      border:1px solid rgba(255,255,255,0.06);
+      padding:10px 14px; border-radius:12px; cursor:pointer; font-weight:800;
+      box-shadow: 0 14px 46px rgba(79,70,229,0.14), inset 0 -6px 14px rgba(255,255,255,0.02);
+      transition: transform .12s var(--hover-ease), box-shadow .12s var(--hover-ease);
+    }
+    .save-btn:active{ transform: translateY(1px); }
+
+    /* make close icon clearer */
+    #closeDialogBtn.icon-btn{
+      width:40px;height:40px;border-radius:10px;background: rgba(255,255,255,0.03); color:var(--muted);
+      border:1px solid rgba(255,255,255,0.04);
+      box-shadow: 0 8px 18px rgba(0,0,0,0.55);
+    }
+    #closeDialogBtn.icon-btn:hover{ transform: translateY(-2px); color:var(--text); background: rgba(255,255,255,0.04); }
+
+    .empty-state{ padding:28px; text-align:center; color:var(--muted); }
+
+
+    /* responsive */
+    @media (max-width:1000px){
+      .container{ 
+        margin-left: 0;
+        margin-top: 80px; /* altura da navbar fechada aumentada */
+        padding: 18px; 
+        transition: margin-top 0.4s ease; 
+      }
+      .controls{ grid-template-columns: 1fr; }
+      
+      .sidebar { 
+        width: 100%;
+        height: auto;
+        min-height: 80px; /* altura maior para melhor visibilidade */
+        max-height: 80px;
+        position: fixed;
+        top: 0;
+        left: 0;
+        flex-direction: column;
+        align-items: stretch;
+        padding: 0;
+        overflow: hidden;
+        transition: max-height 0.4s ease;
+        border-right: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08); /* borda mais visível */
+        z-index: 1000;
+        backdrop-filter: blur(12px) saturate(140%); /* blur mais forte */
+      }
+      
+      .sidebar.active {
+        max-height: 520px;
+        overflow-y: auto;
+      }
+      
+      .sidebar-header {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        padding: 18px 20px; /* padding maior */
+        margin: 0;
+        border: none;
+        width: 100%;
+        min-height: 80px;
+        box-sizing: border-box;
+      }
+      
+      .brand {
+        flex-direction: row;
+        gap: 14px; /* gap maior */
+        align-items: center;
+      }
+      
+      .brand-text {
+        display: block;
+      }
+      
+      .brand-text h1 {
+        font-size: 16px; /* fonte maior */
+        font-weight: 700;
+        color: var(--text-sidebar);
+      }
+      
+      .brand-text p {
+        display: none;
+      }
+      
+      .logo {
+        width: 48px; /* logo maior */
+        height: 48px;
+        font-size: 20px;
+        box-shadow: 0 8px 25px rgba(159, 204, 177, 0.15), inset 0 2px 8px rgba(255,255,255,0.05); /* sombra mais visível */
+      }
+      
+      .hamburger {
+        display: flex;
+        position: static;
+        margin: 0;
+        order: 2;
+        width: 48px; /* botão maior */
+        height: 48px;
+        font-size: 20px;
+        background: rgba(255, 255, 255, 0.06); /* fundo mais visível */
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        color: var(--text-sidebar);
+        transition: all 0.3s var(--hover-ease);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      }
+      
+      .hamburger:hover {
+        background: rgba(255, 255, 255, 0.1);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+      }
+      
+      .hamburger:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      }
+      
+      #sidebarNav {
+        width: 100%;
+        padding: 8px 20px 20px;
+        box-shadow: none;
+        display: block !important;
+        opacity: 0;
+        transition: opacity 0.3s ease 0.1s;
+      }
+      
+      .sidebar.active #sidebarNav {
+        opacity: 1;
+      }
+      
+      nav ul {
+        display: flex;
+        flex-direction: column;
+        gap: 14px; /* gap ainda maior para melhor espaçamento */
+        padding: 0;
+        margin: 0;
+      }
+      
+      nav ul li {
+        margin: 0;
+      }
+      
+      nav ul li a {
+        padding: 14px 16px; /* padding maior */
+        font-size: 15px; /* fonte ligeiramente maior */
+        font-weight: 600; /* peso da fonte maior */
+        border-radius: 12px;
+        transition: all 0.25s var(--hover-ease);
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.03);
+        color: var(--text-sidebar);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      }
+      
+      nav ul li a i {
+        margin-right: 14px; /* margem maior do ícone */
+        width: 22px; /* ícones maiores */
+        font-size: 16px;
+        color: var(--accent-sidebar);
+      }
+      
+      nav ul li a:hover,
+      nav ul li a.active {
+        position: relative;
+  color: #ffffff !important;                    /* texto branco */
+  background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+  border-color: rgba(255,255,255,0.14);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.35);
+  transform: translateX(6px) scale(1.01);
+  transition: transform .22s var(--hover-ease), box-shadow .22s var(--hover-ease), background .2s ease;
+  width: 95%;
+  z-index: 6;
+      }
+
+      /* borda lateral colorida — guia visual forte, arredondada */
+nav ul li a.active::before{
+  content: "";
+  position: absolute;
+  left: -10px;                /* ajusta a posição para “saltar” levemente */
+  top: 8px;
+  bottom: 8px;
+  width: 6px;
+  border-radius: 6px;
+  background: linear-gradient(180deg, var(--accent-sidebar), var(--secondary-sidebar));
+  box-shadow: 0 6px 18px rgba(60,150,120,0.12), inset 0 -4px 12px rgba(255,255,255,0.03);
+}
+
+/* ícone: preenche com cor para reforçar sinal ativo */
+nav ul li a.active i {
+  color: var(--accent-sidebar) !important;
+  filter: drop-shadow(0 4px 14px rgba(0,0,0,0.35));
+  transform: translateX(2px);
+  transition: transform .18s var(--hover-ease), color .18s;
+}
+
+/* acessibilidade: foco visível (keyboard/touch) */
+nav ul li a:focus {
+  outline: none;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.45), 0 0 0 3px rgba(155,204,177,0.06);
+  transform: translateX(6px);
+}
+      
+      /* Estilo especial para o botão Observa+ em mobile */
+      nav ul li:nth-child(1) a {
+        background: linear-gradient(135deg, var(--accent-sidebar), var(--secondary-sidebar));
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: 0 6px 20px rgba(70, 229, 123, 0.2), inset 0 1px 0 rgba(255,255,255,0.1);
+        font-weight: 700;
+      }
+      
+      nav ul li:nth-child(1) a i {
+        color: white; /* ícone branco para contraste com fundo verde */
+      }
+
+      nav ul li:nth-child(1) a:hover {
+        filter: brightness(1.1);
+        transform: translateX(6px) translateY(-2px);
+        box-shadow: 0 8px 25px rgba(70, 229, 150, 0.3);
+      }
+      
+      nav ul li a span {
+        display: inline;
+        letter-spacing: 0.3px; /* espaçamento das letras */
+      }
+    }
+    /* responsive */
+    @media (max-width:1000px){
+      .notes-grid{ grid-template-columns: 1fr; }
+      .search input{ min-width:100px; }
+      dialog { width: 96%; }
+    }
+
+    /* ===== ACTIVE somente em DESKTOP (telas maiores que 1000px) ===== */
+@media (min-width:1001px) {
+  /* item ativo na sidebar (desktop) */
+  nav ul li a.active {
+    position: relative;
+    color: var(--text-sidebar) !important;
+    background: linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0.01));
+    border-radius: 0 10px 10px 0;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+    padding-left: 18px;
+    transition: background .20s var(--hover-ease), box-shadow .22s var(--hover-ease), transform .18s;
+    z-index: 5;
+  }
+
+  nav ul li a.active::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 8px;
+    bottom: 8px;
+    width: 8px;
+    border-radius: 0 6px 6px 0;
+    background: linear-gradient(180deg, var(--accent-sidebar), var(--secondary-sidebar));
+    box-shadow: 0 6px 18px rgba(60,150,120,0.12), inset 0 -4px 12px rgba(255,255,255,0.03);
+  }
+
+  nav ul li a.active i {
+    color: var(--accent-sidebar) !important;
+    transform: translateX(2px);
+    filter: drop-shadow(0 6px 14px rgba(0,0,0,0.35));
+    transition: transform .18s var(--hover-ease), color .18s;
+  }
+
+  /* hover leve só no desktop (não afeta mobile) */
+  nav ul li a:hover:not(.active) {
+    background: rgba(255,255,255,0.02);
+    transform: translateX(4px);
+    box-shadow: none;
+  }
+
+  nav ul li a:focus {
+    outline: none;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 0 4px rgba(155,204,177,0.06);
+  }
+
+  /* Botão de Observa+ com estilo especial */
+    nav ul li:nth-child(1) a {
+      background: linear-gradient(135deg, var(--accent-sidebar), var(--secondary-sidebar)) !important;
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      box-shadow: 0 12px 40px rgba(70, 229, 123, 0.12), inset 0 -6px 18px rgba(255, 255, 255, 0.02);
+      margin-top: 15px;
+    }
+
+    nav ul li:nth-child(1) a:hover {
+      filter: brightness(1.08);
+      box-shadow: 0 2px 80px rgba(70, 229, 150, 0.18), -4px -4px 10px rgba(58, 237, 133, 0.04);
+    }
+    
+    /* Ícone branco para o botão gradiente em desktop também */
+    nav ul li:nth-child(1) a i {
+      color: white;
+    }
+}
+    
+    @media (max-width:560px){
+      header.topbar{ flex-direction:column; align-items:flex-start; gap:10px }
+      .preview .preview-head{ flex-direction:column; align-items:flex-start; gap:8px }
+      
+      .sidebar-header {
+        padding: 16px 18px;
+      }
+      
+      .brand-text h1 {
+        font-size: 15px;
+      }
+      
+      .logo {
+        width: 44px;
+        height: 44px;
+        font-size: 18px;
+      }
+      
+      .hamburger {
+        width: 44px;
+        height: 44px;
+        font-size: 18px;
+      }
+      
+      nav ul li a {
+        padding: 12px 14px;
+        font-size: 14px;
+      }
+      
+      nav ul li a i {
+        width: 20px;
+        font-size: 15px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .sidebar.active {
+        max-height: 100vh;
+      }
+      
+      .container {
+        margin-top: 76px;
+      }
+      
+      .sidebar {
+        min-height: 76px;
+        max-height: 76px;
+      }
+      
+      .sidebar-header {
+        min-height: 76px;
+        padding: 14px 16px;
+      }
+    }
+
+    @media (max-width:560px){
+      .note-actions { top:8px; right:8px; }
+    }
+
+    /* small helper */
+    .hidden{ display:none !important; }
+
+    /* ===== SCROLLBAR STYLING ===== */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(159, 204, 177, 0.3);
+      border-radius: 4px;
+      transition: background 0.3s ease;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(159, 204, 177, 0.5);
+    }
+  </style>
 </head>
 <body>
-
-  <div class="sidebar">
+  <!-- SIDEBAR (exatamente sua versão antiga) -->
+  <div class="sidebar" aria-label="Navegação">
     <div class="sidebar-header">
-      <button id="toggleMenu" class="hamburger">
+      <div class="brand">
+        <div class="logo"><img src="../favicon/favicon.svg" alt="" style="width: 75%;"></div>
+        <div class="brand-text">
+          <h1>Estrutura</h1>
+          <p>Central de anotações</p>
+        </div>
+      </div>
+      <button id="toggleMenu" class="hamburger" aria-label="Abrir menu">
         <i class="fas fa-bars"></i>
       </button>
-      <h1 class="logo">Estrutura</h1>
     </div>
-    <nav>
+    <nav id="sidebarNav">
       <ul id="menuList">
-  <li>
-    <a href="../dashboard.html">
-      <i class="fas fa-file-signature"></i> Apropriações
-    </a>
-  </li>
-  <li>
-    <a href="../equipes/equipe.html">
-      <i class="fas fa-users-cog"></i> Equipes
-    </a>
-  </li>
-  <li>
-    <a href="../apontamentos/apontamentos.html">
-      <i class="fas fa-clipboard-list"></i> Apontamentos
-    </a>
-  </li>
-  <li>
-    <a href="../diario/diario.html">
-      <i class="fas fa-book"></i> Diário de obra
-    </a>
-  </li>
-  <li>
-    <a href="../efetivo/efetivo.html">
-      <i class="fas fa-user-friends"></i> Efetivo
-    </a>
-  </li>
-  <li>
-    <a href="./anotar.html" class="active">
-      <i class="fas fa-sticky-note" aria-hidden="true"></i> Anotações
-    </a>
-  </li>
-  <li>
-    <a href="#">
-      <i class="fas fa-calendar-check"></i> Abono DSR
-    </a>
-  </li>
-  <li>
-  <a href="https://detroitbrasil.qforms.com.br/QuestionarioWeb/ResponderQuestionarioLink?chave=ADC929D335B064357179BDBAE1686855"
-     target="_blank"
-     rel="noopener noreferrer">
-    <i class="fa-solid fa-shield-halved"></i> Observa+
-  </a>
-</li>
-  <li>
-    <a href="../configurações/configuracao.html">
-      <i class="fas fa-cog"></i> Configurações
-    </a>
-  </li>
-</ul>
+        <li>
+          <a href="../dashboard.html">
+            <i class="fas fa-file-signature"></i><span>Apropriações</span>
+          </a>
+        </li>
+        <li>
+          <a href="../equipes/equipe.html">
+            <i class="fas fa-users-cog"></i><span>Equipes</span>
+          </a>
+        </li>
+        <li>
+          <a href="../apontamentos/apontamentos.html">
+            <i class="fas fa-clipboard-list"></i><span>Apontamentos</span>
+          </a>
+        </li>
+        <li>
+          <a href="../diario/diario.html">
+            <i class="fas fa-book"></i><span>Diário de obra</span>
+          </a>
+        </li>
+        <li>
+          <a href="../efetivo/efetivo.html">
+            <i class="fas fa-user-friends"></i><span>Efetivo</span>
+          </a>
+        </li>
+        <li>
+          <a href="./anotar.html" class="active">
+            <i class="fas fa-sticky-note" aria-hidden="true"></i><span>Anotações</span>
+          </a>
+        </li>
+        <li>
+          <a href="#">
+            <i class="fas fa-calendar-check"></i><span>Abono DSR</span>
+          </a>
+        </li>
+        <li>
+          <a href="https://detroitbrasil.qforms.com.br/QuestionarioWeb/ResponderQuestionarioLink?chave=ADC929D335B064357179BDBAE1686855"
+            target="_blank" rel="noopener noreferrer">
+            <i class="fa-solid fa-shield-halved"></i><span>Observa+</span>
+          </a>
+        </li>
+        <li>
+          <a href="../configurações/configuração.html">
+            <i class="fas fa-cog"></i><span>Configurações</span>
+          </a>
+        </li>
+      </ul>
     </nav>
   </div>
 
-  <div class="main-content">
-    <section class="form-section">
-      <h3><i class="fas fa-clipboard"></i>Suas Anotações</h3>
-    </section>
-    <div>
-      <button class="add-note-btn" onclick="openNoteDialog()">+ Adicionar anotação</button>
-    </div>
-
-  <main id="notesContainer" class="notes-grid">
-
-  </main>
-
-  <dialog id="noteDialog">
-    <div class="dialog-content">
-      <div class="dialog-header">
-        <h2 class="dialog-title" id="dialogTitle">Adicionar nova anotação</h2>
-        <button class="close-btn" onclick="closeNoteDialog()"><i class="fa-solid fa-xmark"></i></button>
+  <!-- MAIN -->
+  <div class="container" role="main">
+    <header class="topbar card-glow">
+      <div class="left">
+        <h2>Anotações</h2>
+        <small>Registre ideias, observações e lembretes rápidos</small>
       </div>
 
-      <form id="noteForm">
-        <div class="form-group">
-          <label for="noteTitle" class="form-label"><i class="fa-solid fa-pencil"></i>Titulo</label>
-          <input type="text" id="noteTitle" class="form-input" placeholder="Titulo da anotação..." required>
+      <div class="controls-row">
+        <div class="search" role="search" aria-label="Filtrar notas">
+          <i class="fas fa-search" style="color:var(--muted)"></i>
+          <input id="filterInput" placeholder="Filtrar por título/conteúdo..." />
         </div>
-        
-        <div class="form-group">
-          <label for="noteContent" class="form-label"><i class="fa-solid fa-align-left"></i>Conteúdo</label>
-          <textarea id="noteContent" class="form-textarea" placeholder="Escreva sua anotação aqui..." required></textarea>
+
+        <!-- export mudou para PDF -->
+        <button id="exportBtn" class="btn-neumo btn-ghost" title="Exportar notas (PDF)"><i class="fa-solid fa-download"></i></button>
+        <button id="importBtn" class="btn-neumo btn-ghost" title="Importar notas (JSON)"><i class="fa-solid fa-upload"></i></button>
+        <input id="importFile" type="file" accept="application/json" class="hidden" />
+
+        <button id="addBtn" class="btn-neumo btn-important" aria-label="Adicionar anotação"><i class="fa-solid fa-plus"></i> Adicionar anotação</button>
+      </div>
+    </header>
+
+    <section>
+      <div id="notesContainer" class="notes-grid" aria-live="polite">
+        <!-- cards serão injetados via JS -->
+      </div>
+
+      <div id="emptyState" class="empty-state" style="display:none">
+        <h3>Nenhuma anotação</h3>
+        <p>Crie a primeira anotação clicando em <strong>Adicionar anotação</strong>.</p>
+      </div>
+    </section>
+  </div>
+
+  <!-- DIALOG -->
+  <dialog id="noteDialog" aria-modal="true" aria-labelledby="dialogTitle">
+    <div class="dialog-content">
+      <div class="dialog-header">
+        <h3 class="dialog-title" id="dialogTitle">Adicionar nova anotação</h3>
+        <button class="icon-btn" id="closeDialogBtn" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <form id="noteForm" autocomplete="off">
+        <div>
+          <label for="noteTitle">Título</label>
+          <input type="text" id="noteTitle" placeholder="Título da anotação..." required />
+        </div>
+
+        <div>
+          <label for="noteContent">Conteúdo</label>
+          <textarea id="noteContent" placeholder="Escreva sua anotação aqui..." required></textarea>
         </div>
 
         <div class="dialog-actions">
-          <button type="button" class="cancel-btn" onclick="closeNoteDialog()"><i class="fa-solid fa-xmark"></i>Cancelar</button>
-          <button type="submit" class="save-btn"><i class="fa-solid fa-check"></i>Salvar anotação</button>
+          <button type="button" class="cancel-btn" id="cancelBtn">Cancelar</button>
+          <button type="submit" class="save-btn">Salvar anotação</button>
         </div>
       </form>
     </div>
   </dialog>
-    </div>
+
+<script>
+/*
+  Melhorias de qualidade da logo:
+  - Rasterizamos a logo em uma canvas de alta resolução (rasterScale) e geramos PNG para adicionar ao PDF.
+  - Mantemos a impressão final com largura = 96pt e altura = 36pt (wide + low),
+    mas o PNG tem resolução superior para evitar borrões.
+  - Ajustei algoritmo para "cover" com centralização (mantém proporção, preenche canvas, corta mínimo).
+*/
+
+const { jsPDF } = window.jspdf;
+
+let notes = [];
+let editingNoteId = null;
+const STORAGE_KEY = 'quickNotes';
+
+// DOM refs
+const notesContainer = document.getElementById('notesContainer');
+const emptyState = document.getElementById('emptyState');
+const noteDialog = document.getElementById('noteDialog');
+const noteForm = document.getElementById('noteForm');
+const filterInput = document.getElementById('filterInput');
+const importFile = document.getElementById('importFile');
+
+// Candidate logo paths (project-relative). The code will try them in order.
+const faviconCandidates = [
+  '../favicon/detroit-brasil.png',
+  '../favicon/favicon.svg',
+  '../favicon/favicon.png',
+  '../favicon/favicon-96x96.png',
+  '../favicon/favicon.ico',
+  '/favicon.ico'
+];
+
+/**
+ * Load an image URL and rasterize to a high-resolution PNG dataURL.
+ * width/height are the desired PDF display size in points; rasterScale multiplies resolution to improve quality.
+ * Returns dataURL or null.
+ */
+function loadImageUrlToDataUrl(url, width = 96, height = 36, rasterScale = 3) {
+  return new Promise((resolve) => {
+    try {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = function () {
+        try {
+          const canvas = document.createElement('canvas');
+          const cw = Math.max(1, Math.round(width * rasterScale));
+          const ch = Math.max(1, Math.round(height * rasterScale));
+          canvas.width = cw;
+          canvas.height = ch;
+          const ctx = canvas.getContext('2d');
+          ctx.clearRect(0, 0, cw, ch);
+
+          // compute cover (fill) dimensions preserving aspect ratio, center-cropped if needed
+          const iw = img.width;
+          const ih = img.height;
+          const canvasRatio = cw / ch;
+          const imgRatio = iw / ih;
+
+          let dw, dh, dx = 0, dy = 0;
+          if (imgRatio > canvasRatio) {
+            // image relatively wider -> fit height, crop sides
+            const scale = ch / ih;
+            dw = iw * scale;
+            dh = ch;
+            dx = (cw - dw) / 2;
+            dy = 0;
+          } else {
+            // image relatively taller -> fit width, crop top/bottom
+            const scale = cw / iw;
+            dw = cw;
+            dh = ih * scale;
+            dx = 0;
+            dy = (ch - dh) / 2;
+          }
+          // draw covering the canvas
+          ctx.drawImage(img, dx, dy, dw, dh);
+
+          const dataUrl = canvas.toDataURL('image/png');
+          resolve(dataUrl);
+        } catch (err) {
+          console.error('Erro ao rasterizar imagem:', err);
+          resolve(null);
+        }
+      };
+      img.onerror = function () {
+        resolve(null);
+      };
+      img.src = url;
+    } catch (e) {
+      console.error('loadImageUrlToDataUrl falha', e);
+      resolve(null);
+    }
+  });
+}
+
+async function getProjectLogoDataUrl() {
+  // desired final PDF size: 96 x 36 (points). Rasterize at higher res (scale 3) for quality.
+  const displayW = 96;
+  const displayH = 36;
+  const rasterScale = 3;
+  for (const p of faviconCandidates) {
+    const data = await loadImageUrlToDataUrl(p, displayW, displayH, rasterScale);
+    if (data) return data;
+  }
+  return null;
+}
+
+function loadNotes() {
+  const savedNotes = localStorage.getItem(STORAGE_KEY);
+  return savedNotes ? JSON.parse(savedNotes) : [];
+}
+
+function saveNotes() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
+}
+
+function generateId() {
+  return Date.now().toString() + Math.random().toString(36).slice(2,6);
+}
+
+function openNoteDialog(noteId = null) {
+  const titleInput = document.getElementById('noteTitle');
+  const contentInput = document.getElementById('noteContent');
+
+  if (noteId) {
+    const note = notes.find(n => n.id === noteId);
+    if (!note) return;
+    editingNoteId = noteId;
+    document.getElementById('dialogTitle').textContent = 'Editar anotação';
+    titleInput.value = note.title;
+    contentInput.value = note.content;
+  } else {
+    editingNoteId = null;
+    document.getElementById('dialogTitle').textContent = 'Adicionar nova anotação';
+    noteForm.reset();
+  }
+
+  if (typeof noteDialog.showModal === 'function') noteDialog.showModal();
+  else noteDialog.style.display = 'block';
+
+  setTimeout(()=> {
+    titleInput.focus();
+    if (editingNoteId && titleInput.value) titleInput.select();
+  }, 70);
+}
+
+function closeNoteDialog() {
+  if (typeof noteDialog.close === 'function') noteDialog.close();
+  else noteDialog.style.display = 'none';
+  editingNoteId = null;
+}
+
+function saveNote(event) {
+  event.preventDefault();
+  const title = document.getElementById('noteTitle').value.trim();
+  const content = document.getElementById('noteContent').value.trim();
+  if (!title || !content) {
+    alert('Por favor preencha título e conteúdo antes de salvar.');
+    return;
+  }
+
+  if (editingNoteId) {
+    const idx = notes.findIndex(n => n.id === editingNoteId);
+    if (idx > -1) {
+      notes[idx] = {
+        ...notes[idx],
+        title,
+        content,
+        updatedAt: Date.now()
+      };
+    }
+  } else {
+    notes.unshift({
+      id: generateId(),
+      title,
+      content,
+      createdAt: Date.now(),
+      updatedAt: Date.now()
+    });
+  }
+
+  saveNotes();
+  closeNoteDialog();
+  renderNotes();
+}
+
+function deleteNote(noteId) {
+  if (!confirm('Remover esta anotação?')) return;
+  notes = notes.filter(n => n.id !== noteId);
+  saveNotes();
+  renderNotes();
+}
+
+// ---------------- PDF helpers ----------------
+function formatDateTime(date = new Date()) {
+  try {
+    return new Date(date).toLocaleString('pt-BR');
+  } catch {
+    return String(date);
+  }
+}
+
+function addFooter(doc, exportedAtStr) {
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const margin = 40;
+  const footerY = pageHeight - 40;
+
+  doc.setFontSize(9);
+  doc.setTextColor(120);
+  doc.text(`Exportado: ${exportedAtStr}`, margin, footerY);
+  doc.text(`Desenvolvido por: Gustavo Carvalho | Estrutura`, margin, footerY + 12);
+
+  const pageInfo = `Página ${doc.internal.getNumberOfPages()}`;
+  doc.text(pageInfo, pageWidth - margin - doc.getTextWidth(pageInfo), footerY);
+}
+
+async function exportNotesToPDF() {
+  try {
+    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 40;
+    const maxWidth = pageWidth - margin * 2;
+    const lineHeight = 14;
+
+    // Header geometry
+    const logoY = 36;
+    const titleY = 88;
+    const separatorY = 104;
+    let y = separatorY + 28;
+
+    const exportedAt = new Date();
+    const exportedAtStr = formatDateTime(exportedAt);
+
+    // get high-quality logo dataURL
+    let logoDataUrl = null;
+    try {
+      logoDataUrl = await getProjectLogoDataUrl();
+    } catch (e) {
+      console.warn('Erro ao carregar logo do projeto', e);
+      logoDataUrl = null;
+    }
+
+    // draw logo (final display size 96x36)
+    if (logoDataUrl) {
+      try {
+        doc.addImage(logoDataUrl, 'PNG', margin, logoY, 96, 36);
+      } catch (e) {
+        console.warn('Erro ao desenhar logo no PDF', e);
+      }
+    } else {
+      doc.setFontSize(11);
+      doc.setTextColor(100);
+      doc.text('Estrutura', margin, logoY + 18);
+    }
+
+    // centered title
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(18);
+    const title = 'Estrutura | Anotações';
+    const titleWidth = doc.getTextWidth(title);
+    doc.text(title, (pageWidth - titleWidth) / 2, titleY);
+
+    // exported date top-right
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(100);
+    const exportedLabel = `Exportado: ${exportedAtStr}`;
+    doc.text(exportedLabel, pageWidth - margin - doc.getTextWidth(exportedLabel), logoY + 18);
+
+    // separator
+    doc.setDrawColor(190);
+    doc.setLineWidth(0.9);
+    doc.line(margin, separatorY, pageWidth - margin, separatorY);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(11);
+    doc.setTextColor(80);
+
+    if (!notes || notes.length === 0) {
+      const empty = 'Nenhuma anotação disponível.';
+      const linesEmpty = doc.splitTextToSize(empty, maxWidth);
+      doc.text(linesEmpty, margin, y);
+      y += linesEmpty.length * lineHeight;
+      addFooter(doc, exportedAtStr);
+      doc.save(`anotacoes_${exportedAt.toISOString().slice(0,10)}.pdf`);
+      return;
+    }
+
+    for (let i = 0; i < notes.length; i++) {
+      const n = notes[i];
+
+      // Title
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(13);
+      doc.setTextColor(20);
+      const titleLines = doc.splitTextToSize(n.title || '(sem título)', maxWidth);
+
+      if (y + (titleLines.length * lineHeight) + 160 > doc.internal.pageSize.getHeight()) {
+        addFooter(doc, exportedAtStr);
+        doc.addPage();
+        y = 72;
+      }
+      doc.text(titleLines, margin, y);
+      y += titleLines.length * lineHeight + 6;
+
+      // Content (descrição) ABOVE meta
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(11);
+      doc.setTextColor(30);
+      const content = (n.content || '').replace(/\r\n/g, '\n');
+      const contentLines = doc.splitTextToSize(content, maxWidth);
+      for (let li = 0; li < contentLines.length; li++) {
+        if (y + lineHeight + 120 > doc.internal.pageSize.getHeight()) {
+          addFooter(doc, exportedAtStr);
+          doc.addPage();
+          y = 72;
+        }
+        doc.text(contentLines[li], margin, y);
+        y += lineHeight;
+      }
+
+      y += 8;
+
+      // Meta
+      doc.setFont('helvetica', 'italic');
+      doc.setFontSize(9);
+      doc.setTextColor(110);
+      const meta = `Atualizado: ${formatDateTime(n.updatedAt || n.createdAt)}`;
+      doc.text(meta, margin, y);
+      y += 12;
+
+      // divider
+      y += 8;
+      doc.setDrawColor(210);
+      doc.setLineWidth(0.4);
+      doc.line(margin, y, pageWidth - margin, y);
+      y += 18;
+    }
+
+    addFooter(doc, exportedAtStr);
+    doc.save(`anotacoes_${exportedAt.toISOString().slice(0,10)}.pdf`);
+  } catch (err) {
+    console.error('Erro ao gerar PDF', err);
+    alert('Falha ao gerar PDF.');
+  }
+}
+
+async function exportSingleNoteToPDF(note) {
+  try {
+    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 40;
+    const maxWidth = pageWidth - margin * 2;
+    const lineHeight = 14;
+
+    const logoY = 36;
+    const titleY = 88;
+    const separatorY = 104;
+    let y = separatorY + 28;
+
+    const exportedAt = new Date();
+    const exportedAtStr = formatDateTime(exportedAt);
+
+    let logoDataUrl = null;
+    try {
+      logoDataUrl = await getProjectLogoDataUrl();
+    } catch (e) {
+      console.warn('Erro ao carregar logo do projeto', e);
+      logoDataUrl = null;
+    }
+
+    if (logoDataUrl) {
+      try {
+        doc.addImage(logoDataUrl, 'PNG', margin, logoY, 96, 36);
+      } catch (e) {
+        console.warn('Erro ao desenhar logo no PDF', e);
+      }
+    } else {
+      doc.setFontSize(11);
+      doc.setTextColor(100);
+      doc.text('Estrutura', margin, logoY + 18);
+    }
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(18);
+    const header = 'Estrutura | Anotações';
+    const headerWidth = doc.getTextWidth(header);
+    doc.text(header, (pageWidth - headerWidth) / 2, titleY);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(100);
+    const exportedLabel = `Exportado: ${exportedAtStr}`;
+    doc.text(exportedLabel, pageWidth - margin - doc.getTextWidth(exportedLabel), logoY + 18);
+
+    doc.setDrawColor(190);
+    doc.setLineWidth(0.9);
+    doc.line(margin, separatorY, pageWidth - margin, separatorY);
+
+    // Note title
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.setTextColor(20);
+    const tLines = doc.splitTextToSize(note.title || '(sem título)', maxWidth);
+    doc.text(tLines, margin, y);
+    y += tLines.length * lineHeight + 8;
+
+    // Content
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(11);
+    doc.setTextColor(30);
+    const contentLines = doc.splitTextToSize((note.content || '').replace(/\r\n/g, '\n'), maxWidth);
+    for (let i = 0; i < contentLines.length; i++) {
+      if (y + lineHeight + 120 > doc.internal.pageSize.getHeight()) {
+        addFooter(doc, exportedAtStr);
+        doc.addPage();
+        y = 72;
+      }
+      doc.text(contentLines[i], margin, y);
+      y += lineHeight;
+    }
+
+    y += 8;
+
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(10);
+    doc.setTextColor(110);
+    doc.text(`Atualizado: ${formatDateTime(note.updatedAt || note.createdAt)}`, margin, y);
+    y += 16;
+
+    addFooter(doc, exportedAtStr);
+    const safeTitle = (note.title || 'nota').replace(/\s+/g,'_').slice(0,40);
+    doc.save(`nota_${safeTitle}_${exportedAt.toISOString().slice(0,10)}.pdf`);
+  } catch (err) {
+    console.error('Erro ao gerar PDF da nota', err);
+    alert('Falha ao gerar PDF da nota.');
+  }
+}
+
+// ---------------- import (JSON) ----------------
+function handleImportFile(file) {
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const parsed = JSON.parse(e.target.result);
+      if (!Array.isArray(parsed)) throw new Error('Arquivo inválido: array esperado');
+      const choice = confirm('Deseja substituir suas notas atuais? "OK" = substituir, "Cancelar" = mesclar (merge).');
+      if (choice) {
+        notes = parsed.map(n => normalizeImportedNote(n));
+      } else {
+        const incoming = parsed.map(n => normalizeImportedNote(n));
+        const map = new Map();
+        for (const n of notes) map.set(n.id, n);
+        for (const n of incoming) {
+          const existing = map.get(n.id);
+          if (!existing) map.set(n.id, n);
+          else if ((n.updatedAt||0) > (existing.updatedAt||0)) map.set(n.id, n);
+        }
+        notes = Array.from(map.values()).sort((a,b)=> (b.updatedAt||0) - (a.updatedAt||0));
+      }
+      saveNotes();
+      renderNotes();
+      alert('Importação concluída.');
+    } catch (err) {
+      console.error(err);
+      alert('Falha ao importar: arquivo inválido.');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function normalizeImportedNote(n){
+  return {
+    id: n.id || generateId(),
+    title: String(n.title||'').slice(0,200),
+    content: String(n.content||''),
+    createdAt: n.createdAt || Date.now(),
+    updatedAt: n.updatedAt || Date.now()
+  };
+}
+
+// ---------------- render ----------------
+let filterTimer = null;
+function renderNotes() {
+  const q = (filterInput.value || '').toLowerCase().trim();
+  const filtered = q ? notes.filter(n => (n.title||'').toLowerCase().includes(q) || (n.content||'').toLowerCase().includes(q)) : notes;
+
+  notesContainer.innerHTML = '';
+  if (!filtered.length) {
+    emptyState.style.display = 'block';
+    return;
+  } else emptyState.style.display = 'none';
+
+  for (const n of filtered) {
+    const card = document.createElement('article');
+    card.className = 'note-card';
+    card.innerHTML = `
+      <div class="note-actions" role="group" aria-label="Ações da nota">
+        <button class="icon-btn share-btn" title="Exportar esta nota (PDF)" aria-label="Exportar esta nota (PDF)"><i class="fa-solid fa-download"></i></button>
+        <button class="icon-btn edit-btn" title="Editar" aria-label="Editar"><i class="fa-solid fa-pen-to-square"></i></button>
+        <button class="icon-btn delete-btn" title="Excluir" aria-label="Excluir"><i class="fa-solid fa-trash"></i></button>
+      </div>
+      <div>
+        <span class="note-title">${escapeHtml(n.title)}</span>
+        <div class="note-content">${escapeHtml(n.content)}</div>
+        <div class="note-meta">${new Date(n.updatedAt || n.createdAt).toLocaleString()}</div>
+      </div>
+    `;
+    const [shareBtn, editBtn, delBtn] = card.querySelectorAll('.icon-btn');
+    shareBtn.addEventListener('click', ()=> {
+      exportSingleNoteToPDF(n).catch(err=>{
+        console.error(err);
+        alert('Falha ao gerar PDF da nota.');
+      });
+    });
+    editBtn.addEventListener('click', ()=> openNoteDialog(n.id));
+    delBtn.addEventListener('click', ()=> deleteNote(n.id));
+
+    notesContainer.appendChild(card);
+  }
+}
+
+function escapeHtml(s=''){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c])); }
+
+document.addEventListener('keydown', (e)=>{
+  if (e.key === 'Escape' && document.querySelector('dialog[open]')) {
+    closeNoteDialog();
+  }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+  notes = loadNotes();
+  renderNotes();
+
+  noteForm.addEventListener('submit', saveNote);
+  noteDialog.addEventListener('click', function(e){ if (e.target === this) closeNoteDialog(); });
+
+  document.getElementById('addBtn').addEventListener('click', ()=> openNoteDialog(null));
+  document.getElementById('exportBtn').addEventListener('click', ()=> {
+    exportNotesToPDF().catch(err=>{
+      console.error(err);
+      alert('Falha ao gerar PDF.');
+    });
+  });
+  document.getElementById('importBtn').addEventListener('click', ()=> importFile.click());
+  importFile.addEventListener('change', (e)=>{
+    const f = e.target.files && e.target.files[0];
+    if (f) handleImportFile(f);
+    importFile.value = ''; // reset
+  });
+
+  document.getElementById('closeDialogBtn').addEventListener('click', closeNoteDialog);
+  document.getElementById('cancelBtn').addEventListener('click', closeNoteDialog);
+
+  filterInput.addEventListener('input', ()=>{
+    if (filterTimer) clearTimeout(filterTimer);
+    filterTimer = setTimeout(()=> renderNotes(), 180);
+  });
+
+  const toggleMenuBtn = document.getElementById("toggleMenu");
+  const menuList = document.getElementById("menuList");
+  if (toggleMenuBtn && menuList){
+    toggleMenuBtn.addEventListener("click", () => menuList.classList.toggle("active"));
+  }
+
+  (function(){ if (localStorage.getItem('dark') === '1') document.documentElement.classList.add('dark'); })();
+  window.addEventListener('storage', e => { if (e.key === 'dark') document.documentElement.classList.toggle('dark', e.newValue === '1'); });
+
+});
+
+// expose for quick debugging
+window.openNoteDialog = openNoteDialog;
+window.closeNoteDialog = closeNoteDialog;
+window.exportNotesToPDF = exportNotesToPDF;
+
+// Controle da sidebar em dispositivos móveis
+    document.addEventListener('DOMContentLoaded', function() {
+      const toggleMenuBtn = document.getElementById('toggleMenu');
+      const sidebar = document.querySelector('.sidebar');
+      
+      if (toggleMenuBtn && sidebar) {
+        toggleMenuBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          sidebar.classList.toggle('active');
+          
+          // Alterar ícone do hamburger quando o menu estiver aberto
+          const icon = toggleMenuBtn.querySelector('i');
+          if (sidebar.classList.contains('active')) {
+            icon.classList.remove('fa-bars');
+            icon.classList.add('fa-times');
+          } else {
+            icon.classList.remove('fa-times');
+            icon.classList.add('fa-bars');
+          }
+        });
+        
+        // Fechar o menu ao clicar fora dele
+        document.addEventListener('click', function(event) {
+          if (!sidebar.contains(event.target) && !toggleMenuBtn.contains(event.target)) {
+            sidebar.classList.remove('active');
+            const icon = toggleMenuBtn.querySelector('i');
+            icon.classList.remove('fa-times');
+            icon.classList.add('fa-bars');
+          }
+        });
+        
+        // Prevenir que cliques dentro do menu fechem ele
+        sidebar.addEventListener('click', function(e) {
+          e.stopPropagation();
+        });
+      }
+    });
+</script>
 </body>
 </html>

@@ -850,6 +850,40 @@ header, main, .panel, .hero-card, .feature-card, .tray {
   }
 }
 
+.dev-note {
+      color:var(--muted);
+      font-size:12px;
+      text-align:center;
+      padding:12px 10px;
+      border-radius:10px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.00));
+      border: 1px solid rgba(255,255,255,0.02);
+      box-shadow: var(--neumo-shadow);
+    }
+    .dev-note strong { color:var(--text); letter-spacing:0.01em; font-weight:700; }
+    .dev-note .meta { display:block; margin-top:6px; color: rgba(225,239,230,0.45); font-size:11px; }
+
+    /* ===== SCROLLBAR STYLING ===== */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(159, 204, 177, 0.3);
+      border-radius: 4px;
+      transition: background 0.3s ease;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(159, 204, 177, 0.5);
+    }
+
   </style>
 </head>
 <body>
@@ -857,7 +891,7 @@ header, main, .panel, .hero-card, .feature-card, .tray {
   <div class="brand">
     <div class="logo"><img src="./favicon/favicon.svg" alt="" style="width: 75%;"></div>
     <div>
-      <h1><i class="fa-solid fa-ship" style="margin-right:10px"></i>Estrutura | Dashboard</h1>
+      <h1><i class="fa-solid fa-ship" style="margin-right:10px"></i>Estrutura | Home</h1>
       <p>Agilidade • Confiabilidade • Organização</p>
     </div>
   </div>
@@ -867,7 +901,7 @@ header, main, .panel, .hero-card, .feature-card, .tray {
     <a href="#atividades">Atividades</a>
     <a href="#resumo">Resumo</a>
     <a href="#sobre">Sobre</a>
-    <button class="btn-neumo btn-glow" id="apropriarBtn"><i class="fa-solid fa-rocket" aria-hidden="true" style="margin-right:8px"></i>Apropriar Agora</button>
+    <a href="./dashboard.html"><button class="btn-neumo btn-glow" id="apropriarBtn"><i class="fa-solid fa-rocket" aria-hidden="true" style="margin-right:8px"></i>Apropriar Agora</button></a>
   </nav>
 
   <button class="hamburger" id="hambBtn" aria-label="Abrir menu">
@@ -1004,7 +1038,7 @@ Relatórios</button></a>
               <ul class="act-topics">
                 <li><i class="fa-solid fa-tag"></i> Categorização automática</li>
                 <li><i class="fa-solid fa-user-check"></i> Atribuição de responsável</li>
-                <li><i class="fa-solid fa-clock"></i> Estimativa de duração</li>
+                <li><i class="fa-solid fa-clock"></i> Economia de tempo</li>
               </ul>
 
               <div class="act-footer"><button class="feature-cta">Nova Atividade</button></div>
@@ -1018,12 +1052,12 @@ Relatórios</button></a>
 
             <div class="act-body">
               <div class="act-title">Responsável</div>
-              <p class="act-desc">Atribua responsáveis para cada atividade e acompanhe o progresso em tempo real</p>
+              <p class="act-desc">Atribua responsáveis para cada atividade e acompanhe o progresso</p>
 
               <ul class="act-topics">
                 <li><i class="fa-solid fa-magnifying-glass"></i> Busca inteligente</li>
                 <li><i class="fa-solid fa-bell"></i> Notificações automáticas</li>
-                <li><i class="fa-solid fa-list-check"></i> Controle de carga</li>
+                <li><i class="fa-solid fa-list-check"></i> Organização</li>
               </ul>
 
               <div class="act-footer"><button class="feature-cta">Atribuir Tarefa</button></div>
@@ -1037,11 +1071,11 @@ Relatórios</button></a>
 
             <div class="act-body">
               <div class="act-title">Local</div>
-              <p class="act-desc">Especifique locais de trabalho e crie zonas organizadas para melhor controle</p>
+              <p class="act-desc">Especifique locais de trabalho para melhor o controle</p>
 
               <ul class="act-topics">
                 <li><i class="fa-solid fa-map"></i> Mapeamento visual</li>
-                <li><i class="fa-solid fa-layer-group"></i> Zonas de trabalho</li>
+                <li><i class="fa-solid fa-layer-group"></i> Trabalhos organizados</li>
                 <li><i class="fa-solid fa-route"></i> Otimização de rotas</li>
               </ul>
 
@@ -1152,7 +1186,7 @@ Relatórios</button></a>
         </div>
 
         <h4 class="feat-title">Apropriação</h4>
-        <p class="feat-desc">Sistema principal para registro de atividades, controle de horas e apropriação de custos por centro de trabalho.</p>
+        <p class="feat-desc">Sistema principal para registro de atividades, controle de horas e apropriação por centro de trabalho.</p>
 
         <ul class="feat-list">
           <li><i class="fa-solid fa-check"></i> Envio com validação</li>
@@ -1189,6 +1223,12 @@ Relatórios</button></a>
       <p style="color:var(--muted)">Sistema pensado para profissionais de obra que precisam registrar efetivo de forma rápida e confiável. Layout minimalista, interações suaves e foco nas métricas.</p>
     </div>
   </section>
+
+  <div class="dev-note reveal">
+        <div>Sistema desenvolvido por <strong>Gustavo Carvalho</strong></div>
+        <div>Setor de <strong>Estrutura</strong></div>
+        <span class="meta">Agilidade, confiabilidade e design de excelência — pensado para líderes de obra que buscam precisão e confiança • © 2025</span>
+      </div>
 
 </main>
 
