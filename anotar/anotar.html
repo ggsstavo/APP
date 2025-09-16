@@ -759,6 +759,15 @@ nav ul li a:focus {
     ::-webkit-scrollbar-thumb:hover {
       background: rgba(159, 204, 177, 0.5);
     }
+
+    @media (max-width: 840px){
+  .dialog::backdrop{
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background:
+      linear-gradient(180deg, rgba(2,6,23,0.62), rgba(2,6,23,0.78));
+  }
+}
   </style>
 </head>
 <body>
