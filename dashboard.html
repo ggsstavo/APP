@@ -3602,50 +3602,98 @@ class MatriculaNameIntegration {
     return container.querySelector(nameClass);
   }
 
-  disableNameField(nameField) {
-    try {
-      nameField.disabled = true;
-      nameField.style.backgroundColor = '#f5f5f5';
-      nameField.style.cursor = 'not-allowed';
-      nameField.style.opacity = '0.7';
-      nameField.title = 'Digite a matrícula para preencher automaticamente o nome';
-      if (!nameField.placeholder) nameField.placeholder = 'Nome';
-      // adicionar ícone de cadeado se ainda não houver (no wrapper)
-      const wrapper = this.ensureInputWrapper(nameField);
-      if (wrapper && !wrapper.querySelector('.name-disabled-icon')) {
-        const icon = document.createElement('i');
-        icon.className = 'fas fa-lock name-disabled-icon';
-        icon.style.cssText = 'position:absolute;right:8px;top:50%;transform:translateY(-50%);color:var(--bg);pointer-events:none;z-index:1;';
-        wrapper.style.position = wrapper.style.position || 'relative';
-        wrapper.appendChild(icon);
-      }
-      this.setNameOrigin(nameField, 'unknown');
-    } catch (e) {
-      console.warn('disableNameField erro:', e);
-    }
-  }
+  // substitua disableNameField por esta versão
+disableNameField(nameField) {
+  try {
+    // mantém o disabled (ou você pode remover se preferir readonly)
+    nameField.disabled = true;
+    nameField.style.backgroundColor = '#f5f5f5';
+    nameField.style.cursor = 'not-allowed';
+    nameField.style.opacity = '0.7';
+    nameField.title = 'Digite a matrícula para preencher automaticamente o nome';
+    if (!nameField.placeholder) nameField.placeholder = 'Nome';
 
-  enableNameField(nameField) {
-    try {
-      nameField.disabled = false;
-      nameField.style.backgroundColor = '';
-      nameField.style.cursor = '';
-      nameField.style.opacity = '';
-      nameField.title = '';
-      const wrapper = this.ensureInputWrapper(nameField);
-      if (wrapper) {
-        const icon = wrapper.querySelector('.name-disabled-icon');
-        if (icon) icon.remove();
-        const successIcon = document.createElement('i');
-        successIcon.className = 'fas fa-check-circle';
-        successIcon.style.cssText = 'position:absolute;right:8px;top:50%;transform:translateY(-50%);color:#10b981;pointer-events:none;z-index:1;animation:fadeInOut 2s ease;';
-        wrapper.appendChild(successIcon);
-        setTimeout(() => successIcon.remove(), 2000);
-      }
-    } catch (e) {
-      console.warn('enableNameField erro:', e);
+    const wrapper = this.ensureInputWrapper(nameField);
+
+    // ícone de cadeado (mantém compatibilidade com seu código)
+    if (wrapper && !wrapper.querySelector('.name-disabled-icon')) {
+      const icon = document.createElement('i');
+      icon.className = 'fas fa-lock name-disabled-icon';
+      icon.style.cssText = 'position:absolute;right:8px;top:50%;transform:translateY(-50%);color:var(--bg);pointer-events:none;z-index:1;';
+      wrapper.style.position = wrapper.style.position || 'relative';
+      wrapper.appendChild(icon);
     }
+
+    // overlay que captura cliques mesmo com input disabled
+    if (wrapper && !wrapper.querySelector('.name-disabled-overlay')) {
+      const overlay = document.createElement('button'); // usar button melhora acessibilidade
+      overlay.type = 'button';
+      overlay.className = 'name-disabled-overlay';
+      overlay.setAttribute('aria-hidden', 'true');
+      overlay.style.cssText = [
+        'position:absolute',
+        'inset:0',
+        'border:0',
+        'background:transparent',
+        'cursor:not-allowed',
+        'z-index:2',
+        'padding:0',
+        'margin:0'
+      ].join(';');
+      // click do overlay mostra notificação e foca no campo matrícula
+      const clickHandler = (e) => {
+        e.preventDefault();
+        try {
+          this.showNameFieldNotification(nameField);
+          const row = nameField.closest('.form-row');
+          const mat = row?.querySelector('.memberMatricula, .shiftMatricula');
+          if (mat) mat.focus();
+        } catch (err) { console.warn('overlay click erro:', err); }
+      };
+      overlay.addEventListener('click', clickHandler);
+      // guarda referência pro possível cleanup
+      overlay._matOverlayHandler = clickHandler;
+      wrapper.appendChild(overlay);
+    }
+
+    this.setNameOrigin(nameField, 'unknown');
+  } catch (e) {
+    console.warn('disableNameField erro:', e);
   }
+}
+
+enableNameField(nameField) {
+  try {
+    nameField.disabled = false;
+    nameField.style.backgroundColor = '';
+    nameField.style.cursor = '';
+    nameField.style.opacity = '';
+    nameField.title = '';
+    const wrapper = this.ensureInputWrapper(nameField);
+    if (wrapper) {
+      // remove ícone de cadeado se existir
+      const icon = wrapper.querySelector('.name-disabled-icon');
+      if (icon) icon.remove();
+
+      // remove overlay se existir (e listener)
+      const overlay = wrapper.querySelector('.name-disabled-overlay');
+      if (overlay) {
+        try {
+          if (overlay._matOverlayHandler) overlay.removeEventListener('click', overlay._matOverlayHandler);
+        } catch (err) {}
+        overlay.remove();
+      }
+
+      const successIcon = document.createElement('i');
+      successIcon.className = 'fas fa-check-circle';
+      successIcon.style.cssText = 'position:absolute;right:8px;top:50%;transform:translateY(-50%);color:#10b981;pointer-events:none;z-index:1;animation:fadeInOut 2s ease;';
+      wrapper.appendChild(successIcon);
+      setTimeout(() => successIcon.remove(), 2000);
+    }
+  } catch (e) {
+    console.warn('enableNameField erro:', e);
+  }
+}
 
   // showLoadingForField: mostra "Procurando..." no placeholder do campo Nome (sem apagar value do usuário)
   showLoadingForField(matriculaField) {
@@ -4201,13 +4249,15 @@ function ensureFontAwesome() {
 }
 
 // estilos adicionais (wrapper, placeholder "Procurando..." e origin icon)
+// estilos adicionais (wrapper, placeholder "Procurando..." e origin icon)
 if (!document.getElementById('matricula-integration-styles')) {
   const style = document.createElement('style');
   style.id = 'matricula-integration-styles';
   style.textContent = [
     '.form-row{position:relative;}',
-    '.memberName:disabled,.shiftName:disabled{transition:all .3s ease;}',
-    '.memberName:disabled:hover,.shiftName:disabled:hover{background-color:var(--hover-ease); !important;}',
+    // MODIFICAÇÃO: Usar var(--bg) nos inputs desabilitados
+    '.memberName:disabled,.shiftName:disabled{background-color:var(--bg) !important; color:var(--text-color) !important; transition:all .3s ease;}',
+    '.memberName:disabled:hover,.shiftName:disabled:hover{background-color:var(--card) !important;}',
     '.input-icon-wrapper{position:relative;display:inline-block;width:100%;}',
     '.input-icon-wrapper input,.input-icon-wrapper textarea,.input-icon-wrapper select{width:100%;box-sizing:border-box;}',
     '.name-disabled-icon{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:14px;color:#999;pointer-events:none;}',
