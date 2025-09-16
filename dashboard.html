@@ -619,6 +619,30 @@
       color: var(--text);
     }
 
+    .reduced-blur {
+  --blur-base: 6px;
+  --blur-sidebar: 3px;
+  --blur-topbar: 8px;
+  --glass-alpha: 0.02;
+}
+
+    @media (max-width:560px){
+  /* mobile: blur muito baixo ou nenhum, usar overlay sem blur */
+  :root{ --blur-base: 4px; --blur-sidebar: 2px; --glass-alpha: 0.02; }
+  .panel, .form-section, .topbar, .sidebar, .table-wrapper, .notification-content {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    /* usa uma camada leve + gradiente para simular vidro */
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border-color: rgba(255,255,255,0.04);
+  }
+  /* manter aparência sem custos de composição */
+  .panel::before, .form-section::before { opacity: 0.25; } 
+}
+
+/* reduzir uso de will-change (somente onde for realmente animado) */
+.btn, .form-row input, .form-row select, .form-row textarea { will-change: transform, opacity; }
+
     th {
       background: rgba(159, 204, 177, 0.08);
       color: var(--text);
