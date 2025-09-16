@@ -1596,7 +1596,7 @@ nav ul li a:focus {
       }
     }
 
-    .reveal{ opacity:0; transform: translateY(8px); filter: blur(6px); transition: all 600ms cubic-bezier(.2,.9,.25,1); }
+    .reveal{ opacity:0; transform: translateY(8px); filter: blur(6px); transition: all 600ms cubic-bezier(.2,.9,.25,1); will-change: opacity, transform;}
     .reveal.in-view{ opacity:1; transform:none; filter:none; }
 
     /* Autofill dark */
@@ -1641,6 +1641,17 @@ nav ul li a:focus {
       .avatar{ width:72px;height:72px; font-size:20px; }
       .actions{ flex-direction: column; align-items: stretch; }
       .actions .btn{ justify-content: center; }
+
+      @media (hover: none) and (pointer: coarse) {
+  .btn:hover, nav ul li a:hover, .hamburger:hover, .icon-right:hover {
+    transform: none !important;
+    filter: none !important;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.28) !important;
+  }
+
+  /* torna interação mais direta e sem movimento para toque */
+  .btn, nav ul li a { transition: background .12s ease, box-shadow .12s ease; }
+}
     }
 
     /* ===== SCROLLBAR STYLING ===== */
