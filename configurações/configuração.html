@@ -1663,6 +1663,26 @@ nav ul li a:focus {
     ::-webkit-scrollbar-thumb:hover {
       background: rgba(159, 204, 177, 0.5);
     }
+
+    @media (max-width: 980px) {
+  :root{
+    --neumo-shadow: 6px 6px 16px rgba(0,0,0,0.48), -3px -3px 8px rgba(255,255,255,0.02);
+    --card-shadow-mobile: 0 10px 30px rgba(0,0,0,0.45);
+    --backdrop-blur-mobile: 10px; /* reduce blur */
+    --btn-glow-alpha: 0.12;
+  }
+
+  /* reduz pseudo-overlay pesado e diminui blur */
+  body::before{
+    filter: blur(var(--backdrop-blur-mobile)) saturate(98%);
+    opacity: 0.75;
+    /* torna o efeito menos dominante em telas pequenas */
+  }
+
+  .card, .version-card, .avatar, .logo {
+    box-shadow: var(--card-shadow-mobile);
+  }
+}
   </style>
 </head>
 <body>
