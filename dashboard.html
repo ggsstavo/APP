@@ -3017,7 +3017,7 @@ setupThemeToggleHandler();
 
 class MatriculaNameIntegration {
   constructor(options = {}) {
-    this.xlsxUrl = options.xlsxUrl || window.EFETIVO_XLSX_URL || './efetivo/dados_efetivo/efetivo.xlsx';
+    this.xlsxUrl = options.xlsxUrl || window.EFETIVO_XLSX_URL || './../efetivo/dados_efetivo/efetivo.xlsx';
     this.efetivoData = [];
     this._efetivoMap = new Map();
     this.initialized = false;
@@ -4223,7 +4223,7 @@ let matriculaIntegration = null;
 function startIntegrationWhenReady(opts = {}) {
   if (matriculaIntegration) return;
   matriculaIntegration = new MatriculaNameIntegration({
-  xlsxUrl: window.EFETIVO_XLSX_URL || './efetivo/dados_efetivo/efetivo.xlsx',
+  xlsxUrl: window.EFETIVO_XLSX_URL || './../efetivo/dados_efetivo/efetivo.xlsx',
   log: !!opts.log,
   minMatLength: typeof opts.minMatLength === 'number' ? opts.minMatLength : 3,
   debounceMs: typeof opts.debounceMs === 'number' ? opts.debounceMs : 600,
