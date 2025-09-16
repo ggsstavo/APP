@@ -34,6 +34,13 @@
       --hover-ease: cubic-bezier(.15,.9,.25,1);
     }
 
+    @media (max-width: 720px) {
+  :root{
+    --shadow-lg: 0 8px 22px rgba(0,0,0,0.6);
+    --hover-ease: cubic-bezier(.2,.8,.28,1);
+  }
+}
+
     /* reset / base */
     *{box-sizing:border-box}
     html,body{height:100%}
@@ -275,7 +282,7 @@
     .accordion_section { width:100%; max-width:980px; margin: 0 auto 28px; display:flex; flex-direction:column; gap:12px; }
     .accordion_title { font-size:20px; margin-bottom:10px; background: var(--text-grad); -webkit-background-clip:text; background-clip:text; color:transparent; text-align:center; }
 
-    .distribuicao { width:100%; padding:12px; background: linear-gradient(90deg, rgba(255,255,255,0.01), rgba(255,255,255,0.00)); border-radius:10px; border:1px solid rgba(255,255,255,0.02); cursor:pointer; transition: box-shadow .18s var(--hover-ease), transform .18s var(--hover-ease); display:flex; flex-direction:column; }
+    .distribuicao { width:100%; padding:12px; background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.00)); border-radius:10px; border:1px solid rgba(255,255,255,0.02); cursor:pointer; transition: box-shadow .18s var(--hover-ease), transform .18s var(--hover-ease); display:flex; flex-direction:column; }
     .distribuicao:hover { box-shadow: 0 12px 30px rgba(0,0,0,0.45); transform: translateY(-4px); }
     .distribuicao_dados { display:flex; justify-content:space-between; align-items:center; gap:10px; }
     .resposta_dados { max-height:0; overflow-y: auto; transition: max-height .45s var(--hover-ease); color:var(--muted-2); padding-top:0; cursor: auto;}
@@ -2295,6 +2302,19 @@ class SearchManager {
   this.init();
 }
 
+// 1) método utilitário (adicione dentro da classe SearchManager)
+isMobileDevice(){
+  // detecção simples: UA comum OU touchscreen + largura estreita
+  try{
+    const ua = navigator.userAgent || '';
+    const touch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+    const smallScreen = window.innerWidth <= 900;
+    return /Mobi|Android|iPhone|iPad|iPod|Opera Mini|IEMobile/i.test(ua) || (touch && smallScreen);
+  }catch(e){
+    return false;
+  }
+}
+
   init() {
   this.searchInput.addEventListener('input', (e) => {
     // Se começou a digitar algo novo, limpar estado anterior
@@ -2320,58 +2340,48 @@ class SearchManager {
     this.colaboradores = colaboradores;
   }
 
-  handleSearch(e) {
+  // 2) alteração em handleSearch: (substitua/edite a parte que lida com Enter e o setTimeout autoSelect)
+handleSearch(e){
   const query = e.target.value.trim();
-  
-  // Limpar timeout anterior se existir
-  if (this.autoSelectTimeout) {
-    clearTimeout(this.autoSelectTimeout);
-    this.autoSelectTimeout = null;
-  }
-  
-  // Sempre limpar estado anterior quando começar nova busca
-  if (query !== this.currentSearchQuery) {
-    this.resetAccordions();
-    this.clearHighlights();
-  }
-  
+  if(this.autoSelectTimeout){ clearTimeout(this.autoSelectTimeout); this.autoSelectTimeout = null; }
+  if(query !== this.currentSearchQuery){ this.resetAccordions(); this.clearHighlights(); }
   this.currentSearchQuery = query;
-  
-  if (query) {
-    this.searchClear.classList.add('active');
-  } else {
-    this.searchClear.classList.remove('active');
-    this.hideResults();
-    this.resetAccordions();
-    this.clearHighlights();
-    return;
-  }
-
-  if (query.length < 2) {
-    this.resetAccordions();
-    return;
-  }
+  if(query){ this.searchClear.classList.add('active'); } else { this.searchClear.classList.remove('active'); this.hideResults(); this.resetAccordions(); this.clearHighlights(); return; }
+  if(query.length < 2){ this.resetAccordions(); return; }
 
   const results = this.search(query);
   this.displayResults(results, query);
   this.showStats(results.length);
-  
-  // Enter imediato
-  if (e.key === 'Enter' && results.length === 1) {
+
+  // ENTER: se único resultado e for mobile, fechar teclado e selecionar
+  if(e.key === 'Enter' && results.length === 1){
+    // evita comportamento padrão (form submit etc)
+    if(e.preventDefault) e.preventDefault();
+    if(this.isMobileDevice()){
+      // pequeno delay para garantir que o browser processe o key event antes do blur
+      setTimeout(()=>{
+        try{ this.searchInput.blur(); }catch(_){}
+        try{ document.activeElement && document.activeElement.blur(); }catch(_){}
+      }, 50);
+    }
     this.selectCollaborator(results[0].nome, this.determineActualTeam(results[0]));
     return;
   }
-  
-  // Auto-seleção após timeout (apenas se não for evento de keydown/Enter)
-  if (e.type === 'input' && results.length === 1) {
-    this.autoSelectTimeout = setTimeout(() => {
-      // Verificar se ainda é o mesmo query e se ainda tem apenas 1 resultado
-      if (this.currentSearchQuery === query && this.search(query).length === 1) {
+
+  // INPUT auto-select: se único resultado, dispara timeout e ao executar fecha o teclado em mobile
+  if(e.type === 'input' && results.length === 1){
+    this.autoSelectTimeout = setTimeout(()=>{
+      if(this.currentSearchQuery === query && this.search(query).length === 1){
+        if(this.isMobileDevice()){
+          try{ this.searchInput.blur(); }catch(_){}
+          try{ document.activeElement && document.activeElement.blur(); }catch(_){}
+        }
         this.selectCollaborator(results[0].nome, this.determineActualTeam(results[0]));
       }
     }, this.autoSelectDelay);
   }
 }
+
 
   search(query) {
     const q = query.toLowerCase();
@@ -2438,42 +2448,37 @@ class SearchManager {
     this.searchStats.classList.add('active');
   }
 
-  selectCollaborator(nomeColaborador, equipeColaborador) {
-    if (this.autoSelectTimeout) {
-    clearTimeout(this.autoSelectTimeout);
-    this.autoSelectTimeout = null;
-  }
-
+  // 3) ligeira adição em selectCollaborator — garante blur quando a seleção acontece por qualquer caminho
+selectCollaborator(nomeColaborador, equipeColaborador){
+  if(this.autoSelectTimeout){ clearTimeout(this.autoSelectTimeout); this.autoSelectTimeout = null; }
   this.hideResults();
-  
-  // PRIMEIRO: Limpar completamente qualquer estado anterior
   this.resetAccordions();
   this.clearHighlights();
-  
-  // SEGUNDO: Fechar todos os accordions
-  document.querySelectorAll('.distribuicao').forEach(accordion => {
-    accordion.classList.remove('active');
-  });
-  
-  // Encontrar o colaborador completo para determinar onde ele realmente está
-  const colaboradorCompleto = this.colaboradores.find(c => 
-    c.nome.toLowerCase().includes(nomeColaborador.toLowerCase())
-  );
-  
-  if (colaboradorCompleto) {
+  document.querySelectorAll('.distribuicao').forEach(accordion => { accordion.classList.remove('active') });
+
+  const colaboradorCompleto = this.colaboradores.find(c => c.nome.toLowerCase().includes(nomeColaborador.toLowerCase()));
+  if(colaboradorCompleto){
     const equipeReal = this.determineActualTeam(colaboradorCompleto);
     const targetAccordion = this.findAccordionByTeam(equipeReal);
-    
-    if (targetAccordion) {
+    if(targetAccordion){
       targetAccordion.classList.add('active');
-      
-      setTimeout(() => {
+      setTimeout(()=>{
         this.filterAndHighlightCollaborator(targetAccordion, nomeColaborador);
         this.scrollToAccordion(targetAccordion);
       }, 300);
     }
   }
+
+  // --- FECHAR TECLADO NO MOBILE (fallback final) ---
+  if(this.isMobileDevice()){
+    // usar timeout pequeno para garantir que operações DOM já tenham iniciado
+    setTimeout(()=>{
+      try{ this.searchInput.blur(); }catch(_){}
+      try{ document.activeElement && document.activeElement.blur(); }catch(_){}
+    }, 80);
+  }
 }
+
 
 // Adicionar no SearchManager
 normalizeStatusForRouting(s) {
