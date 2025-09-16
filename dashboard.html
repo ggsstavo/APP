@@ -61,20 +61,21 @@
 
     /* Background particles effect (subtle kept but aligned with solid background) */
     body::before {
-      content: '';
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background:
-        radial-gradient(circle at 20% 50%, rgba(159, 204, 177, 0.03) 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, rgba(57, 102, 107, 0.04) 0%, transparent 50%),
-        radial-gradient(circle at 40% 80%, rgba(159, 204, 177, 0.02) 0%, transparent 50%);
-      z-index: -1;
-      animation: floatBg 20s ease-in-out infinite;
-      opacity: 0.9;
+      content:'';
+    position:fixed;
+    top:0;left:0;
+    width:100%;height:100%;
+    background:radial-gradient(circle at 20% 50%,rgb(159 204 177 / .03) 0%,transparent 50%),radial-gradient(circle at 80% 20%,rgb(57 102 107 / .04) 0%,transparent 50%);
+    z-index:-1;
+    will-change:transform;
+    transform:translateZ(0);
     }
+
+    @media (min-width: 769px) {
+    body::before {
+        animation:floatBg 20s ease-in-out infinite;
+    }
+}
 
     @keyframes floatBg {
       0%, 100% { transform: translateY(0) rotate(0deg); }
@@ -294,12 +295,10 @@
       from {
         opacity: 0;
         transform: translateY(40px) scale(0.98);
-        filter: blur(4px);
       }
       to {
         opacity: 1;
         transform: translateY(0) scale(1);
-        filter: blur(0);
       }
     }
 
@@ -324,6 +323,16 @@
         inset 0 1px 0 rgba(255, 255, 255, 0.15);
       border-color: rgba(159, 204, 177, 0.2);
     }
+
+    @media (hover: hover) and (pointer: fine) {
+    .panel:hover,.form-section:hover{
+        transform:translateY(-2px);
+        box-shadow:
+        0 12px 40px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+      border-color: rgba(159, 204, 177, 0.2);
+    }
+}
 
     .form-section h3 {
       font-size: 18px;
@@ -477,6 +486,7 @@
       justify-content: center;
       gap: 8px;
       box-shadow: 0 12px 40px rgba(79,70,229,0.12), inset 0 -6px 18px rgba(255,255,255,0.02);
+      will-change:transform,box-shadow;
     }
 
     .btn::before {
@@ -618,30 +628,6 @@
       border-collapse: collapse;
       color: var(--text);
     }
-
-    .reduced-blur {
-  --blur-base: 6px;
-  --blur-sidebar: 3px;
-  --blur-topbar: 8px;
-  --glass-alpha: 0.02;
-}
-
-    @media (max-width:560px){
-  /* mobile: blur muito baixo ou nenhum, usar overlay sem blur */
-  :root{ --blur-base: 4px; --blur-sidebar: 2px; --glass-alpha: 0.02; }
-  .panel, .form-section, .topbar, .sidebar, .table-wrapper, .notification-content {
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-    /* usa uma camada leve + gradiente para simular vidro */
-    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-    border-color: rgba(255,255,255,0.04);
-  }
-  /* manter aparência sem custos de composição */
-  .panel::before, .form-section::before { opacity: 0.25; } 
-}
-
-/* reduzir uso de will-change (somente onde for realmente animado) */
-.btn, .form-row input, .form-row select, .form-row textarea { will-change: transform, opacity; }
 
     th {
       background: rgba(159, 204, 177, 0.08);
@@ -858,6 +844,15 @@
         transform: translateY(0);
       }
     }
+
+    @media (max-width: 768px) {
+    .btn,
+    .form-row input,
+    .form-row select,
+    .form-row textarea {
+        will-change: auto;
+    }
+}
 
     /* responsive */
     @media (max-width:1000px){
@@ -3022,7 +3017,7 @@ setupThemeToggleHandler();
 
 class MatriculaNameIntegration {
   constructor(options = {}) {
-    this.xlsxUrl = options.xlsxUrl || window.EFETIVO_XLSX_URL || '../efetivo/dados_efetivo/efetivo.xlsx';
+    this.xlsxUrl = options.xlsxUrl || window.EFETIVO_XLSX_URL || './efetivo/dados_efetivo/efetivo.xlsx';
     this.efetivoData = [];
     this._efetivoMap = new Map();
     this.initialized = false;
@@ -4228,7 +4223,7 @@ let matriculaIntegration = null;
 function startIntegrationWhenReady(opts = {}) {
   if (matriculaIntegration) return;
   matriculaIntegration = new MatriculaNameIntegration({
-  xlsxUrl: window.EFETIVO_XLSX_URL || '../efetivo/dados_efetivo/efetivo.xlsx',
+  xlsxUrl: window.EFETIVO_XLSX_URL || './efetivo/dados_efetivo/efetivo.xlsx',
   log: !!opts.log,
   minMatLength: typeof opts.minMatLength === 'number' ? opts.minMatLength : 3,
   debounceMs: typeof opts.debounceMs === 'number' ? opts.debounceMs : 600,
