@@ -761,12 +761,32 @@ nav ul li a:focus {
     }
 
     @media (max-width: 840px){
-  .dialog::backdrop{
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    background:
-      linear-gradient(180deg, rgba(2,6,23,0.62), rgba(2,6,23,0.78));
-  }
+      .dialog::backdrop{
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        background:
+        linear-gradient(180deg, rgba(2,6,23,0.62), rgba(2,6,23,0.78));
+          animation: none !important;
+          }
+      
+
+      .note-card {
+      box-shadow: 0 6px 18px rgba(0,0,0,0.48); /* substitui sombras muito grandes */
+      transition: transform .16s ease, box-shadow .16s ease, opacity .18s ease;
+      /* reduzir blur do background */
+      background: linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.01));
+    }
+
+    .note-card:hover {
+      transform: translateY(-6px) scale(1.01);
+      box-shadow: 0 14px 30px rgba(0,0,0,0.48);
+    }
+
+    @keyframes noteEnter {
+      from { opacity:0; transform: translateY(6px); }
+      to   { opacity:1; transform: translateY(0); }
+    }
+    .note-card { animation: noteEnter .28s cubic-bezier(.2,.9,.3,1) both; }
 }
   </style>
 </head>
