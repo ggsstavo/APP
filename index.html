@@ -430,6 +430,12 @@
     .row{display:flex;justify-content:space-between;align-items:center;gap:12px}
 
     @media (max-width:900px){
+      :root{
+    --neumo-shadow: 0 6px 14px rgba(0,0,0,0.45);
+    --btn-glow-grad: linear-gradient(135deg, rgba(79,70,229,0.14), rgba(124,58,237,0.14));
+    --hover-ease: cubic-bezier(.2,.9,.3,1);
+  }
+
       .wrap{grid-template-columns:1fr;gap:20px;padding:0 12px}
       .brand{justify-content:center;text-align:left}
     }
