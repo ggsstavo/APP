@@ -34,13 +34,6 @@
       --hover-ease: cubic-bezier(.15,.9,.25,1);
     }
 
-    @media (max-width: 720px) {
-  :root{
-    --shadow-lg: 0 8px 22px rgba(0,0,0,0.6);
-    --hover-ease: cubic-bezier(.2,.8,.28,1);
-  }
-}
-
     /* reset / base */
     *{box-sizing:border-box}
     html,body{height:100%}
@@ -1141,6 +1134,32 @@ nav ul li a:focus {
 
 /* Responsivo */
 @media (max-width: 720px) {
+
+  .card, .stat-card { box-shadow: 0 6px 14px rgba(0,0,0,0.45) !important;}
+
+  .resposta_dados .colab-item {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  transition: background .14s linear, color .14s linear;
+}
+
+.search-result-item {
+  background: transparent;
+  transition: transform .12s var(--hover-ease), background .12s linear;
+  will-change: transform;
+}
+
+.search-wrapper:focus-within {
+  box-shadow: 0 6px 22px rgba(0,0,0,0.45); /* mais leve que múltiplas camadas */
+  transform: none;
+}
+
+.stat-card { transition: transform .14s var(--hover-ease), box-shadow .14s var(--hover-ease); }
+.stat-card:hover { transform: translateY(-4px); box-shadow: 0 18px 48px rgba(0,0,0,0.6); }
+
+.icon-btn, .note-card, .card { will-change: auto; }
+
   .header-actions {
     width: 100%;
     display: flex;             /* garante que continua sendo flex */
