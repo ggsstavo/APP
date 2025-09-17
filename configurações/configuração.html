@@ -1619,6 +1619,20 @@ nav ul li a:focus {
       .stats-card{ grid-template-columns: 1fr; }
     }
 
+    /* reduz overlay pseudo pesado */
+  body::before {
+    background: none !important;
+    filter: none !important;
+    opacity: 0.6 !important;
+  }
+
+  * {
+    transition-property: background-color, color, border-color, opacity !important;
+    transition-duration: 120ms !important;
+    transition-timing-function: linear !important;
+    will-change: auto !important;
+  }
+
     /* Input readonly styling */
     input[readonly] {
       background: rgba(255,255,255,0.02) !important;
@@ -1960,7 +1974,7 @@ nav ul li a:focus {
       <div class="card version-card reveal">
         <h4>Sistema Estrutura</h4>
         <p style="margin:8px 0 0 0; font-weight:800; font-size:18px">v2.0</p>
-        <div class="muted" style="margin-top:8px">Atualizado: 15 Set 2025</div>
+        <div class="muted" style="margin-top:8px">Atualizado: 17 Set 2025</div>
       </div>
 
       <div class="card reveal">
