@@ -1165,6 +1165,9 @@ nav ul li a:focus {
 
     /* ===== MOBILE RESPONSIVE (from diario.html) ===== */
     @media (max-width:1000px) {
+
+    
+  :root { --mobile-animation-scale: 1.8; }
   
       .form-section {
         padding: 20px;
@@ -1283,9 +1286,46 @@ nav ul li a:focus {
     filter: none !important;
     background: rgba(11,12,15,0.9) !important; /* translúcido simples */
     box-shadow: 0 6px 14px rgba(0,0,0,0.45) !important; /* sombra mais leve */
+     will-change: transform;
+    backface-visibility: hidden;
+    transform: translateZ(0);
+    animation: floatBg-mobile calc(20s * var(--mobile-animation-scale)) ease-in-out infinite;
   }
 
   tr:hover td { background: transparent; }
+
+
+  @keyframes floatBg-mobile {
+    0%   { transform: translate3d(0, 0, 0) rotate(0deg); }
+    50%  { transform: translate3d(0, -12px, 0) rotate(1deg); }
+    100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+  }
+
+  /* 2) Cards: permitir leve elevação via transform/opacity só */
+  .panel, .form-section {
+    will-change: transform, opacity;
+    backface-visibility: hidden;
+    transform: translateZ(0);
+    /* faça a entrada mais lenta/menor - menos “movimento” */
+    animation: cardSlideInMobile calc(0.6s * var(--mobile-animation-scale)) ease both;
+  }
+  @keyframes cardSlideInMobile {
+    from { opacity: 0; transform: translate3d(0, 8px, 0) scale(.996); }
+    to   { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+  }
+
+  /* 3) Btn shimmer removido já — apenas micro feedback por transform */
+  .btn { transition: transform 120ms cubic-bezier(.2,.9,.25,1); }
+
+  /* 4) limitar sombras/blur durante animações */
+  .panel.animating, .form-section.animating {
+    box-shadow: 0 6px 14px rgba(0,0,0,0.36) !important; /* mais leve */
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  /* 5) reduzir número de elementos animados ao mesmo tempo (ex.: esconder pseudo-elements) */
+  .panel::before, .form-section::after { display: none !important; }
     }
 
     @media (max-width: 480px) {
