@@ -731,7 +731,6 @@
 
     .notification-content {
       background: rgba(255, 255, 255, 0.08);
-      backdrop-filter: blur(20px);
       border: 1px solid rgba(255, 255, 255, 0.12);
       padding: 28px 32px;
       max-width: 420px;
@@ -1270,6 +1269,13 @@ nav ul li a:focus {
         padding: 8px 16px;
         font-size: 13px;
       }
+      
+      
+      .btn::before { display: none !important; }
+
+      .btn, .form-row input, .form-row select, .form-row textarea {
+    will-change: auto !important;
+  }
     }
 
     @media (max-width: 480px) {
@@ -4113,7 +4119,7 @@ _actuallyHideLoading(nameField) {
   }
 
   showNameFieldNotification(nameField) {
-    this.showInfoNotification('Campo bloqueado! Digite a matrícula primeiro para preencher automaticamente o nome.', 4000);
+    this.showInfoNotification('Campo bloqueado! Digite a matrícula primeiro para preencher automaticamente o nome.', 6000);
     nameField.style.animation = 'shake 0.5s ease-in-out';
     setTimeout(() => nameField.style.animation = '', 500);
   }
