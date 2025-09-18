@@ -1216,6 +1216,22 @@ nav ul li a:focus {
     }
     .dev-note strong { color:var(--text); letter-spacing:0.01em; font-weight:700; }
     .dev-note .meta { display:block; margin-top:6px; color: rgba(225,239,230,0.45); font-size:11px; }
+
+    /* aplica somente em dispositivos touch, assim não quebra foco de teclado no desktop */
+@media (hover: none) and (pointer: coarse) {
+  a, button, input, textarea, .distribuicao, nav ul li a, .search-result-item {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+  }
+
+  /* evita estilos :active que geram flash (se você tiver transform/box-shadow em :active) */
+  a:active, button:active, .distribuicao:active, .search-result-item:active {
+    background: transparent !important;
+    box-shadow: none !important;
+    transform: none !important;
+  }
+}
+
   </style>
 </head>
 <body>
