@@ -1161,6 +1161,66 @@ nav ul li a:focus {
         width: 20px;
         font-size: 15px;
       }
+
+      :root{
+  --sidebar-blur-default: 8px;      /* desktop */
+  --sidebar-blur-mobile: 4px;       /* mobile (leve) */
+  --card-blur-default: 16px;
+  --card-blur-mobile: 6px;
+  --shadow-heavy: 0 12px 40px rgba(0,0,0,.4);
+  --shadow-light: 0 4px 12px rgba(0,0,0,.25);
+  --anim-duration-default: 0.4s;
+  --anim-duration-mobile: 0.18s;
+}
+
+body::before { animation: none !important; will-change: auto !important; }
+
+  /* sidebar: visual leve por padrão (fechada) */
+  .sidebar {
+    /* blur e sombra reduzidos */
+    backdrop-filter: blur(var(--sidebar-blur-mobile)) saturate(120%);
+    box-shadow: none;
+    border-right: 1px solid rgba(255,255,255,0.03);
+    /* altura reduzida por padrão e overflow hidden => menos repaints */
+    height: auto;
+    max-height: 80px;
+    overflow: hidden;
+    transition: max-height var(--anim-duration-mobile) ease, box-shadow var(--anim-duration-mobile) ease;
+  }
+
+  /* conteúdo interno do nav fica oculto até abrir */
+  #sidebarNav { opacity: 0; pointer-events: none; transition: opacity var(--anim-duration-mobile) ease, transform var(--anim-duration-mobile) ease; }
+
+  /* botões e inputs: desativa will-change pesado */
+  .btn, .form-row input, .form-row select, .form-row textarea {
+    will-change: auto !important;
+    backface-visibility: hidden;
+    transition-duration: var(--anim-duration-mobile);
+  }
+
+  /* cards e painéis: blur/sombra leves */
+  .panel, .form-section {
+    backdrop-filter: blur(var(--card-blur-mobile));
+    box-shadow: var(--shadow-light);
+    transition: transform var(--anim-duration-mobile) ease, box-shadow var(--anim-duration-mobile) ease;
+  }
+
+  /* ao clicar no hamburger — ativa visual completo e exibe nav */
+  body.sidebar-open .sidebar {
+    max-height: 520px;
+    box-shadow: var(--shadow-heavy);
+    backdrop-filter: blur(var(--sidebar-blur-default)) saturate(140%);
+  }
+  body.sidebar-open #sidebarNav { opacity: 1; pointer-events: auto; transform: translateY(0); }
+
+  /* diminuir intensidade de hover/transforms para evitar repaints contínuos */
+  nav ul li a:hover, nav ul li a.active {
+    transform: translateX(3px) !important;
+    box-shadow: 0 6px 18px rgba(0,0,0,.2) !important;
+  }
+
+  /* esconder efeitos de brilho em botões (pseudo) */
+  .btn::before { display: none !important; }
     }
 
     /* ===== MOBILE RESPONSIVE (from diario.html) ===== */
@@ -1362,6 +1422,21 @@ nav ul li a:focus {
         padding: 12px;
         font-size: 16px;
       }
+
+      .form-section::before,
+    .panel::before {
+        display: none;
+    }
+    
+    body::before {
+        background: radial-gradient(circle at 50% 50%, rgba(159, 204, 177, 0.02) 0%, transparent 60%);
+        animation: none;
+    }
+    
+    .form-section, .panel {
+        backdrop-filter: none;
+        background: rgba(255,255,255,0.04);
+    }
     }
 
     /* ===== FORM ENHANCEMENTS ===== */
