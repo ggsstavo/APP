@@ -1621,10 +1621,22 @@ nav ul li a:focus {
 
     /* reduz overlay pseudo pesado */
   body::before {
-    background: none !important;
-    filter: none !important;
-    opacity: 0.6 !important;
-  }
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background: 
+        radial-gradient(800px at 20% 30%, rgba(159,204,177,0.02), transparent 40%),
+        radial-gradient(600px at 80% 70%, rgba(57,102,107,0.015), transparent 45%);
+    opacity: 0.8;
+}
+
+@media (max-width: 768px) {
+    body::before {
+        display: none;
+    }
+}
 
   * {
     transition-property: background-color, color, border-color, opacity !important;
@@ -1655,6 +1667,25 @@ nav ul li a:focus {
       .avatar{ width:72px;height:72px; font-size:20px; }
       .actions{ flex-direction: column; align-items: stretch; }
       .actions .btn{ justify-content: center; }
+
+      /* Substitua todas as box-shadows complexas por: */
+:root {
+    --shadow-light: 0 4px 12px rgba(0,0,0,0.25);
+    --shadow-medium: 0 8px 20px rgba(0,0,0,0.3);
+    --shadow-heavy: 0 12px 35px rgba(0,0,0,0.4);
+}
+
+.card, .version-card {
+    box-shadow: var(--shadow-medium);
+}
+
+.avatar, .logo {
+    box-shadow: var(--shadow-light);
+}
+
+* {
+        filter: none !important;
+    }
 
       @media (hover: none) and (pointer: coarse) {
   .btn:hover, nav ul li a:hover, .hamburger:hover, .icon-right:hover {
