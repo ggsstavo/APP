@@ -961,6 +961,39 @@ nav ul li a:focus {
     min-width: auto;
     max-width: none;
   }
+
+  .search-wrapper,
+  .search-results {
+    backdrop-filter: blur(8px);
+  }
+
+  :root {
+    --shadow-mobile: 0 4px 12px rgba(0,0,0,0.3);
+    --shadow-mobile-hover: 0 8px 20px rgba(0,0,0,0.4);
+  }
+  
+  .card, .stat-card {
+    box-shadow: var(--shadow-mobile) !important;
+  }
+  
+  .card:hover, .stat-card:hover {
+    box-shadow: var(--shadow-mobile-hover) !important;
+  }
+
+  .search-results {
+    background: rgba(11,12,15,0.95);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  }
+
+  .card, .stat-card, .distribuicao {
+    transition: background-color 0.15s ease;
+  }
+
+  canvas {
+    will-change: auto; /* Remove will-change desnecessário */
+  }
 }
 /* Destaque do colaborador encontrado - CONTIDO no accordion */
 .colaborador-destacado-busca {
