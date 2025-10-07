@@ -845,69 +845,12 @@
     }
 
     @media (max-width: 768px) {
-      :root {
-    /* Reduz blur e sombras em mobile */
-    --mobile-blur: 4px;
-    --mobile-blur-light: 2px;
-    --mobile-shadow: 0 4px 12px rgba(0,0,0,0.25);
-    --mobile-shadow-light: 0 2px 8px rgba(0,0,0,0.15);
-    --mobile-transition: 0.2s;
-    
-    /* Desativa animações pesadas */
-    --mobile-animation-scale: 0.5;
-  }
-
-  /* Remove background animado (muito pesado) */
-  body::before {
-    animation: none !important;
-    background: radial-gradient(
-      circle at 50% 30%, 
-      rgba(159, 204, 177, 0.02) 0%, 
-      transparent 50%
-    ) !important;
-    will-change: auto !important;
-  }
-
     .btn,
-  .form-row input,
-  .form-row select,
-  .form-row textarea,
-  .panel,
-  .form-section {
-    will-change: auto !important;
-  }
-
-  .panel,
-  .form-section {
-    /* Blur muito reduzido */
-    backdrop-filter: blur(var(--mobile-blur-light));
-    -webkit-backdrop-filter: blur(var(--mobile-blur-light));
-    
-    /* Sombra simplificada */
-    box-shadow: var(--mobile-shadow-light);
-    
-    /* Animação mais rápida e sutil */
-    animation: cardSlideInMobile 0.3s ease both;
-    
-    /* Remove pseudo-elements pesados */
-    position: relative;
-  }
-
-  .panel::before,
-  .panel::after,
-  .form-section::before,
-  .form-section::after {
-    display: none !important;
-  }
-
-  @media (hover: hover) {
-    .panel:hover,
-    .form-section:hover {
-      transform: translateY(-1px);
-      box-shadow: var(--mobile-shadow);
-      border-color: rgba(159, 204, 177, 0.15);
+    .form-row input,
+    .form-row select,
+    .form-row textarea {
+        will-change: auto;
     }
-  }
 }
 
     /* responsive */
