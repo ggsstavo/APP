@@ -657,6 +657,15 @@ select:-moz-focusring { color: transparent; text-shadow: 0 0 0 var(--text); }
     ::-webkit-scrollbar-thumb:hover {
       background: rgba(159, 204, 177, 0.5);
     }
+
+@keyframes slideIn {
+  from { transform: translateX(400px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+@keyframes slideOut {
+  from { transform: translateX(0); opacity: 1; }
+  to { transform: translateX(400px); opacity: 0; }
+}
   </style>
 </head>
 <body>
@@ -734,7 +743,7 @@ select:-moz-focusring { color: transparent; text-shadow: 0 0 0 var(--text); }
         <div class="muted-note">Visualize e filtre por data e equipe — os dados exibidos por dia são limitados para otimização</div>
       </div>
       <div>
-        <button id="refreshBtn" class="btn-neumo ghost"><i class="fas fa-sync"></i> Atualizar</button>
+        <button id="refreshBtn" class="btn-neumo"><i class="fas fa-sync"></i> Atualizar</button>
       </div>
     </header>
 
@@ -785,6 +794,7 @@ select:-moz-focusring { color: transparent; text-shadow: 0 0 0 var(--text); }
     let cachedDateKey = null;         // "YYYY-MM-DD"
     let cachedRecords = [];           // records fetched for cachedDateKey
     let debounceTimer = null;
+    let lastFetchTimestamp = null;
 
     const dateEl = document.getElementById('dateFilter');
     const teamEl = document.getElementById('teamFilter');
@@ -802,11 +812,37 @@ select:-moz-focusring { color: transparent; text-shadow: 0 0 0 var(--text); }
       return d.toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
     }
 
-    // mostra mensagem simples (modal/alert simplificado)
-    function showToast(text) {
-      // simples fallback para debug; você pode trocar por modal
-      console.log('[INFO]', text);
-    }
+    // Substitua a função showToast por esta:
+function showToast(text) {
+  // Remove toast anterior se existir
+  const old = document.getElementById('toast-notification');
+  if (old) old.remove();
+  
+  const toast = document.createElement('div');
+  toast.id = 'toast-notification';
+  toast.textContent = text;
+  toast.style.cssText = `
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: linear-gradient(135deg, var(--accent), var(--secondary));
+    color: white;
+    padding: 14px 20px;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    z-index: 9999;
+    font-weight: 600;
+    font-size: 14px;
+    animation: slideIn 0.3s ease;
+  `;
+  
+  document.body.appendChild(toast);
+  
+  setTimeout(() => {
+    toast.style.animation = 'slideOut 0.3s ease';
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
 
     /***** CARREGA EQUIPES (apenas 1 leitura por sessão) *****/
     async function loadTeamsFilter(ownerUid) {
@@ -831,30 +867,89 @@ select:-moz-focusring { color: transparent; text-shadow: 0 0 0 var(--text); }
     }
 
     /***** BUSCA REGISTROS PARA UMA DATA (uma única leitura) *****/
-    async function fetchRecordsForDate(dateKey) {
-      // dateKey: "YYYY-MM-DD"
-      if (!currentUserUid) return [];
-      try {
-        const [y,m,d] = dateKey.split('-').map(n=>parseInt(n));
-        const start = new Date(y,m-1,d,0,0,0);
-        const end = new Date(y,m-1,d,23,59,59,999);
+    async function fetchRecordsForDate(dateKey, incrementalUpdate = false) {
+  if (!currentUserUid) return [];
+  try {
+    const [y,m,d] = dateKey.split('-').map(n=>parseInt(n));
+    const start = new Date(y,m-1,d,0,0,0);
+    const end = new Date(y,m-1,d,23,59,59,999);
 
-        // Firestore: usamos só o filtro de data + createdBy (menor custo),
-        // e aplicamos o filtro de equipe no cliente — evita problemas com índices e garante que a seleção funcione
-        const q = db.collection('records')
-                    .where('createdBy','==', currentUserUid)
-                    .where('date','>=', firebase.firestore.Timestamp.fromDate(start))
-                    .where('date','<=', firebase.firestore.Timestamp.fromDate(end))
-                    .orderBy('date','desc')
-                    .limit(500); // limite de segurança
-        const snap = await q.get();
-        const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        return docs;
-      } catch (err) {
-        console.warn('Erro fetchRecordsForDate', err);
-        return [];
-      }
+    let q = db.collection('records')
+              .where('createdBy','==', currentUserUid)
+              .where('date','>=', firebase.firestore.Timestamp.fromDate(start))
+              .where('date','<=', firebase.firestore.Timestamp.fromDate(end));
+
+    // SE for atualização incremental E temos timestamp anterior
+    if (incrementalUpdate && lastFetchTimestamp) {
+      // Busca apenas registros criados/modificados após o último fetch
+      q = q.where('date', '>', lastFetchTimestamp);
     }
+
+    q = q.orderBy('date','desc').limit(500);
+    
+    const snap = await q.get();
+    
+    // Atualiza o timestamp da última busca
+    lastFetchTimestamp = firebase.firestore.Timestamp.now();
+    
+    const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    return docs;
+  } catch (err) {
+    console.warn('Erro fetchRecordsForDate', err);
+    return [];
+  }
+}
+
+// Modifique a função applyFilters:
+async function applyFilters({ force = false, incremental = false } = {}) {
+  const dateVal = dateEl.value || null;
+  if (!dateVal) {
+    reportContainer.innerHTML = `<p style="color:var(--muted)">Selecione uma data.</p>`;
+    return;
+  }
+
+  // Se for atualização incremental
+  if (incremental && cachedDateKey === dateVal && Array.isArray(cachedRecords)) {
+    const newRecords = await fetchRecordsForDate(dateVal, true);
+    
+    if (newRecords.length > 0) {
+      // Mescla novos registros com cache existente (evita duplicatas)
+      const existingIds = new Set(cachedRecords.map(r => r.id));
+      const uniqueNewRecords = newRecords.filter(r => !existingIds.has(r.id));
+      
+      cachedRecords = [...uniqueNewRecords, ...cachedRecords];
+      showToast(`${uniqueNewRecords.length} novo(s) apontamento(s) encontrado(s)`);
+    } else {
+      showToast('Nenhum novo apontamento');
+    }
+    
+    filterAndRenderFromCache();
+    return;
+  }
+
+  // Busca completa (comportamento original)
+  if (!force && cachedDateKey === dateVal && Array.isArray(cachedRecords)) {
+    filterAndRenderFromCache();
+    return;
+  }
+
+  cachedRecords = await fetchRecordsForDate(dateVal, false);
+  cachedDateKey = dateVal;
+  filterAndRenderFromCache();
+}
+
+// Atualize o event listener do botão refresh:
+// Substitua o listener do refreshBtn por:
+refreshBtn.addEventListener('click', () => {
+  // Apenas re-renderiza do cache (ZERO Firebase)
+  if (cachedRecords.length > 0) {
+    filterAndRenderFromCache();
+    showToast('Visualização atualizada (cache local)');
+  } else {
+    // Se não há cache, busca do servidor
+    applyFilters({ force: true });
+  }
+});
 
     /***** RENDERIZAÇÃO DE CARDS (agrupa por timestamp de envio) *****/
     function renderCards(records) {

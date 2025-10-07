@@ -1152,6 +1152,145 @@ select:-moz-focusring { color: transparent; text-shadow: 0 0 0 var(--text); }
 
     openPreviewBtn && openPreviewBtn.addEventListener('click', renderPreview);
 
+    /**********************
+  PREVIEW LOCAL (sem Firebase)
+  Cole este bloco após as declarações iniciais de state/elements.
+**********************/
+
+// draft local (preview-only). Usado por renderPreview quando quiser evitar o Firebase.
+const draft = {
+  teamId: '',
+  dateOnly: '',
+  activity: '',
+  responsavel: '',
+  matricula: '',
+  observacoesGerais: '',
+  members: [] // [{ name:'', matricula:'', local:'', galpao:'', details:'' }]
+};
+
+// Debounce helper (evita re-renders excessivos)
+function debounce(fn, wait = 250) {
+  let t;
+  return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), wait); };
+}
+
+// Atualiza o draft a partir dos inputs do formulário
+function syncDraftFromForm() {
+  draft.activity = (activityInput && activityInput.value) ? activityInput.value.trim() : '';
+  draft.responsavel = (responsavelInput && responsavelInput.value) ? responsavelInput.value.trim() : '';
+  draft.matricula = (matriculaInput && matriculaInput.value) ? matriculaInput.value.trim() : '';
+  draft.observacoesGerais = (obsGeralInput && obsGeralInput.value) ? obsGeralInput.value.trim() : '';
+  draft.teamId = (teamSelect && teamSelect.value) ? teamSelect.value : draft.teamId;
+  draft.dateOnly = (dateSelect && dateSelect.value) ? dateSelect.value : draft.dateOnly;
+}
+
+// Use esta função para popular members no draft (por upload/parsing)
+function setDraftMembers(membersArray = []) {
+  draft.members = Array.isArray(membersArray)
+    ? membersArray.map(m => ({
+        name: m.name || m.nome || '',
+        matricula: m.matricula || m.memberMatricula || m.mat || '',
+        local: m.local || m.galpao || '',
+        galpao: m.galpao || m.local || '',
+        details: m.details || ''
+      }))
+    : [];
+  // atualiza preview imediatamente
+  renderPreviewFromDraft();
+}
+
+// Renderiza a pré-visualização a partir do draft (usa draft.members). Não toca no Firebase.
+function renderPreviewFromDraft() {
+  // garante dados atualizados do formulário
+  syncDraftFromForm();
+
+  const activityVal = draft.activity ? escapeHtml(draft.activity) : '';
+  const responsavelVal = draft.responsavel ? escapeHtml(draft.responsavel) : '';
+  const matriculaVal = draft.matricula ? escapeHtml(draft.matricula) : '';
+  const obsVal = draft.observacoesGerais ? escapeHtml(draft.observacoesGerais) : '';
+
+  const activityHtml = activityVal ? `<div style="padding:10px;border-radius:8px;background: rgba(255,255,255,0.02);margin-bottom:0.8rem; border: 1px solid rgba(255,255,255,0.02);"><strong style="color: var(--accent-strong); padding: 4px 6px; border-radius:6px;">Atividade:</strong> ${nl2br(activityVal)}</div>` : '';
+  const respMatHtml = (responsavelVal || matriculaVal) ? `<div style="padding:8px;border-radius:8px;background: rgba(255,255,255,0.01); margin-bottom:0.6rem; border:1px solid rgba(255,255,255,0.02); display:flex; gap:12px; align-items:center; flex-wrap:wrap;"><div style="flex:1;"><strong>Responsável:</strong> ${responsavelVal || '-'}</div><div style="min-width:120px;"><strong>Matrícula:</strong> ${matriculaVal || '-'}</div></div>` : '';
+  const obsHtml = obsVal ? `<div class="preview-entry" style="margin-bottom:0.6rem;"><strong>Observações gerais:</strong><div style="margin-top:6px">${nl2br(obsVal)}</div></div>` : '';
+
+  const members = draft.members || [];
+
+  if (!members.length) {
+    previewContent.innerHTML = activityHtml + respMatHtml + obsHtml + '<div style="padding:18px;color:var(--muted)"><i class="fas fa-info-circle"></i> Nenhum colaborador (preview local).</div>';
+    return;
+  }
+
+  const recordsHtml = members.map(r => {
+    // aqui usamos apenas valores do draft (padrão simples, sem timestamps)
+    const date = draft.dateOnly || '-';
+    const obs = (r.obs || r.observacoes || '') || '';
+    return `
+      <div class="preview-entry">
+        <div class="info">
+          <div><i class="fas fa-calendar-day"></i> ${escapeHtml(date)}</div>
+          <div><i class="fas fa-user"></i> ${escapeHtml(r.name || '-')}</div>
+          <div><i class="fas fa-id-badge"></i> ${escapeHtml(r.matricula || '-')}</div>
+          <div><i class="fas fa-map-marker-alt"></i> ${escapeHtml(r.local || '-')}</div>
+          <div><i class="fas fa-warehouse"></i> ${escapeHtml(r.galpao || '-')}</div>
+          <div><i class="fas fa-stream"></i> ${escapeHtml(r.details || '-')}</div>
+          ${obs ? `<div style="width:100%; margin-top:6px"><i class="fas fa-clipboard"></i> ${nl2br(obs)}</div>` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  previewContent.innerHTML = activityHtml + respMatHtml + obsHtml + recordsHtml;
+}
+
+// Debounced auto-sync when user types to keep preview responsive but não excessivo
+const debouncedRender = debounce(() => renderPreviewFromDraft(), 260);
+
+// Attaches listeners to inputs to update draft (local preview) without Firebase
+if (activityInput) activityInput.addEventListener('input', debouncedRender);
+if (responsavelInput) responsavelInput.addEventListener('input', debouncedRender);
+if (matriculaInput) matriculaInput.addEventListener('input', debouncedRender);
+if (obsGeralInput) obsGeralInput.addEventListener('input', debouncedRender);
+if (dateSelect) dateSelect.addEventListener('change', () => { draft.dateOnly = dateSelect.value; renderPreviewFromDraft(); });
+if (teamSelect) teamSelect.addEventListener('change', () => { draft.teamId = teamSelect.value; renderPreviewFromDraft(); });
+
+// Atualizar pré-visualização (botão) — agora aponta para a versão local (sem Firebase)
+if (openPreviewBtn) {
+  openPreviewBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    // garante que sincroniza do form para o draft antes de mostrar
+    syncDraftFromForm();
+    renderPreviewFromDraft();
+    showNotification('Pré-visualização atualizada localmente.', 'success');
+  });
+}
+
+/*
+  Quando o parser de PDF (ou handler de upload) já popula `currentRecords`, chame:
+    setDraftMembers(parsedMembers);
+  Isso alimenta o draft e atualiza a pré-visualização sem uso do Firebase.
+  Exemplo no seu handler de upload (onde você faz parsed.members):
+    setDraftMembers(parsed.members || []);
+*/
+
+// Opcional: se quiser que o botão "Enviar lotes" preencha o draft com currentRecords atuais
+if (bulkSend) bulkSend.addEventListener('click', (ev) => {
+  // se currentRecords já tiver sido preenchido por parsing, sincroniza para draft e atualiza preview
+  if (currentRecords && currentRecords.length) {
+    setDraftMembers(currentRecords.map(r => ({
+      name: r.name || r.nome || '',
+      matricula: r.memberMatricula || r.matricula || '',
+      local: r.local || r.galpao || '',
+      galpao: r.galpao || r.local || '',
+      details: r.details || ''
+    })));
+  } else {
+    // se não houver currentRecords (modo manual), apenas atualiza a pré-visualização do formulário
+    syncDraftFromForm();
+    renderPreviewFromDraft();
+  }
+});
+
+
     bulkSend && bulkSend.addEventListener('click', ()=>{
       bulkSend.innerText = 'Enviando...';
       setTimeout(()=> bulkSend.innerText = 'Enviar lotes', 900);
