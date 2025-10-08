@@ -1171,25 +1171,124 @@ nav ul li a:focus {
   --shadow-light: 0 4px 12px rgba(0,0,0,.25);
   --anim-duration-default: 0.4s;
   --anim-duration-mobile: 0.18s;
+  --glass-dark-base: rgba(255,255,255,0.02);   /* vidro sutil */
+  --glass-dark-top: rgba(255,255,255,0.01);
+  --dark-overlay: rgba(0,0,0,0.60);
 }
 
 body::before { animation: none !important; will-change: auto !important; }
 
-  /* sidebar: visual leve por padrão (fechada) */
+/* variáveis específicas (escuro, sem verde) */
+:root{
+  --glass-dark-base: rgba(255,255,255,0.02);   /* vidro sutil */
+  --glass-dark-top: rgba(255,255,255,0.01);
+  --dark-overlay: rgba(0,0,0,0.60);            /* camada escura por cima do glass */
+  --sidebar-text-high: rgba(225,239,230,0.98);
+  --sidebar-muted-high: rgba(225,239,230,0.72);
+  --sidebar-border-strong: rgba(255,255,255,0.06);
+  --sidebar-backdrop-mobile: blur(6px) saturate(120%) brightness(.56) contrast(1.03);
+  --sidebar-backdrop-closed: blur(4px) saturate(110%) brightness(.64);
+}
+
+/* mobile / tablet: glass escuro + overlay para contraste */
+@media (max-width:1000px) {
+
   .sidebar {
-    /* blur e sombra reduzidos */
-    backdrop-filter: blur(var(--sidebar-blur-mobile)) saturate(120%);
-    box-shadow: none;
-    border-right: 1px solid rgba(255,255,255,0.03);
-    /* altura reduzida por padrão e overflow hidden => menos repaints */
-    height: auto;
-    max-height: 80px;
+    position: fixed; /* mantém comport. */
+    /* camada base: vidro muito sutil + overlay escuro para contraste forte */
+    background:
+      linear-gradient(180deg, var(--glass-dark-top), var(--glass-dark-base));
+    -webkit-backdrop-filter: var(--sidebar-backdrop-mobile);
+    backdrop-filter: var(--sidebar-backdrop-mobile);
+    border-bottom: 1px solid var(--sidebar-border-strong);
+    color: var(--sidebar-text-high);
+    box-shadow: none;             /* evita repaints caros */
+    transition: max-height 0.28s ease, transform 0.28s ease, box-shadow 0.28s ease;
     overflow: hidden;
-    transition: max-height var(--anim-duration-mobile) ease, box-shadow var(--anim-duration-mobile) ease;
+    z-index: 1000;
   }
 
-  /* conteúdo interno do nav fica oculto até abrir */
-  #sidebarNav { opacity: 0; transition: opacity var(--anim-duration-mobile) ease, transform var(--anim-duration-mobile) ease; }
+  /* pseudo-camada escura que garante contraste mesmo sem white/green */
+  .sidebar::after{
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(180deg, var(--dark-overlay), rgba(0,0,0,0.36));
+    z-index: 1;
+    border-radius: inherit;
+    mix-blend-mode: normal;
+  }
+
+  /* conteúdo acima da camada escura */
+  .sidebar > * { position: relative; z-index: 2; }
+
+  /* versão "fechada" (economia) - blur reduzido */
+  .sidebar:not(.active) {
+    -webkit-backdrop-filter: var(--sidebar-backdrop-closed);
+    backdrop-filter: var(--sidebar-backdrop-closed);
+    max-height: 80px; /* padrão fechado */
+  }
+
+  /* quando abrir: revela suavemente sem repaint pesado */
+  .sidebar.active {
+    max-height: 520px;
+    transform: translateY(0);
+    overflow-y: auto;
+  }
+
+  /* nav / links: cores mais legíveis */
+  nav ul li a {
+    color: var(--sidebar-muted-high);
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.02);
+  }
+
+  nav ul li a:hover,
+  nav ul li a.active {
+    color: var(--sidebar-text-high);
+    background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+    border-color: rgba(255,255,255,0.08);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.35);
+    transform: translateX(4px);
+  }
+
+  /* hamburger: mais visível sobre o overlay escuro */
+  .hamburger {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: var(--sidebar-text-high);
+    z-index: 4;
+  }
+
+  /* transições suaves usando transform (GPU) */
+  #sidebarNav {
+    opacity: 0;
+    transform: translateY(-8px);
+    transition: opacity 0.26s ease, transform 0.26s ease;
+    z-index: 2;
+    pointer-events: none; /* evita clicks quando invisível */
+  }
+  .sidebar.active #sidebarNav {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  /* foco de acessibilidade com alto contraste */
+  nav ul li a:focus {
+    outline: none;
+    box-shadow: 0 8px 26px rgba(0,0,0,0.5), 0 0 0 4px rgba(255,255,255,0.04);
+    color: var(--sidebar-text-high);
+  }
+
+  nav ul li a:hover, nav ul li a.active {
+  transform: translateX(3px);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+}
+.sidebar.active::-webkit-scrollbar-thumb { border-radius: 8px; }
+}
+
 
   /* botões e inputs: desativa will-change pesado */
   .btn, .form-row input, .form-row select, .form-row textarea {
@@ -1207,7 +1306,6 @@ body::before { animation: none !important; will-change: auto !important; }
 
   /* ao clicar no hamburger — ativa visual completo e exibe nav */
   body.sidebar-open .sidebar {
-    max-height: 520px;
     box-shadow: var(--shadow-heavy);
     backdrop-filter: blur(var(--sidebar-blur-default)) saturate(140%);
   }
