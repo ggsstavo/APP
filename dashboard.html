@@ -20,15 +20,15 @@
     /* ===== LUXURY VARIABLES ===== */
     :root {
       --bg: #0b0c0f;
-      --card: rgba(255,255,255,0.06);
-      --glass: rgba(255,255,255,0.04);
+      --card: rgba(255,255,255,0.04);
+      --glass: rgba(255,255,255,0.03);
       --accent: #9fccb1;
       --accent-strong: #3b82f6;
       --secondary: #39666b;
       --text: #e1efe6;
-      --muted: rgba(225,239,230,0.6);
-      --muted-2: rgba(225,239,230,0.45);
-      --neumo-shadow: 10px 10px 20px rgba(0,0,0,0.6), -6px -6px 16px rgba(255,255,255,0.02);
+      --muted: rgba(225,239,230,0.68);
+      --muted-2: rgba(225,239,230,0.48);
+      --neumo-shadow: 0 8px 20px rgba(0,0,0,0.45);
       --radius: 14px;
       --max-width: 1200px;
       --gap: 18px;
@@ -41,7 +41,7 @@
       --success: #10b981;
       --sidebar-w: 260px;
       --soft-border: rgba(255,255,255,0.08);
-      --input-bg: rgba(255,255,255,0.03);
+      --input-bg: rgba(255,255,255,0.02);
       --input-border: rgba(255,255,255,0.08);
     }
 
@@ -65,7 +65,9 @@
     position:fixed;
     top:0;left:0;
     width:100%;height:100%;
-    background:radial-gradient(circle at 20% 50%,rgb(159 204 177 / .03) 0%,transparent 50%),radial-gradient(circle at 80% 20%,rgb(57 102 107 / .04) 0%,transparent 50%);
+    background:
+    radial-gradient(circle at 20% 50%, rgba(159,204,177,0.02) 0%, transparent 45%),
+    radial-gradient(circle at 80% 20%, rgba(110,116,120,0.03) 0%, transparent 50%);
     z-index:-1;
     will-change:transform;
     transform:translateZ(0);
@@ -108,7 +110,7 @@
       left: 0;
       height: 100vh;
       z-index: 60;
-      backdrop-filter: blur(8px) saturate(120%);
+      backdrop-filter: blur(6px) saturate(110%);
       border-right: 1px solid rgba(255, 255, 255, 0.03);
       overflow-y: auto;
     }
@@ -318,10 +320,8 @@
 
     .panel:hover, .form-section:hover {
       transform: translateY(-2px);
-      box-shadow:
-        0 12px 40px rgba(0, 0, 0, 0.4),
-        inset 0 1px 0 rgba(255, 255, 255, 0.15);
-      border-color: rgba(159, 204, 177, 0.2);
+      box-shadow: 0 12px 30px rgba(0,0,0,0.5);
+      border-color: rgba(159,204,177,0.10);
     }
 
     @media (hover: hover) and (pointer: fine) {
@@ -383,14 +383,14 @@
     .form-row select,
     .form-row textarea {
       flex: 2 1 200px;
-      padding: 10px 14px;
+      padding: 12px 14px;
       background: var(--input-bg);
       border: 1px solid var(--input-border);
       border-radius: 10px;
       font-size: 14px;
       color: var(--text);
       font-weight: 300;
-      backdrop-filter: blur(8px);
+      backdrop-filter: blur(4px);
       transition: all 0.3s var(--hover-ease);
       font-family: inherit;
     }
@@ -404,7 +404,6 @@
       box-shadow:
         0 0 0 3px rgba(159, 204, 177, 0.1),
         0 4px 12px rgba(0, 0, 0, 0.2);
-      transform: translateY(-1px);
     }
 
     .form-row textarea {
@@ -459,9 +458,7 @@
     .radio-group input[type="radio"]:checked + label::before {
       border-color: var(--accent);
       background: rgba(159, 204, 177, 0.1);
-      box-shadow:
-        0 0 0 4px rgba(159, 204, 177, 0.1),
-        inset 0 0 0 4px var(--accent);
+      box-shadow: inset 0 0 0 4px var(--accent);
     }
 
     /* ===== BUTTONS (PRIMARY USE GRADIENT, SUBMIT GREEN, DELETE RED) ===== */
@@ -470,7 +467,7 @@
       background: var(--btn-grad);
       color: var(--cta-contrast);
       padding: 10px 20px;
-      border: 1px solid rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255,255,255,0.04);
       border-radius: 10px;
       cursor: pointer;
       font-weight: 500;
@@ -487,20 +484,6 @@
       gap: 8px;
       box-shadow: 0 12px 40px rgba(79,70,229,0.12), inset 0 -6px 18px rgba(255,255,255,0.02);
       will-change:transform,box-shadow;
-    }
-
-    .btn::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg,
-        transparent,
-        rgba(255, 255, 255, 0.08),
-        transparent);
-      transition: left 0.5s ease;
     }
 
     .btn:hover::before {
@@ -630,7 +613,7 @@
     }
 
     th {
-      background: rgba(159, 204, 177, 0.08);
+      background: rgba(110,116,120,0.06);
       color: var(--text);
       font-weight: 600;
       font-size: 12px;
@@ -730,16 +713,14 @@
     }
 
     .notification-content {
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: linear-gradient(180deg, rgba(11,12,15,0.95), rgba(16,18,17,0.98));
+      border: 1px solid rgba(110,116,120,0.10);
       padding: 28px 32px;
       max-width: 420px;
       width: 90%;
       text-align: center;
       border-radius: 14px;
-      box-shadow:
-        0 20px 60px rgba(0, 0, 0, 0.4),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.7);
       animation: modalSlideIn 0.4s var(--hover-ease);
     }
 
@@ -1192,6 +1173,7 @@ body::before { animation: none !important; will-change: auto !important; }
 
 /* mobile / tablet: glass escuro + overlay para contraste */
 @media (max-width:1000px) {
+  body::before { display: none; }
 
   .sidebar {
     position: fixed; /* mantém comport. */
@@ -1829,8 +1811,8 @@ body::before { animation: none !important; will-change: auto !important; }
     }
 
     .btn, .form-row input, .form-row select, .form-row textarea {
-      will-change: transform, box-shadow;
-    }
+  will-change: auto !important;
+}
 
     .hidden {
       display: none !important;
