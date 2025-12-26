@@ -1,0 +1,1239 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Estrutura | Acesso Rápido</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="icon" type="image/png" href="./favicon/favicon-96x96.png" sizes="96x96" />
+<link rel="icon" type="image/svg+xml" href="./favicon/favicon.svg" />
+<link rel="shortcut icon" href="./favicon/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="./favicon/apple-touch-icon.png" />
+<link rel="manifest" href="./favicon/site.webmanifest" />
+  <style>
+    :root {
+      --bg: #0a0b0e;
+      --surface: #13141a;
+      --card: #1a1c24;
+      --accent: #9fccb1;
+      --accent-hover: #7db89a;
+      --accent-light: #c4e0d1;
+      --text: #e8eaed;
+      --text-muted: #9ca3af;
+      --text-subtle: #6b7280;
+      --border: rgba(255,255,255,0.06);
+      --border-hover: rgba(255,255,255,0.12);
+      --radius: 16px;
+      --radius-sm: 12px;
+      --shadow-sm: 0 2px 8px rgba(0,0,0,0.2);
+      --shadow-md: 0 8px 24px rgba(0,0,0,0.3);
+      --shadow-lg: 0 16px 48px rgba(0,0,0,0.4);
+      --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      --secondary: #39666b;
+    }
+
+    * { 
+      box-sizing: border-box; 
+      margin: 0;
+      padding: 0;
+    }
+    
+    html, body { 
+      height: 100%; 
+    }
+    
+    body {
+      background: var(--bg);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      padding: 32px;
+    }
+
+    .container {
+      max-width: 1440px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    header {
+      margin-bottom: 48px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .logo {
+      width: 52px;
+      height: 52px;
+      background: linear-gradient(135deg, var(--accent), var(--secondary));
+      border-radius: var(--radius-sm);
+      display: grid;
+      place-items: center;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .brand-text h1 {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-text p {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    /* Search */
+    .search-box {
+      position: relative;
+      width: 100%;
+      max-width: 480px;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 14px 48px 14px 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-size: 15px;
+      transition: var(--transition);
+    }
+
+    .search-box input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(159, 204, 177, 0.15);
+    }
+
+    .search-box i {
+      position: absolute;
+      right: 18px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-subtle);
+      font-size: 16px;
+    }
+
+    /* Controls */
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 32px;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .hint {
+      font-size: 14px;
+      color: var(--text-subtle);
+    }
+
+    .hint kbd {
+      display: inline-block;
+      padding: 2px 6px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-size: 12px;
+      font-family: monospace;
+      margin: 0 2px;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn:hover {
+      background: var(--surface);
+      border-color: var(--border-hover);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--secondary));
+      border: none;
+      color: white;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    /* Cards Grid */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+      gap: 28px;
+      margin-bottom: 48px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      transition: var(--transition);
+      min-height: 240px;
+    }
+
+    .card:hover {
+      border-color: var(--border-hover);
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .card-icon {
+      width: 64px;
+      height: 64px;
+      background: linear-gradient(135deg, rgba(159, 204, 177, 0.15), rgba(125, 184, 154, 0.08));
+      border-radius: var(--radius-sm);
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+      border: 1px solid var(--border);
+    }
+
+    .card-icon i {
+      font-size: 26px;
+      color: var(--accent);
+    }
+
+    .card-title-section {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .card h3 {
+      font-size: 19px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      letter-spacing: -0.01em;
+    }
+
+    .card-subtitle {
+      font-size: 13px;
+      color: var(--text-subtle);
+      line-height: 1.4;
+    }
+
+    .fav-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-subtle);
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 8px;
+      transition: var(--transition);
+      font-size: 18px;
+    }
+
+    .fav-btn:hover {
+      background: var(--surface);
+      color: var(--accent);
+    }
+
+    .fav-btn[aria-pressed="true"] {
+      color: #fbbf24;
+    }
+
+    .card-description {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      flex: 1;
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: auto;
+    }
+
+    .card-actions .btn {
+      flex: 1;
+      justify-content: center;
+    }
+
+    /* Footer */
+    footer {
+      padding: 24px 0;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    footer div {
+      font-size: 14px;
+      color: var(--text-subtle);
+    }
+
+    footer strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    /* Responsive */
+    @media (max-width: 1200px) {
+      .cards-grid {
+        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      }
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 20px;
+      }
+
+      header {
+        flex-direction: column;
+        align-items: stretch;
+        margin-bottom: 32px;
+      }
+
+      .search-box {
+        max-width: 100%;
+      }
+
+      .cards-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+
+      .card {
+        padding: 24px;
+        min-height: auto;
+      }
+
+      .controls {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .btn-group {
+        flex-direction: column;
+      }
+
+      footer {
+        flex-direction: column;
+        text-align: center;
+        gap: 12px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .card-header {
+        flex-wrap: wrap;
+      }
+
+      .card-icon {
+        width: 56px;
+        height: 56px;
+      }
+
+      .card-icon i {
+        font-size: 22px;
+      }
+
+      .card-actions {
+        flex-direction: column;
+      }
+    }
+
+    /* ===== Info modal (added) ===== */
+    .info-modal {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1200;
+      padding: 16px; /* garante espaçamento em telas pequenas */
+    }
+
+    .info-modal.open { display: flex; }
+
+    .info-modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.42); /* fundo semi-transparente */
+      transition: opacity 200ms ease;
+    }
+
+    .info-modal-panel {
+      position: relative;
+      width: min(880px, calc(100% - 48px));
+      background: var(--card); /* painel com a mesma cor dos cards */
+      border: 1px solid var(--border-hover);
+      box-shadow: var(--shadow-lg);
+      border-radius: 14px;
+      padding: 20px 20px 18px 20px;
+      z-index: 2;
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      opacity: 0;
+      transform-origin: center top;
+      transform: translateY(8px) scale(0.98);
+    }
+
+    /* animação de entrada */
+    .info-modal.open .info-modal-backdrop {
+      animation: backdrop-in 220ms ease both;
+    }
+
+    .info-modal.open .info-modal-panel {
+      animation: modal-in 220ms cubic-bezier(0.2, 0, 0, 1) both;
+    }
+
+    @keyframes backdrop-in {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes modal-in {
+      from { opacity: 0; transform: translateY(10px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .info-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+      position: relative; /* para permitir botão X absoluto */
+    }
+
+    .info-modal-header h4 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    /* botão X posicionado absoluto para ficar sempre no canto superior direito do painel */
+    .info-modal-close {
+      position: absolute;
+      top: -12px;
+      right: 12px;
+      background: transparent;
+      border: 1px solid var(--border);
+      padding: 6px 10px;
+      border-radius: 10px;
+      color: var(--text);
+      cursor: pointer;
+      z-index: 4;
+      height: 36px;
+      min-width: 36px;
+      display: inline-grid;
+      place-items: center;
+      font-size: 18px;
+    }
+
+    .info-modal-body {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      padding-top: 8px;
+      max-height: 60vh;
+      overflow: auto;
+    }
+
+    .info-modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      padding-top: 8px;
+    }
+
+    .info-modal .btn {
+      padding: 8px 14px;
+      font-size: 14px;
+    }
+
+    /* Ajustes responsivos: garantir que o X esteja sempre visível e o painel não ocupe toda a largura */
+    @media (max-width: 480px) {
+      .info-modal-panel {
+        width: calc(100% - 32px);
+        padding: 16px;
+        border-radius: 12px;
+      }
+
+      .info-modal-close {
+        top: -10px;
+        right: 10px;
+        padding: 8px;
+        height: 36px;
+        min-width: 36px;
+      }
+
+      .info-modal-header h4 {
+        font-size: 16px;
+      }
+    }
+
+    /* ===== SCROLLBAR STYLING ===== */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(159, 204, 177, 0.3);
+      border-radius: 4px;
+      transition: background 0.3s ease;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(159, 204, 177, 0.5);
+    }
+
+    /* ===== LOADING STATES ===== */
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    .btn:disabled:hover {
+      transform: none !important;
+      box-shadow: var(--neumo-shadow);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand">
+        <div class="logo">
+          <img src="./favicon/favicon.svg" alt="" style="width: 75%;">
+        </div>
+        <div class="brand-text">
+          <h1>Estrutura | Acesso Rápido</h1>
+          <p>Acesse tarefas comuns com um clique</p>
+        </div>
+      </div>
+      <div class="search-box">
+        <input id="search" type="text" placeholder="Pesquisar dashboards..." aria-label="Pesquisar">
+        <i class="fa-solid fa-magnifying-glass"></i>
+      </div>
+    </header>
+
+    <main>
+      <div class="controls">
+        <div class="hint">
+          Atalhos: <kbd>1</kbd> – <kbd>9</kbd> para abrir ações rápidas
+        </div>
+        <div class="btn-group">
+          <button class="btn" id="btn-fav-toggle">
+            <i class="fa-regular fa-star"></i>
+            Mostrar Favoritos
+          </button>
+          <button class="btn btn-primary" id="btn-new">
+            <i class="fa-solid fa-plus"></i>
+            Nova Apropriação
+          </button>
+        </div>
+      </div>
+
+      <div class="cards-grid" id="cards">
+        <!-- existing cards (unchanged) -->
+        <!-- ... (kept identical to original) -->
+
+        <!-- Card: Apropriações -->
+        <article class="card" data-id="apropriacoes" tabindex="0">
+          <div class="card-header">
+            <div class="card-icon">
+              <i class="fa-solid fa-clipboard-list"></i>
+            </div>
+            <div class="card-title-section">
+              <h3>Apropriações</h3>
+              <div class="card-subtitle">Registrar e revisar apropriações por equipe</div>
+            </div>
+            <button class="fav-btn" data-fav data-id="apropriacoes" aria-pressed="false" title="Favoritar">
+              <i class="fa-regular fa-star"></i>
+            </button>
+          </div>
+          <p class="card-description">Fluxo diário para registrar horas, atividades e verificar pendências rapidamente.</p>
+          <div class="card-actions">
+            <button class="btn btn-primary" data-action="open" data-target="apropriacoes">
+              <i class="fa-solid fa-arrow-right"></i>
+              Ir Apropriar
+            </button>
+            <button class="btn" data-action="info" data-target="apropriacoes">
+              <i class="fa-solid fa-circle-info"></i>
+              Detalhes
+            </button>
+          </div>
+        </article>
+
+        <!-- (other cards omitted for brevity in this file but present in original) -->
+
+        <!-- Card: Abono -->
+        <article class="card" data-id="abono" tabindex="0">
+          <div class="card-header">
+            <div class="card-icon">
+              <i class="fa-solid fa-user-clock"></i>
+            </div>
+            <div class="card-title-section">
+              <h3>Abono</h3>
+              <div class="card-subtitle">Solicitar ou aprovar abonos e ausências</div>
+            </div>
+            <button class="fav-btn" data-fav data-id="abono" aria-pressed="false" title="Favoritar">
+              <i class="fa-regular fa-star"></i>
+            </button>
+          </div>
+          <p class="card-description">Registre pedidos de abono com justificativa e encaminhe para aprovação rapidamente.</p>
+          <div class="card-actions">
+            <button class="btn btn-primary" data-action="open" data-target="abono">
+              <i class="fa-solid fa-arrow-right"></i>
+              Ir para Abono
+            </button>
+            <button class="btn" data-action="info" data-target="abono">
+              <i class="fa-solid fa-circle-info"></i>
+              Detalhes
+            </button>
+          </div>
+        </article>
+
+        <!-- Card: Anotações -->
+        <article class="card" data-id="anotacoes" tabindex="0">
+          <div class="card-header">
+            <div class="card-icon">
+              <i class="fa-solid fa-sticky-note"></i>
+            </div>
+            <div class="card-title-section">
+              <h3>Anotações</h3>
+              <div class="card-subtitle">Notas rápidas e observações do dia</div>
+            </div>
+            <button class="fav-btn" data-fav data-id="anotacoes" aria-pressed="false" title="Favoritar">
+              <i class="fa-regular fa-star"></i>
+            </button>
+          </div>
+          <p class="card-description">Espaço para registrar observações, instruções e informações importantes.</p>
+          <div class="card-actions">
+            <button class="btn btn-primary" data-action="open" data-target="anotacoes">
+              <i class="fa-solid fa-arrow-right"></i>
+              Ir para Anotações
+            </button>
+            <button class="btn" data-action="info" data-target="anotacoes">
+              <i class="fa-solid fa-circle-info"></i>
+              Detalhes
+            </button>
+          </div>
+        </article>
+
+        <!-- Card: Apontamentos -->
+        <article class="card" data-id="apontamentos" tabindex="0">
+          <div class="card-header">
+            <div class="card-icon">
+              <i class="fa-solid fa-pen-to-square"></i>
+            </div>
+            <div class="card-title-section">
+              <h3>Apontamentos</h3>
+              <div class="card-subtitle">Registrar apontamentos técnicos e operacionais</div>
+            </div>
+            <button class="fav-btn" data-fav data-id="apontamentos" aria-pressed="false" title="Favoritar">
+              <i class="fa-regular fa-star"></i>
+            </button>
+          </div>
+          <p class="card-description">Registre apontamentos de produção, ocorrências ou medições com facilidade.</p>
+          <div class="card-actions">
+            <button class="btn btn-primary" data-action="open" data-target="apontamentos">
+              <i class="fa-solid fa-arrow-right"></i>
+              Ir para Apontamentos
+            </button>
+            <button class="btn" data-action="info" data-target="apontamentos">
+              <i class="fa-solid fa-circle-info"></i>
+              Detalhes
+            </button>
+          </div>
+        </article>
+
+        <!-- Card: Configurações -->
+        <article class="card" data-id="configuracoes" tabindex="0">
+          <div class="card-header">
+            <div class="card-icon">
+              <i class="fa-solid fa-gears"></i>
+            </div>
+            <div class="card-title-section">
+              <h3>Configurações</h3>
+              <div class="card-subtitle">Preferências do aplicativo e conta</div>
+            </div>
+            <button class="fav-btn" data-fav data-id="configuracoes" aria-pressed="false" title="Favoritar">
+              <i class="fa-regular fa-star"></i>
+            </button>
+          </div>
+          <p class="card-description">Acesse configurações de conta, integrações, temas e comportamento do sistema.</p>
+          <div class="card-actions">
+            <button class="btn btn-primary" data-action="open" data-target="configuracoes">
+              <i class="fa-solid fa-arrow-right"></i>
+              Configurações
+            </button>
+            <button class="btn" data-action="info" data-target="configuracoes">
+              <i class="fa-solid fa-circle-info"></i>
+              Detalhes
+            </button>
+          </div>
+        </article>
+
+        <!-- Card: Diário de Obra -->
+        <article class="card" data-id="diario" tabindex="0">
+          <div class="card-header">
+            <div class="card-icon">
+              <i class="fa-solid fa-book"></i>
+            </div>
+            <div class="card-title-section">
+              <h3>Diário de Obra</h3>
+              <div class="card-subtitle">Registro diário de atividades</div>
+            </div>
+            <button class="fav-btn" data-fav data-id="diario" aria-pressed="false" title="Favoritar">
+              <i class="fa-regular fa-star"></i>
+            </button>
+          </div>
+          <p class="card-description">Registre ocorrências, condições climáticas, equipes presentes e observações do dia.</p>
+          <div class="card-actions">
+            <button class="btn btn-primary" data-action="open" data-target="diario">
+              <i class="fa-solid fa-arrow-right"></i>
+              Ir para Diário
+            </button>
+            <button class="btn" data-action="info" data-target="diario">
+              <i class="fa-solid fa-circle-info"></i>
+              Detalhes
+            </button>
+          </div>
+        </article>
+
+        <!-- Card: Efetivo -->
+        <article class="card" data-id="efetivo" tabindex="0">
+          <div class="card-header">
+            <div class="card-icon">
+              <i class="fa-solid fa-users"></i>
+            </div>
+            <div class="card-title-section">
+              <h3>Efetivo</h3>
+              <div class="card-subtitle">Pesquisar colaboradores e cargos</div>
+            </div>
+            <button class="fav-btn" data-fav data-id="efetivo" aria-pressed="false" title="Favoritar">
+              <i class="fa-regular fa-star"></i>
+            </button>
+          </div>
+          <p class="card-description">Abra a lista de colaboradores do setor para informações rápidas.</p>
+          <div class="card-actions">
+            <button class="btn btn-primary" data-action="open" data-target="efetivo">
+              <i class="fa-solid fa-arrow-right"></i>
+              Ir para Efetivo
+            </button>
+            <button class="btn" data-action="info" data-target="efetivo">
+              <i class="fa-solid fa-circle-info"></i>
+              Detalhes
+            </button>
+          </div>
+        </article>
+
+        <!-- Card: Equipes -->
+        <article class="card" data-id="equipes" tabindex="0">
+          <div class="card-header">
+            <div class="card-icon">
+              <i class="fa-solid fa-users-gear"></i>
+            </div>
+            <div class="card-title-section">
+              <h3>Equipes</h3>
+              <div class="card-subtitle">Gerenciar e visualizar equipes por projeto</div>
+            </div>
+            <button class="fav-btn" data-fav data-id="equipes" aria-pressed="false" title="Favoritar">
+              <i class="fa-regular fa-star"></i>
+            </button>
+          </div>
+          <p class="card-description">Edite e visualize equipes rapidamente para saber quais colaboradores foram apropriados.</p>
+          <div class="card-actions">
+            <button class="btn btn-primary" data-action="open" data-target="equipes">
+              <i class="fa-solid fa-arrow-right"></i>
+              Ir para Equipes
+            </button>
+            <button class="btn" data-action="info" data-target="equipes">
+              <i class="fa-solid fa-circle-info"></i>
+              Detalhes
+            </button>
+          </div>
+        </article>
+
+        <!-- Card: Observa+ -->
+        <article class="card" data-id="observa" tabindex="0">
+          <div class="card-header">
+            <div class="card-icon">
+              <i class="fa-solid fa-shield-halved"></i>
+            </div>
+            <div class="card-title-section">
+              <h3>Observa+</h3>
+              <div class="card-subtitle">Registro e gestão de observações de comportamento inseguro</div>
+            </div>
+            <button class="fav-btn" data-fav data-id="observa" aria-pressed="false" title="Favoritar">
+              <i class="fa-regular fa-star"></i>
+            </button>
+          </div>
+          <p class="card-description">Cadastre observações, anexe evidências e acompanhe ações corretivas até a resolução.</p>
+          <div class="card-actions">
+            <button class="btn btn-primary" data-action="open" data-target="observa">
+              <i class="fa-solid fa-arrow-right"></i>
+              Ir para Observa+
+            </button>
+            <button class="btn" data-action="info" data-target="observa">
+              <i class="fa-solid fa-circle-info"></i>
+              Detalhes
+            </button>
+          </div>
+        </article>
+
+      </div>
+
+      <footer>
+        <div>Pressione <strong>1</strong> – <strong>9</strong> para abrir os cards rapidamente</div>
+        <div>Sistema desenvolvido por <strong>Gustavo Carvalho</strong> | Setor de <strong>Estrutura</strong></div>
+      </footer>
+    </main>
+  </div>
+
+  <!-- Info modal (inserido) -->
+  <div class="info-modal" id="infoModal" aria-hidden="true">
+    <div class="info-modal-backdrop" data-close="true"></div>
+    <div class="info-modal-panel" role="dialog" aria-modal="true" aria-labelledby="infoModalTitle">
+      <header class="info-modal-header">
+        <h4 id="infoModalTitle">Título</h4>
+        <button class="info-modal-close" aria-label="Fechar" data-close="true">×</button>
+      </header>
+      <div class="info-modal-body" id="infoModalBody">Conteúdo</div>
+      <footer class="info-modal-footer">
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    // --- Autenticação otimizada (cache + rate-limit) ---
+const CACHE_KEY = 'auth_session';         // salvo pelo login
+const VALIDATION_KEY = 'auth_validated';  // sessão validada para esta aba
+let lastFirebaseRequest = 0;
+const FIREBASE_COOLDOWN = 3000; // 3s entre tentativas
+let isValidating = false;
+
+function getAuthCache() {
+  try {
+    const cached = localStorage.getItem(CACHE_KEY);
+    if (!cached) return null;
+    const cache = JSON.parse(cached);
+    if (!cache.uid || !cache.timestamp) {
+      localStorage.removeItem(CACHE_KEY);
+      sessionStorage.removeItem(VALIDATION_KEY);
+      return null;
+    }
+    return cache;
+  } catch {
+    localStorage.removeItem(CACHE_KEY);
+    sessionStorage.removeItem(VALIDATION_KEY);
+    return null;
+  }
+}
+
+function isSessionValidated() {
+  return sessionStorage.getItem(VALIDATION_KEY) === 'true';
+}
+
+async function validateAuthentication() {
+  if (isValidating) return { isAuthenticated: false };
+  isValidating = true;
+  try {
+    // 1) cache + sessão validada -> sem requests
+    const cachedAuth = getAuthCache();
+    if (cachedAuth && isSessionValidated()) {
+      return { isAuthenticated: true, user: { uid: cachedAuth.uid, ...cachedAuth.userData }, source: 'cache_validated' };
+    }
+
+    // 2) cache existe, mas sessão não validada -> try to validate with Firebase
+    if (cachedAuth && cachedAuth.uid) {
+      // se offline confia no cache
+      if (!navigator.onLine) {
+        sessionStorage.setItem(VALIDATION_KEY, 'true');
+        return { isAuthenticated: true, user: { uid: cachedAuth.uid, ...cachedAuth.userData }, source: 'cache_offline' };
+      }
+
+      // rate limiting: evita múltiplas validações em sequência
+      const now = Date.now();
+      if (now - lastFirebaseRequest < FIREBASE_COOLDOWN) {
+        sessionStorage.setItem(VALIDATION_KEY, 'true');
+        return { isAuthenticated: true, user: { uid: cachedAuth.uid, ...cachedAuth.userData }, source: 'cache_rate_limited' };
+      }
+
+      // valida com Firebase (com timeout)
+      try {
+        lastFirebaseRequest = now;
+        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Firebase timeout')), 3000));
+        const authPromise = new Promise((resolve) => {
+          const unsubscribe = onAuthStateChanged(auth, (user) => { unsubscribe(); resolve(user); });
+        });
+        const user = await Promise.race([authPromise, timeoutPromise]);
+        if (user && user.uid === cachedAuth.uid) {
+          sessionStorage.setItem(VALIDATION_KEY, 'true');
+          return { isAuthenticated: true, user: { uid: user.uid, email: user.email, ...cachedAuth.userData }, source: 'firebase_validated' };
+        } else {
+          localStorage.removeItem(CACHE_KEY);
+          sessionStorage.removeItem(VALIDATION_KEY);
+          return { isAuthenticated: false, source: 'firebase_rejected' };
+        }
+      } catch (error) {
+        // timeout ou falha -> degrade gracefully
+        if (error.message?.includes('timeout') || !navigator.onLine) {
+          sessionStorage.setItem(VALIDATION_KEY, 'true');
+          return { isAuthenticated: true, user: { uid: cachedAuth.uid, ...cachedAuth.userData }, source: 'cache_firebase_failed' };
+        }
+        localStorage.removeItem(CACHE_KEY);
+        sessionStorage.removeItem(VALIDATION_KEY);
+        return { isAuthenticated: false, source: 'firebase_error' };
+      }
+    }
+
+    // sem cache -> não autenticado
+    return { isAuthenticated: false, source: 'not_authenticated' };
+  } finally {
+    isValidating = false;
+  }
+}
+
+async function logout() {
+  try {
+    // limpa cache local do app
+    localStorage.removeItem(CACHE_KEY);
+    localStorage.removeItem('uid');
+    sessionStorage.removeItem(VALIDATION_KEY);
+
+    // reset estado local
+    currentUser = null;
+
+    // tenta signOut (se online) mas não bloqueia a navegação
+    if (navigator.onLine) {
+      try {
+        const { signOut } = await import("https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js");
+        await signOut(auth);
+      } catch (err) {
+        console.warn('Erro logout Firebase (não crítico):', err);
+      }
+    }
+
+    // redirect imediato
+    window.location.replace('./index.html');
+  } catch (err) {
+    console.error('Erro no logout:', err);
+    window.location.replace('./index.html');
+  }
+}
+
+    const cards = Array.from(document.querySelectorAll('.card'));
+    const favButtons = Array.from(document.querySelectorAll('[data-fav]'));
+    const search = document.getElementById('search');
+    const btnFavToggle = document.getElementById('btn-fav-toggle');
+    const btnNew = document.getElementById('btn-new');
+
+    const FAV_KEY = 'quick_access_favs_v1';
+    const favStore = JSON.parse(localStorage.getItem(FAV_KEY) || '[]');
+
+    function applyFavUI() {
+      favButtons.forEach(b => {
+        const id = b.dataset.id;
+        const pressed = favStore.includes(id);
+        b.setAttribute('aria-pressed', pressed);
+        b.innerHTML = pressed
+          ? '<i class="fa-solid fa-star"></i>'
+          : '<i class="fa-regular fa-star"></i>';
+      });
+    }
+
+    favButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.id;
+        const idx = favStore.indexOf(id);
+        if (idx === -1) favStore.push(id);
+        else favStore.splice(idx, 1);
+        localStorage.setItem(FAV_KEY, JSON.stringify(favStore));
+        applyFavUI();
+      });
+    });
+
+    applyFavUI();
+
+    const ROUTES = {
+  'apropriacoes': './dashboard.html',
+  'abono': './abono/abono.html',
+  'anotacoes': './anotar/anotar.html',
+  'apontamentos': './apontamentos/apontamentos.html',
+  'configuracoes': './configurações/configuração.html',
+  'diario': './diario/diario.html',
+  'efetivo': './efetivo/efetivo.html',
+  'equipes': './equipes/equipe.html',
+  'nova-apropriação': './dashboard.html',
+  'observa': 'https://detroitbrasil.qforms.com.br/QuestionarioWeb/ResponderQuestionarioLink?chave=ADC929D335B064357179BDBAE1686855'
+  // adicione/ajuste conforme sua estrutura de pastas/URLs
+};
+
+    document.addEventListener('click', e => {
+      const a = e.target.closest('[data-action]');
+      if (!a) return;
+      const action = a.dataset.action;
+      const target = a.dataset.target;
+      if (action === 'open') openTarget(target);
+      if (action === 'info') showInfo(target);
+    });
+
+    function openTarget(id, options = { newTab: false }) {
+  // 1) tenta pelo mapa de rotas
+  const url = ROUTES[id];
+  if (url) {
+    if (options.newTab) {
+      window.open(url, '_blank', 'noopener');
+    } else {
+      // navegação padrão na mesma aba
+      window.location.href = url;
+    }
+    return;
+  }
+
+  // 2) fallback: procura um atributo data-route no próprio card ou botão
+  const elWithRoute = document.querySelector(`[data-id="${id}"] [data-route], [data-target="${id}"][data-route]`);
+  if (elWithRoute && elWithRoute.dataset.route) {
+    if (options.newTab) window.open(elWithRoute.dataset.route, '_blank', 'noopener');
+    else window.location.href = elWithRoute.dataset.route;
+    return;
+  }
+
+  // 3) último recurso: log + notificação simples (substitua por toast se quiser)
+  console.warn('Rota não configurada para:', id);
+  alert('Rota não configurada para: ' + id);
+}
+
+    // Modal logic
+    const infoModal = document.getElementById('infoModal');
+    const infoModalTitle = document.getElementById('infoModalTitle');
+    const infoModalBody = document.getElementById('infoModalBody');
+    const infoModalCloseBtn = document.querySelector('.info-modal-close');
+
+    // Detailed info per card (HTML allowed)
+    const DETAILED_INFO = {
+      apropriacoes: `
+        <p>
+    Central de Apropriações: registre, aloque e descarregue as horas-homem (HH) da embarcação conforme os colaboradores vão trabalhando. Lance horas por colaborador, equipe e atividade, registre saidas mais antecipadas e acompanhe a alocação de mão-de-obra do dia até o fechamento. Permite revisão de pendências, reabertura de lançamentos e consolidação de totais por colaborador, equipe e embarcação.
+  </p>
+        <ul style="margin:8px 0 0 18px; color:var(--text-subtle); font-size:13px;">
+          <li>Registrar múltiplas atividades e turnos no mesmo dia.</li>
+    <li>Editar apropriações e reabra lançamentos.</li>
+    <li>Visualizar histórico e totais (HH) por período, equipe e embarcação.</li>
+    <li>Conferência e fechamento para apuração e controle de alocação.</li>
+        </ul>
+      `,
+      abono: `
+        <p>
+    Solicitação de Abono: preencha pedidos para abonar DSR (Descanso Semanal Remunerado), faltas ou saídas antecipadas mediante apresentação de justificativa e, quando aplicável, documentos comprobatórios.
+  </p>
+        <p style="margin-top:8px; color:var(--text-subtle); font-size:13px;">Observação: a folha de abono é gerada no fechamento do ponto e fica disponível para preenchimento todo dia <strong>20</strong> de cada mês. Pedidos fora do prazo serão avaliados conforme a política da empresa e podem ser submetidos a análise manual.</p>
+      `,
+      anotacoes: `
+        <p>
+    Anotações, caderno digital para registros importantes do responsável: lembretes operacionais, instruções de turno, observações de liderança e comunicações rápidas.
+    Substitui a agenda física com vantagem de buscar, editar, excluir e exportar registros. Ao baixar, o sistema gera um template pré-preechido com setor, empresa e o carimbo de data/hora da emissão.
+  </p>
+        <p style="margin-top:8px; color:var(--text-subtle); font-size:13px;">Use para registrar comunicados curtos que precisam ser relembrados.</p>
+      `,
+      apontamentos: `
+        <p>
+    Apontamentos, registro diário gerado após o envio das apropriações que reúne o que foi apontado no dia: atividades efetivamente realizadas, horas lançadas por colaborador, observações específicas sobre colaboradores e ocorrências relevantes. Cada apontamento traz identificação do autor, carimbo de data/hora e vínculo direto com a apropriação correspondente, facilitando a conferência operacional e a rastreabilidade.
+  </p>
+        <p style="margin-top:8px; color:var(--text-subtle); font-size:13px;">
+    Use esta área para revisar o que foi apropriado em um dia específico, consultar observações relacionadas a um colaborador. Filtros por data, equipe e colaborador agilizam a busca.
+  </p>
+
+  <ul style="margin:8px 0 0 18px; color:var(--text-subtle); font-size:13px;">
+    <li>Vinculação automática com a apropriação do dia.</li>
+    <li>Registro de observações por colaborador.</li>
+  </ul>
+      `,
+      configuracoes: `
+        <p>
+    Configurações do Aplicativo, ajuste preferências pessoais e do sistema: aparência (tema), dados de perfil (nome de usuário, cargo, setor), credenciais (email e senha) e integrações. Esta área concentra opções de privacidade, segurança e notificações para sua conta.
+  </p>
+        <p style="margin-top:8px; color:var(--text-subtle); font-size:13px;">Atenção: mudanças de email/senha afetam o login imediato.</p>
+      `,
+      diario: `
+        <p>
+    Diário de Obra, registre o relatório operacional do dia após o envio das apropriações: responsável pelo registro, matrículas e presença, descrição das atividades realizadas por cada colaborador e por equipe, ocorrências relevantes, condições (horário e local) e apontamentos técnicos ou de segurança. O diário deve conter informações objetivas que suportem o progresso da obra, auditoria e integração com relatórios de gestão.
+  </p>
+        <p style="margin-top:8px; color:var(--text-subtle); font-size:13px;">Aviso: Diário de obra apenas pode ser registrado após a apropriação.</p>
+      `,
+      efetivo: `
+        <p>
+    Efetivo, painel centralizado com todas as informações de entrada e vinculação dos colaboradores: nome completo, matrícula, cargo, nível e status operacional (alocado, emprestado, em INSS, ausente etc.). Exibe contagens consolidadas por função (quantidades), gráficos de distribuição por cargo e setor, e a localização atual de cada colaborador. Permite pesquisar por nome ou matrícula, filtrar por cargo, setor ou status e exportar listas para conferência, apropriações e integração com folha.
+  </p>
+        <p style="margin-top:8px; color:var(--text-subtle); font-size:13px;">Observação: use a pesquisa por matrícula para identificação rápida; os dados devem refletir o cadastro mais recente e o acesso a informações sensíveis é controlado por permissões para garantir conformidade e privacidade.</p>
+      `,
+      equipes: `
+        <p>
+    Equipes, área dedicada para visualizar e gerenciar as equipes após o envio das apropriações. Consulte a composição completa (membros e matrícula), quem é o responsável, data de criação, quantidade de integrantes e histórico de alterações. Use este espaço para editar nomes, atribuir ou remover membros e acessar rapidamente os detalhes de cada colaborador sem precisar navegar até a apropriação.
+  </p>
+        <p style="margin-top:8px; color:var(--text-subtle); font-size:13px;">Observação: mantenha as equipes atualizadas (por exemplo, grupos usados durante a semana) para agilizar futuras apropriações.</p>
+      `,
+      observa: `
+        <p>O Observa+ é uma ferramenta para registrar observações de comportamento inseguro de forma confidencial e orientadora. Seu objetivo é prevenir acidentes por meio de intervenções humanas, não punitivas: o responsável identifica o risco, aborda o colaborador de maneira respeitosa e registra os fatos e as ações combinadas.</p>
+        <p style="margin-top:8px; color:var(--text-subtle); font-size:13px;">Dica: Anexe fotos para melhorar as evidências.</p>
+      `
+    };
+
+    function showModal(title, htmlContent) {
+      infoModalTitle.textContent = title;
+      infoModalBody.innerHTML = htmlContent;
+      infoModal.classList.add('open');
+      infoModal.setAttribute('aria-hidden', 'false');
+      // prevent background scroll
+      document.documentElement.style.overflow = 'hidden';
+      document.body.style.overflow = 'hidden';
+      // focus the X close button for accessibility
+      if (infoModalCloseBtn) infoModalCloseBtn.focus();
+    }
+
+    function closeModal() {
+      infoModal.classList.remove('open');
+      infoModal.setAttribute('aria-hidden', 'true');
+      document.documentElement.style.overflow = ''; 
+      document.body.style.overflow = '';
+    }
+
+    // Close triggers: backdrop click, X button, Escape
+    infoModal.addEventListener('click', (e) => {
+      const c = e.target.closest('[data-close]');
+      if (c) closeModal();
+    });
+
+    if (infoModalCloseBtn) infoModalCloseBtn.addEventListener('click', closeModal);
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && infoModal.classList.contains('open')) {
+        closeModal();
+      }
+    });
+
+    function showInfo(id) {
+      const card = document.querySelector('.card[data-id="' + id + '"]');
+      if (!card) return;
+      const title = card.querySelector('h3').textContent;
+      // try to get a dedicated detailed HTML description; fallback to subtitle+description
+      const detailed = DETAILED_INFO[id];
+      if (detailed) {
+        showModal(title, detailed);
+        return;
+      }
+      const desc = card.querySelector('.card-description').textContent;
+      const subtitle = card.querySelector('.card-subtitle') ? card.querySelector('.card-subtitle').textContent : '';
+      const html = `
+        <p style="margin:0 0 10px 0; color: var(--text-muted);">${escapeHtml(desc)}</p>
+        ${subtitle ? `<p style=\"margin:0 0 10px 0; color: var(--text-subtle); font-size:13px;\">${escapeHtml(subtitle)}</p>` : ''}
+      `;
+      showModal(title, html);
+    }
+
+    // simple escape to avoid injection (keeps markup minimal) to avoid injection (keeps markup minimal)
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    window.addEventListener('keydown', e => {
+      if (!e.repeat && e.key >= '1' && e.key <= '9') {
+        const idx = Number(e.key) - 1;
+        if (cards[idx]) {
+          const target = cards[idx].dataset.id;
+          openTarget(target);
+        }
+      }
+    });
+
+    if (search) {
+      search.addEventListener('input', (e) => {
+        const q = e.target.value.trim().toLowerCase();
+        cards.forEach(c => {
+          const txt = (c.querySelector('h3').textContent + ' ' + c.querySelector('.card-description').textContent).toLowerCase();
+          c.style.display = q && !txt.includes(q) ? 'none' : '';
+        });
+      });
+    }
+
+    let favOnly = false;
+    if (btnFavToggle) {
+      btnFavToggle.addEventListener('click', () => {
+        favOnly = !favOnly;
+        const icon = btnFavToggle.querySelector('i');
+        btnFavToggle.innerHTML = favOnly 
+          ? '<i class="fa-solid fa-star"></i> Mostrar Todos' 
+          : '<i class="fa-regular fa-star"></i> Mostrar Favoritos';
+        
+        if (favOnly) {
+          const set = new Set(favStore);
+          cards.forEach(c => c.style.display = set.has(c.dataset.id) ? '' : 'none');
+        } else {
+          cards.forEach(c => c.style.display = '');
+        }
+      });
+    }
+
+    if (btnNew) btnNew.addEventListener('click', () => openTarget('nova-apropriação'));
+  </script>
+</body>
+</html>

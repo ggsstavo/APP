@@ -147,8 +147,8 @@
       // 2. Primeira verificação: cache válido + sessão validada (0 requests Firebase)
       const cachedAuth = getAuthCache();
       if (cachedAuth && isSessionValidated()) {
-        console.log('Redirecionando para dashboard - usuário já autenticado');
-        window.location.href = './dashboard.html';
+        console.log('Redirecionando para acesso rápido - usuário já autenticado');
+        window.location.href = './acesso_rapido.html';
         return;
       }
 
@@ -156,7 +156,7 @@
       if (cachedAuth && cachedAuth.uid) {
         sessionStorage.setItem('auth_validated', 'true');
         console.log('Cache válido encontrado - redirecionando');
-        window.location.href = './dashboard.html';
+        window.location.href = './acesso_rapido.html';
         return;
       }
 
@@ -189,7 +189,7 @@
             lastLogin: Date.now()
           });
           console.log('Usuário ainda logado no Firebase - redirecionando');
-          window.location.href = './dashboard.html';
+          window.location.href = './acesso_rapido.html';
         } else {
           console.log('Nenhum usuário logado - aguardando login manual');
         }
@@ -640,14 +640,14 @@ input[type="text"],input[type="email"],input[type="password"],select{
             gsap.fromTo('#check',{scale:0,rotation:0},{scale:1.05,rotation:12,duration:0.45,ease:'back.out(1.4)'});
             gsap.to(successOverlay,{opacity:0,duration:0.6,delay:1.1,ease:'power2.in',onComplete:()=>{ 
               successOverlay.style.pointerEvents='none';
-              window.location.href = './dashboard.html';
+              window.location.href = './acesso_rapido.html';
             }});
           } else {
             successOverlay.style.opacity = '1';
             setTimeout(()=>{ 
               successOverlay.style.opacity = '0'; 
               successOverlay.style.pointerEvents='none'; 
-              window.location.href = './dashboard.html';
+              window.location.href = './acesso_rapido.html';
             }, 1400);
           }
         } else {
