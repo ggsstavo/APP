@@ -286,12 +286,65 @@
     }
 
     .preview-entry{
-      padding:12px; border-radius:10px; margin-bottom:10px; background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-      border:1px solid rgba(255,255,255,0.02); box-shadow: 0 8px 26px rgba(0,0,0,0.55);
+      padding:16px; border-radius:12px; margin-bottom:12px; 
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+      border:1px solid rgba(255,255,255,0.06); 
+      box-shadow: 0 8px 26px rgba(0,0,0,0.55);
+      transition: all 0.3s var(--hover-ease);
     }
-    .preview-entry .info{ display:flex; flex-wrap:wrap; gap:12px; color:var(--muted); font-size:13px }
-    .preview-entry .info div{ display:flex; gap:8px; align-items:center; color:var(--text) }
-    .preview-entry .info div i{ color:var(--accent-strong); width:18px; text-align:center }
+    .preview-entry:hover{
+      transform: translateY(-2px);
+      box-shadow: 0 12px 35px rgba(0,0,0,0.65);
+      border-color: rgba(255,255,255,0.08);
+    }
+    
+    /* Grid melhorado para info */
+    .preview-entry .info{ 
+      display:grid; 
+      grid-template-columns: 1fr 1fr; 
+      gap:12px; 
+      margin-bottom:12px;
+      flex-wrap: wrap;
+    }
+    
+    /* Badge style para cada div dentro de .info */
+    .preview-entry .info > div{ 
+      display:flex; 
+      flex-direction:column;
+      gap:6px;
+      padding:10px 12px;
+      background: rgba(255,255,255,0.02);
+      border-radius:8px;
+      border:1px solid rgba(255,255,255,0.03);
+      font-size:13px;
+      color:var(--text);
+      line-height:1.4;
+    }
+    
+    /* Estilo para os ícones dentro das divs */
+    .preview-entry .info > div i{
+      font-size:16px;
+      width:18px;
+      text-align:center;
+      margin-right:8px;
+    }
+    
+    /* Cores específicas por ÍCONE usando classe do Font Awesome */
+    .preview-entry .info i.fa-calendar-day{ color:#3b82f6 !important; } /* Data - Azul */
+    .preview-entry .info i.fa-user{ color:#f59e0b !important; } /* Responsável - Laranja */
+    .preview-entry .info i.fa-id-card-clip{ color:#8b5cf6 !important; } /* Matrícula - Roxo */
+    .preview-entry .info i.fa-map-marker-alt{ color:#ef4444 !important; } /* Localização - Vermelho */
+    .preview-entry .info i.fa-file-lines{ color:#06b6d4  !important; } /* Detalhes - Ciano */
+    .preview-entry .info i.fa-warehouse{ color:#64748b !important; } /* Galpão - Cinza */
+    .preview-entry .info i.fa-clipboard{ color:#22c55e !important; } /* Anotação - Verde */
+
+    
+    /* Responsive para preview entries */
+    @media (max-width:560px){
+      .preview-entry .info{ 
+        grid-template-columns: 1fr; 
+      }
+    }
 
 
 #notificationMessage {
@@ -1229,11 +1282,11 @@ function renderPreviewFromDraft() {
         <div class="info">
           <div><i class="fas fa-calendar-day"></i> ${escapeHtml(date)}</div>
           <div><i class="fas fa-user"></i> ${escapeHtml(r.name || '-')}</div>
-          <div><i class="fas fa-id-badge"></i> ${escapeHtml(r.matricula || '-')}</div>
+          <div><i class="fa-solid fa-id-card-clip"></i> ${escapeHtml(r.matricula || '-')}</div>
           <div><i class="fas fa-map-marker-alt"></i> ${escapeHtml(r.local || '-')}</div>
           <div><i class="fas fa-warehouse"></i> ${escapeHtml(r.galpao || '-')}</div>
-          <div><i class="fas fa-stream"></i> ${escapeHtml(r.details || '-')}</div>
-          ${obs ? `<div style="width:100%; margin-top:6px"><i class="fas fa-clipboard"></i> ${nl2br(obs)}</div>` : ''}
+          <div><i class="fa-solid fa-file-lines"></i> ${escapeHtml(r.details || '-')}</div>
+          ${obs ? `<div style="width:100%; margin-top:6px"><i class="fa-solid fa-clipboard"></i> ${nl2br(obs)}</div>` : ''}
         </div>
       </div>
     `;
@@ -1263,6 +1316,30 @@ if (openPreviewBtn) {
     showNotification('Pré-visualização atualizada localmente.', 'success');
   });
 }
+
+// --- Helper para detectar ausência (aceita vários formatos de campo) ---
+function isAbsentRecord(r) {
+  if (!r) return false;
+  // casos booleanos diretos
+  if (r.falta === true || r.absent === true || r.absente === true) return true;
+
+  // campos comuns que podem guardar texto/flags
+  const candidates = [
+    r.falta, r.absent, r.presenca, r.presence, r.status, r.presenca_status, r.present, r.presente
+  ].filter(Boolean).map(v => String(v).toLowerCase());
+
+  // padrão que indica ausência
+  for (const s of candidates) {
+    if (/falta|faltou|ausen|ausente|não presente|nao presente|absent/.test(s)) return true;
+  }
+
+  // também verificar campos livres como 'observacoes' que possam ter a palavra
+  const obs = String(r.obs || r.observacoes || r.comentario || '').toLowerCase();
+  if (/faltou|ausente/.test(obs)) return true;
+
+  return false;
+}
+
 
 /*
   Quando o parser de PDF (ou handler de upload) já popula `currentRecords`, chame:
@@ -1386,22 +1463,25 @@ if (bulkSend) bulkSend.addEventListener('click', (ev) => {
       }
 
       const recordsHtml = currentRecords.map(r => {
-        const date = r.date && r.date.seconds ? new Date(r.date.seconds * 1000).toLocaleString() : (r.date || '-');
-        const obs = getObservation(r);
-        return `
-          <div class="preview-entry">
-            <div class="info">
-              <div><i class="fas fa-calendar-day"></i> ${escapeHtml(date)}</div>
-              <div><i class="fas fa-user"></i> ${escapeHtml(r.name || '-')}</div>
-              <div><i class="fas fa-id-badge"></i> ${escapeHtml(r.memberMatricula || '-')}</div>
-              <div><i class="fas fa-map-marker-alt"></i> ${escapeHtml(r.local || '-')}</div>
-              <div><i class="fas fa-warehouse"></i> ${escapeHtml(r.galpao || '-')}</div>
-              <div><i class="fas fa-stream"></i> ${escapeHtml(r.details || '-')}</div>
-              ${obs ? `<div style="width:100%; margin-top:6px"><i class="fas fa-clipboard"></i> ${nl2br(obs)}</div>` : ''}
-            </div>
-          </div>
-        `;
-      }).join('');
+  const date = r.date && r.date.seconds ? new Date(r.date.seconds * 1000).toLocaleString() : (r.date || '-');
+  const obs = getObservation(r);
+  const absent = isAbsentRecord(r);
+  const absentBadge = absent ? `<span style="background:#c0392b;color:#fff;padding:2px 6px;border-radius:6px;font-size:12px">FALTOU</span>` : '';
+  return `
+    <div class="preview-entry">
+      <div class="info">
+        <div><i class="fas fa-calendar-day"></i> ${escapeHtml(date)}</div>
+        <div><i class="fas fa-user"></i> ${escapeHtml(r.name || '-')}${absentBadge}</div>
+        <div><i class="fa-solid fa-id-card-clip"></i> ${escapeHtml(r.memberMatricula || r.matricula || '-')}</div>
+        <div><i class="fas fa-map-marker-alt"></i> ${escapeHtml(r.local || '-')}</div>
+        <div><i class="fas fa-warehouse"></i> ${escapeHtml(r.galpao || '-')}</div>
+        <div><i class="fa-solid fa-file-lines"></i> ${escapeHtml(r.details || '-')}</div>
+        ${obs ? `<div style="width:100%; margin-top:6px"><i class="fa-solid fa-clipboard"></i> ${nl2br(obs)}</div>` : ''}
+      </div>
+    </div>
+  `;
+}).join('');
+
 
       previewContent.innerHTML = activityHtml + respMatHtml + obsHtml + recordsHtml;
     }
@@ -1578,57 +1658,80 @@ if (bulkSend) bulkSend.addEventListener('click', (ev) => {
       }
 
       // observações numeradas
-      let currentYObs = yObsStart;
-      doc.setFontSize(10);
+      // --- observações numeradas (com sufixo " - FALTOU" quando aplicável) ---
 
-      const observations = [];
-      for (let i = 0; i < (daily.members || []).length; i++) {
-        const m = daily.members[i];
-        const parts = [];
-        if (m.name) parts.push(m.name);
-        if (m.matricula) parts.push(`Mat: ${m.matricula}`);
-        if (m.local) parts.push(m.local);
-        const details = [];
-        if (m.blockShift) details.push(`Bloco: ${m.blockShift}`);
-        if (m.vesselShift) details.push(`Embarcação: ${m.vesselShift}`);
-        if (m.details) details.push(m.details);
-        if (m.obs) details.push(m.obs);
-        if (details.length) parts.push(details.join(' — '));
-        const txt = parts.join(' / ').trim();
-        if (txt) observations.push(txt);
-      }
 
-      for (let idx = 0; idx < observations.length; idx++) {
-        const raw = observations[idx];
-        const wrapped = doc.splitTextToSize(raw, pageW - marginLeft * 2 - 12);
-        const prefix = (idx + 1) + '. ';
-        const prefixWidth = doc.getTextWidth(prefix);
+// observações numeradas (com espaçamento configurável)
+let currentYObs = yObsStart;
+doc.setFontSize(10);
 
-        if (currentYObs + wrapped.length * obsLineHeight > pageH - 40) {
-          doc.addPage();
-          drawTemplate();
-          doc.setFontSize(11);
-          doc.text(String(daily.galpao || '-'), galpaoX, headerY);
-          doc.text(String(daily.dateOnly || '-'), dateX, headerY);
-          doc.setFontSize(10);
-          currentYObs = yObsStart;
-        }
+// CONFIGURAÇÃO DO ESPAÇAMENTO DAS OBSERVAÇÕES
+const obsLineSpacing = 11; // Espaçamento entre linhas DENTRO de um item que quebrou
+const obsItemSpacingSimple = 1;  // Espaço mínimo entre itens simples (1 linha)
+const obsItemSpacingMultiLine = 1; // Espaço extra após itens com múltiplas linhas
 
-        const firstLine = wrapped[0] || '';
-        doc.text(prefix + firstLine, marginLeft, currentYObs);
-        currentYObs += obsLineHeight;
+const observations = [];
+for (let i = 0; i < (daily.members || []).length; i++) {
+  const m = daily.members[i];
+  const parts = [];
+  if (m.name) parts.push(m.name);
+  if (m.matricula) parts.push(`Mat: ${m.matricula}`);
+  if (m.local) parts.push(m.local);
 
-        for (let j = 1; j < wrapped.length; j++) {
-          doc.text(wrapped[j], marginLeft + prefixWidth, currentYObs);
-          currentYObs += obsLineHeight;
-        }
-        currentYObs += 4;
-      }
+  const details = [];
+  if (m.blockShift) details.push(`Bloco: ${m.blockShift}`);
+  if (m.vesselShift) details.push(`Embarcação: ${m.vesselShift}`);
+  if (m.details) details.push(m.details);
+  if (m.obs) details.push(m.obs);
+
+  if (details.length) parts.push(details.join(' — '));
+  let txt = parts.join(' / ').trim();
+
+  if (!txt) continue;
+  if (m.absent) txt = txt + ' - FALTOU';
+
+  observations.push(txt);
+}
+
+// imprime as observações numeradas (com espaçamento melhorado)
+for (let idx = 0; idx < observations.length; idx++) {
+  const raw = observations[idx];
+  const wrapped = doc.splitTextToSize(raw, pageW - marginLeft * 2 - 12);
+  const prefix = (idx + 1) + '. ';
+  const prefixWidth = doc.getTextWidth(prefix);
+
+  // quebra de página se necessário
+  if (currentYObs + wrapped.length * obsLineSpacing > pageH - 40) {
+    doc.addPage();
+    drawTemplate();
+    doc.setFontSize(11);
+    doc.text(String(daily.galpao || '-'), galpaoX, headerY);
+    doc.text(String(displayDate), dateX, dateY);
+    doc.setFontSize(10);
+    currentYObs = yObsStart;
+  }
+
+  // primeira linha com prefixo "N. "
+  const firstLine = wrapped[0] || '';
+  doc.text(prefix + firstLine, marginLeft, currentYObs);
+  currentYObs += obsLineSpacing; // ← usa o novo espaçamento
+
+  // linhas seguintes alinhadas após o prefixo
+  for (let j = 1; j < wrapped.length; j++) {
+    doc.text(wrapped[j], marginLeft + prefixWidth, currentYObs);
+    currentYObs += obsLineSpacing; // ← usa o novo espaçamento
+  }
+
+  // espaçamento entre itens (condicional: menos espaço se for linha única)
+  const spacingToUse = wrapped.length > 1 ? obsItemSpacingMultiLine : obsItemSpacingSimple;
+  currentYObs += spacingToUse;
+}
+
 
       // === Espaçamento configurável antes das Observações gerais ===
 // Defina aqui quantas "linhas" (obsLineHeight) deseja pular
 // 1 = pular 1 linha, 2 = pular 2 linhas, etc.
-const gapBeforeObsGeneralLines = 1.5; // <-- ajuste aqui (padrão: 1 linha)
+const gapBeforeObsGeneralLines = 1.3; // <-- ajuste aqui (padrão: 1 linha)
 currentYObs += obsLineHeight * gapBeforeObsGeneralLines; // pula N linhas antes das Observações gerais
 
 // --- Colocar Observações gerais (textarea) logo abaixo do conteúdo numerado ---
@@ -1651,7 +1754,7 @@ if (obsGeneral) {
 
   // desenha título + conteúdo usando mesmo espaçamento/altura
   doc.text('Observações diárias:', marginLeft, currentYObs);
-  currentYObs += obsLineHeight;
+  currentYObs += obsLineHeight + 4;
   for (let k = 0; k < wrappedObsGen.length; k++) {
     doc.text(wrappedObsGen[k], marginLeft, currentYObs);
     currentYObs += obsLineHeight;
@@ -1675,15 +1778,17 @@ if (obsGeneral) {
       await fetchRecords();
 
       const members = (currentRecords || []).map(r => ({
-        name: r.name || '',
-        matricula: r.memberMatricula || r.matricula || '',
-        local: r.local || '',
-        galpao: r.galpao || '',
-        details: r.details || '',
-        blockShift: r.blockShift || r.block || '',
-        vesselShift: r.vesselShift || r.vessel || '',
-        obs: (r.obs || r.observacoes || r.comentario || '') || ''
-      }));
+  name: r.name || '',
+  matricula: r.memberMatricula || r.matricula || '',
+  local: r.local || '',
+  galpao: r.galpao || '',
+  details: r.details || '',
+  blockShift: r.blockShift || r.block || '',
+  vesselShift: r.vesselShift || r.vessel || '',
+  obs: (r.obs || r.observations || r.comentario || '') || '',
+  absent: isAbsentRecord(r) // <-- marca ausência detectada
+}));
+
 
       if (!members.length) {
         showNotification('Nenhum registro encontrado para essa equipe/data.', 'info');
