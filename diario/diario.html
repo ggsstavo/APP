@@ -241,13 +241,15 @@
     }
 
     /* left column form area */
+
     .form-area{
-      display:flex; flex-direction:column; gap:12px;
+      display:flex; flex-direction:column; gap:16px;
     }
 
     label{
-      display:block; font-weight:700; color:var(--muted); font-size:13px; margin-bottom:6px;
+      display:flex; align-items:center; gap:8px; font-weight:600; color:var(--muted); font-size:12px; margin-bottom:8px; text-transform:uppercase; letter-spacing:0.5px;
     }
+    label i{ font-size:14px; color:var(--accent); opacity:0.8; }
 
     select, input[type="text"], input[type="date"], textarea{
       width:100%; padding:10px 12px; border-radius:10px; background: rgba(255,255,255,0.02);
@@ -337,6 +339,7 @@
     .preview-entry .info i.fa-file-lines{ color:#06b6d4  !important; } /* Detalhes - Ciano */
     .preview-entry .info i.fa-warehouse{ color:#64748b !important; } /* Galpão - Cinza */
     .preview-entry .info i.fa-clipboard{ color:#22c55e !important; } /* Anotação - Verde */
+    .preview-entry .info i.fa-ship{ color: #5e91aa !important; } /* Embarcação e Bloco - Cinza azulado */
 
     
     /* Responsive para preview entries */
@@ -1287,6 +1290,13 @@ function renderPreviewFromDraft() {
           <div><i class="fas fa-warehouse"></i> ${escapeHtml(r.galpao || '-')}</div>
           <div><i class="fa-solid fa-file-lines"></i> ${escapeHtml(r.details || '-')}</div>
           ${obs ? `<div style="width:100%; margin-top:6px"><i class="fa-solid fa-clipboard"></i> ${nl2br(obs)}</div>` : ''}
+          ${(r.vesselShift || r.blockShift) ? `
+  <div>
+    <i class="fa-solid fa-ship"></i>
+    ${escapeHtml(r.vesselShift || r.vessel || '-')}<br>
+    Bloco: ${escapeHtml(r.blockShift || r.block || '-')}
+  </div>
+` : ''}
         </div>
       </div>
     `;
@@ -1466,7 +1476,7 @@ if (bulkSend) bulkSend.addEventListener('click', (ev) => {
   const date = r.date && r.date.seconds ? new Date(r.date.seconds * 1000).toLocaleString() : (r.date || '-');
   const obs = getObservation(r);
   const absent = isAbsentRecord(r);
-  const absentBadge = absent ? `<span style="background:#c0392b;color:#fff;padding:2px 6px;border-radius:6px;font-size:12px">FALTOU</span>` : '';
+  const absentBadge = absent ? `<span style="background:#c0392b;color:#fff;padding:2px 6px;border-radius:6px;font-size:12px;text-align:center;">FALTOU</span>` : '';
   return `
     <div class="preview-entry">
       <div class="info">
@@ -1477,6 +1487,13 @@ if (bulkSend) bulkSend.addEventListener('click', (ev) => {
         <div><i class="fas fa-warehouse"></i> ${escapeHtml(r.galpao || '-')}</div>
         <div><i class="fa-solid fa-file-lines"></i> ${escapeHtml(r.details || '-')}</div>
         ${obs ? `<div style="width:100%; margin-top:6px"><i class="fa-solid fa-clipboard"></i> ${nl2br(obs)}</div>` : ''}
+        ${(r.vesselShift || r.blockShift) ? `
+  <div>
+    <i class="fa-solid fa-ship"></i>
+    ${escapeHtml(r.vesselShift || r.vessel || '-')}<br>
+    Bloco: ${escapeHtml(r.blockShift || r.block || '-')}
+  </div>
+` : ''}
       </div>
     </div>
   `;
