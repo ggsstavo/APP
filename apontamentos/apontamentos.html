@@ -1272,6 +1272,7 @@ function dateIsoToReadable(iso) {
     const titleY = 88;
     const separatorY = 104;
     let y = separatorY + 28;
+    await prepareIcons(18);
 
     // header: logo (tenta reaproveitar sua função se existir)
         // header: logo (usa getProjectLogoDataUrl com fallback textual)
@@ -1480,45 +1481,165 @@ function finalizeFooter(doc, exportedAtStr) {
     doc.setTextColor(40);
 
     for (let i = 0; i < records.length; i++) {
-      const r = records[i];
-      // título do colaborador (nome + matrícula)
-      const personTitle = `${r.name || '-'}  (${r.memberMatricula || '-'})`;
-      doc.setFont('helvetica', 'bold'); doc.setFontSize(12); doc.text(personTitle, margin, y);
-      y += lineHeight;
+  const r = records[i];
 
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(10);
-      const lines = [
-        `Turno: ${r.shift || '–'}`,
-        `Bloco: ${r.blockShift || '–'}`,
-        `Embarcação: ${r.vesselShift || '–'}`,
-        `Local: ${r.local || '–'}`
-      ];
+  // título do colaborador (nome + matrícula)
+  const personTitle = `${r.name || '-'}  (${r.memberMatricula || '-'})`;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(12);
+  // paginação preventiva
+  if (y + lineHeight + 120 > doc.internal.pageSize.getHeight()) {
+    if (typeof addFooter === 'function') addFooter(doc, exportedAtStr);
+    doc.addPage();
+    y = 72;
+  }
+  doc.text(personTitle, margin, y);
+  y += lineHeight;
 
-      // exibe em duas colunas por linha quando couber
-      const colGap = 12;
-      const colWidth = (maxWidth - colGap) / 2;
-      for (let ci = 0; ci < lines.length; ci += 2) {
-        const left = lines[ci];
-        const right = lines[ci+1] || '';
-        const leftLines = doc.splitTextToSize(left, colWidth);
-        const rightLines = right ? doc.splitTextToSize(right, colWidth) : [];
+  // --- Detalhes e Galpão por colaborador ---
+  // helper: obtém o primeiro valor não vazio entre várias chaves possíveis
+  const firstNonEmpty = (obj, keys) => {
+    for (const k of keys) {
+      if (!obj) continue;
+      const v = obj[k];
+      if (v !== undefined && v !== null && String(v).trim() !== '') return String(v).trim();
+    }
+    return '';
+  };
 
-        // calcula o maior número de linhas entre as duas colunas
-        const maxLines = Math.max(leftLines.length, rightLines.length);
+  const galpaoKeys = ['galpao','galpão','galpaoShift','galpaoName','galpao_area'];
+  const detalhesKeys = ['detalhes','details','description','desc','observationsHeader','detalhe'];
 
-        for (let ln = 0; ln < maxLines; ln++) {
-          if (y + lineHeight + 120 > doc.internal.pageSize.getHeight()) {
-            if (typeof addFooter === 'function') addFooter(doc, exportedAtStr);
-            doc.addPage();
-            y = 72;
-          }
-          const leftText = leftLines[ln] || '';
-          const rightText = rightLines[ln] || '';
-          doc.text(leftText, margin, y);
-          if (rightText) doc.text(rightText, margin + colWidth + colGap, y);
-          y += lineHeight;
-        }
+  const galpaoText = (function firstNonEmpty(obj, keys) {
+    for (const k of keys) {
+      if (!obj) continue;
+      const v = obj[k];
+      if (v !== undefined && v !== null && String(v).trim() !== '') return String(v).trim();
+    }
+    return '';
+  })(r, galpaoKeys) || '-';
+
+  const detalhesText = (function firstNonEmpty(obj, keys) {
+    for (const k of keys) {
+      if (!obj) continue;
+      const v = obj[k];
+      if (v !== undefined && v !== null && String(v).trim() !== '') return String(v).trim();
+    }
+    return '';
+  })(r, detalhesKeys) || '-';
+
+  // usa exatamente as mesmas configurações visuais dos outros campos
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.setTextColor(40);
+
+    // configura ícone/texto
+  const iconSize = 12; // tamanho em pts (aprox). Ajuste se quiser maior/menor.
+  const iconGap = 6;
+  const colGap = 12;
+  const colWidth = (maxWidth - colGap) / 2;
+
+  // mapas de qual ícone usar por coluna (esquerda/direita)
+  // esquerda: Detalhes  -> use 'note'; direita: Galpão -> use 'block'
+  // para Turno/Bloco/Embarcação/Local escolhemos clock, block, ship, map
+  // Abaixo eu demonstro para as linhas de info (Detalhes/Galpão), e depois para Turno/Bloco/...
+  
+  // --- Detalhes / Galpão (com ícones) ---
+  const leftIcon = ICONS_PNG.note;   // Detalhes
+  const rightIcon = ICONS_PNG.block; // Galpão
+
+  // ajusta largura útil do texto descontando o ícone
+  const leftTextWidth = colWidth - (iconSize + iconGap);
+  const rightTextWidth = colWidth - (iconSize + iconGap);
+
+  const left = `Detalhes: ${detalhesText}`;
+  const right = `Galpão: ${galpaoText}`;
+
+  const leftLines = doc.splitTextToSize(left, leftTextWidth);
+  const rightLines = doc.splitTextToSize(right, rightTextWidth);
+  const maxLines = Math.max(leftLines.length, rightLines.length);
+
+  for (let ln = 0; ln < maxLines; ln++) {
+    if (y + lineHeight + 120 > doc.internal.pageSize.getHeight()) {
+      if (typeof addFooter === 'function') addFooter(doc, exportedAtStr);
+      doc.addPage();
+      y = 72;
+    }
+
+    // coluna esquerda
+    const colLeftX = margin;
+    const iconLeftX = colLeftX;
+    const textLeftX = colLeftX + iconSize + iconGap;
+    const leftTxt = leftLines[ln] || '';
+    if (leftIcon) {
+      try { doc.addImage(leftIcon, 'PNG', iconLeftX, y - (iconSize - 3), iconSize, iconSize); } catch(e){ /*ignore*/ }
+    }
+    if (leftTxt) doc.text(leftTxt, textLeftX, y);
+
+    // coluna direita
+    const colRightX = margin + colWidth + colGap;
+    const iconRightX = colRightX;
+    const textRightX = colRightX + iconSize + iconGap;
+    const rightTxt = rightLines[ln] || '';
+    if (rightIcon) {
+      try { doc.addImage(rightIcon, 'PNG', iconRightX, y - (iconSize - 3), iconSize, iconSize); } catch(e){ /*ignore*/ }
+    }
+    if (rightTxt) doc.text(rightTxt, textRightX, y);
+
+    y += lineHeight;
+  }
+
+
+  // --- Campos existentes (Turno, Bloco, Embarcação, Local) ---
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.setTextColor(40);
+
+    // --- Turno / Bloco / Embarcação / Local (com ícones) ---
+  const fieldIcons = {
+    0: ICONS_PNG.clock,  // Turno (left col first row)
+    1: ICONS_PNG.block,  // Bloco (right col first row)
+    2: ICONS_PNG.ship,   // Embarcação (left col second row)
+    3: ICONS_PNG.map     // Local (right col second row)
+  };
+
+  const fieldLines = [
+    `Turno: ${r.shift || '–'}`,
+    `Bloco: ${r.blockShift || '–'}`,
+    `Embarcação: ${r.vesselShift || '–'}`,
+    `Local: ${r.local || '–'}`
+  ];
+
+  for (let ci = 0; ci < fieldLines.length; ci += 2) {
+    const leftF = fieldLines[ci];
+    const rightF = fieldLines[ci+1] || '';
+    const leftLinesF = doc.splitTextToSize(leftF, colWidth - (iconSize + iconGap));
+    const rightLinesF = rightF ? doc.splitTextToSize(rightF, colWidth - (iconSize + iconGap)) : [];
+    const maxF = Math.max(leftLinesF.length, rightLinesF.length);
+
+    for (let ln = 0; ln < maxF; ln++) {
+      if (y + lineHeight + 120 > doc.internal.pageSize.getHeight()) {
+        if (typeof addFooter === 'function') addFooter(doc, exportedAtStr);
+        doc.addPage();
+        y = 72;
       }
+
+      // left field
+      const leftTxt = leftLinesF[ln] || '';
+      const leftIcon = fieldIcons[ci] || null;
+      if (leftIcon) try { doc.addImage(leftIcon, 'PNG', margin, y - (iconSize - 3), iconSize, iconSize); } catch(e){/*ignore*/ }
+      if (leftTxt) doc.text(leftTxt, margin + iconSize + iconGap, y);
+
+      // right field
+      const rightTxt = rightLinesF[ln] || '';
+      const rightIcon = fieldIcons[ci+1] || null;
+      const rightBaseX = margin + colWidth + colGap;
+      if (rightIcon) try { doc.addImage(rightIcon, 'PNG', rightBaseX, y - (iconSize - 3), iconSize, iconSize); } catch(e){/*ignore*/ }
+      if (rightTxt) doc.text(rightTxt, rightBaseX + iconSize + iconGap, y);
+
+      y += lineHeight;
+    }
+  }
 
       // observações (se houver)
       const obs = r.observations || r.obs || '';
@@ -1699,6 +1820,74 @@ async function sharePdfBlob(doc, exportedAt, teamName, dateVal) {
   });
 
 })();
+
+/* ===== ICONS: SVG -> PNG converter + preparação ===== */
+const ICON_SVGS = {
+  clock: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--!Font Awesome Free v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.--><path d="M464 256a208 208 0 1 1 -416 0 208 208 0 1 1 416 0zM0 256a256 256 0 1 0 512 0 256 256 0 1 0 -512 0zM232 120l0 136c0 8 4 15.5 10.7 20l96 64c11 7.4 25.9 4.4 33.3-6.7s4.4-25.9-6.7-33.3L280 243.2 280 120c0-13.3-10.7-24-24-24s-24 10.7-24 24z"/></svg>`,
+
+  block: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--!Font Awesome Free v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.--><path d="M224.3-2.5c19.8-11.4 44.2-11.4 64 0L464.2 99c19.8 11.4 32 32.6 32 55.4l0 203c0 22.9-12.2 44-32 55.4L288.3 514.5c-19.8 11.4-44.2 11.4-64 0L48.5 413c-19.8-11.4-32-32.6-32-55.4l0-203c0-22.9 12.2-44 32-55.4L224.3-2.5zm207.8 360l0-166.1-143.8 83 0 166.1 143.8-83z"/></svg>`,
+
+  ship: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--!Font Awesome Free v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.--><path d="M272 0c-26.5 0-48 21.5-48 48l0 16-16 0c-44.2 0-80 35.8-80 80l0 108.8-21.6 8.6c-14.8 5.9-22.5 22.4-17.4 37.5 10.4 31.3 26.8 59.3 47.7 83.1 20.1-9.2 41.7-13.9 63.3-14 33.1-.2 66.3 10.2 94.4 31.4l1.6 1.2 0-215-104 41.6 0-83.2c0-8.8 7.2-16 16-16l224 0c8.8 0 16 7.2 16 16l0 83.2-104-41.6 0 215 1.6-1.2c27.5-20.7 59.9-31.2 92.4-31.4 22.3-.1 44.6 4.5 65.3 14 20.9-23.7 37.3-51.8 47.7-83.1 5-15.2-2.6-31.6-17.4-37.5L512 252.8 512 144c0-44.2-35.8-80-80-80l-16 0 0-16c0-26.5-21.5-48-48-48L272 0zM403.4 476.1c21.3-16.1 49.9-16.1 71.2 0 19 14.4 41.9 28.2 67.2 33.3 26.5 5.4 54.3 .8 80.7-19.1 10.6-8 12.7-23 4.7-33.6s-23-12.7-33.6-4.7c-14.9 11.2-28.6 13.1-42.3 10.3-14.9-3-30.9-11.9-47.8-24.6-38.4-29-90.5-29-129 0-24 18.1-40.7 26.3-54.5 26.3s-30.5-8.2-54.5-26.3c-38.4-29-90.5-29-129 0-21.6 16.3-41.3 25.8-58.9 25.7-9.6-.1-19.9-3-31.2-11.5-10.6-8-25.6-5.9-33.6 4.7S7 482.3 17.6 490.3c19.1 14.4 39.4 21 59.8 21.1 33.9 .2 64.3-17.4 88.1-35.3 21.3-16.1 49.9-16.1 71.2 0 24.2 18.3 52.3 35.9 83.4 35.9s59.1-17.7 83.4-35.9z"/></svg>`,
+
+  map: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--!Font Awesome Free v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.--><path d="M512 48c0-8.3-4.3-16-11.3-20.4s-15.9-4.8-23.3-1.1L352.5 88.1 180 29.4c-13.7-4.7-28.7-3.8-41.9 2.3L13.8 90.3C5.4 94.2 0 102.7 0 112L0 464c0 8.2 4.2 15.9 11.1 20.3s15.6 4.9 23.1 1.4l127.3-59.9 170.7 56.9c13.7 4.6 28.5 3.7 41.6-2.5l124.4-58.5c8.4-4 13.8-12.4 13.8-21.7l0-352zM144 82.1l0 299-96 45.2 0-299 96-45.2zm48 303.3l0-301.1 128 43.5 0 300.3-128-42.7zM368 134l96-47.4 0 298.2-96 45.2 0-296z"/></svg>`,
+
+  note: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--!Font Awesome Free v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.--><path d="M64 48l112 0 0 88c0 39.8 32.2 72 72 72l88 0 0 240c0 8.8-7.2 16-16 16L64 464c-8.8 0-16-7.2-16-16L48 64c0-8.8 7.2-16 16-16zM224 67.9l92.1 92.1-68.1 0c-13.3 0-24-10.7-24-24l0-68.1zM64 0C28.7 0 0 28.7 0 64L0 448c0 35.3 28.7 64 64 64l256 0c35.3 0 64-28.7 64-64l0-261.5c0-17-6.7-33.3-18.7-45.3L242.7 18.7C230.7 6.7 214.5 0 197.5 0L64 0zm56 256c-13.3 0-24 10.7-24 24s10.7 24 24 24l144 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-144 0zm0 96c-13.3 0-24 10.7-24 24s10.7 24 24 24l144 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-144 0z"/></svg>`,
+
+  galpao: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--!Font Awesome Free v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.--><path d="M0 142.1L0 480c0 17.7 14.3 32 32 32s32-14.3 32-32l0-240c0-17.7 14.3-32 32-32l384 0c17.7 0 32 14.3 32 32l0 240c0 17.7 14.3 32 32 32s32-14.3 32-32l0-337.9c0-27.5-17.6-52-43.8-60.7L303.2 5.1c-9.9-3.3-20.5-3.3-30.4 0L43.8 81.4C17.6 90.1 0 114.6 0 142.1zM464 256l-352 0 0 64 352 0 0-64zM112 416l352 0 0-64-352 0 0 64zm352 32l-352 0 0 64 352 0 0-64z"/></svg>`,
+
+  obs: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--!Font Awesome Free v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.--><path d="M232 96l-80 0c-13.3 0-24-10.7-24-24s10.7-24 24-24l80 0c13.3 0 24 10.7 24 24s-10.7 24-24 24zm0 48c37.1 0 67.6-28 71.6-64L320 80c8.8 0 16 7.2 16 16l0 352c0 8.8-7.2 16-16 16L64 464c-8.8 0-16-7.2-16-16L48 96c0-8.8 7.2-16 16-16l16.4 0c4 36 34.5 64 71.6 64l80 0zM291.9 32C279 12.7 257 0 232 0L152 0c-25 0-47 12.7-59.9 32L64 32C28.7 32 0 60.7 0 96L0 448c0 35.3 28.7 64 64 64l256 0c35.3 0 64-28.7 64-64l0-352c0-35.3-28.7-64-64-64l-28.1 0z"/></svg>`
+};
+
+// TODO: Fazer com que os detalhes e galpão fiquem abaixo de embarcação e local e colocar icones nos colaboradores
+
+const ICONS_PNG = {}; // será preenchido com dataURLs PNG
+
+function svgToPngDataUrl(svgString, width = 64, height = 64) {
+  return new Promise((resolve, reject) => {
+    try {
+      const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(svgBlob);
+      const img = new Image();
+      img.onload = () => {
+        // desenha em canvas e extrai PNG
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        // branco de fundo opcional:
+        // ctx.fillStyle = '#ffffff'; ctx.fillRect(0,0,canvas.width,canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        try {
+          const pngData = canvas.toDataURL('image/png');
+          URL.revokeObjectURL(url);
+          resolve(pngData);
+        } catch (err) {
+          URL.revokeObjectURL(url);
+          reject(err);
+        }
+      };
+      img.onerror = (e) => { URL.revokeObjectURL(url); reject(e); };
+      img.src = url;
+    } catch (err) {
+      reject(err);
+    }
+  });
+}
+
+async function prepareIcons(desiredPx = 18) {
+  // desiredPx = tamanho (em px) dos ícones no canvas antes de adicionar ao PDF (ajuste se necessário)
+  const entries = Object.entries(ICON_SVGS);
+  for (const [k, svg] of entries) {
+    try {
+      // converte redimensionando para desiredPx (mantém proporção do viewBox)
+      ICONS_PNG[k] = await svgToPngDataUrl(svg, desiredPx, desiredPx);
+    } catch (err) {
+      console.warn('prepareIcons failed for', k, err);
+      ICONS_PNG[k] = null;
+    }
+  }
+}
+
   </script>
 </body>
 </html>
