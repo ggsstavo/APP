@@ -14,6 +14,10 @@
   <link rel="shortcut icon" href="../favicon/favicon.ico" />
   <link rel="apple-touch-icon" sizes="180x180" href="../favicon/apple-touch-icon.png" />
   <link rel="manifest" href="../favicon/site.webmanifest" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <img id="companyLogo" src="../favicon/detroit-brasil.png" style="display:none" />
+
+
 
   <style>
     /* ---- THEME (match luxo) ---- */
@@ -666,6 +670,16 @@ select:-moz-focusring { color: transparent; text-shadow: 0 0 0 var(--text); }
   from { transform: translateX(0); opacity: 1; }
   to { transform: translateX(400px); opacity: 0; }
 }
+
+.card-signature {
+  margin-top: 10px;
+  align-self: flex-end;
+  font-size: 11px;
+  color: rgba(225,239,230,0.55);
+  letter-spacing: 0.2px;
+  user-select: none;
+  pointer-events: none;
+}
   </style>
 </head>
 <body>
@@ -1008,6 +1022,12 @@ refreshBtn.addEventListener('click', () => {
         `).join('');
 
         body.insertAdjacentHTML('beforeend', `<div class="members-list">${membersHtml}</div>`);
+        const signature = document.createElement('div');
+signature.className = 'card-signature';
+signature.textContent = 'Desenvolvido por Gustavo Carvalho | Setor Estrutura';
+
+body.appendChild(signature);
+
         card.appendChild(body);
         reportContainer.appendChild(card);
       });
@@ -1119,6 +1139,566 @@ refreshBtn.addEventListener('click', () => {
         });
       }
     });
+
+    /* ===== Botão Compartilhar Apropriação + funções ===== */
+
+(function () {
+  // procura área de ações na topbar e adiciona o botão
+  const actions = document.querySelector('.topbar');
+  if (!actions) return;
+
+  const shareBtn = document.createElement('button');
+  shareBtn.id = 'shareBtn';
+  shareBtn.className = 'btn-neumo ghost';
+  shareBtn.style.marginLeft = '8px';
+  shareBtn.innerHTML = '<i class="fas fa-share"></i> Compartilhar';
+  actions.appendChild(shareBtn);
+
+  // formata ISO 'YYYY-MM-DD' para dd/mm/yyyy sem shift de timezone
+function dateIsoToReadable(iso) {
+  if (!iso) return '-';
+  try {
+    const parts = String(iso).split('-').map(n => parseInt(n, 10));
+    if (parts.length < 3 || isNaN(parts[0])) return String(iso);
+    const [y, m, d] = parts;
+    const dt = new Date(y, (m||1) - 1, d); // usa horário local: evita shift UTC
+    return dt.toLocaleDateString('pt-BR');
+  } catch (e) {
+    return String(iso);
+  }
+}
+
+
+  // monta array de registros filtrados pela equipe selecionada e data atual do filtro
+   function getFilteredAppropriationRecords() {
+    // usa as variáveis do escopo do arquivo (dateEl, teamEl, cachedRecords)
+    const dateVal = (dateEl && dateEl.value) || null;
+    const teamId = (teamEl && teamEl.value) || null;
+    const teamName = (teamEl && teamEl.selectedOptions && teamEl.selectedOptions[0] && teamEl.selectedOptions[0].dataset.teamName) || '';
+
+    if (!dateVal) {
+      console.debug('[share] date not selected');
+      return { ok: false, reason: 'missing_date' };
+    }
+    if (!teamId) {
+      console.debug('[share] team not selected');
+      return { ok: false, reason: 'missing_team' };
+    }
+
+    const source = Array.isArray(cachedRecords) ? cachedRecords.slice() : [];
+    const teamIdStr = String(teamId).toLowerCase();
+    const teamNameStr = String(teamName).toLowerCase();
+
+    const filtered = source.filter(r => {
+      // considera vários nomes de campos possíveis (teamId, team, teamName, team_id)
+      const candidates = [
+        r.teamId, r.team, r.teamName, r.team_id,
+        // outros campos que você possa ter salvo
+        r.teamIdStr, r.team_name
+      ].filter(Boolean).map(v => String(v).toLowerCase());
+
+      // compara
+      if (candidates.includes(teamIdStr)) return true;
+      if (candidates.includes(teamNameStr)) return true;
+      // também aceita quando teamName do registro coincide com o option dataset
+      if (String(r.teamName || '').toLowerCase() === teamNameStr) return true;
+      return false;
+    });
+
+    console.debug('[share] getFilteredAppropriationRecords', {
+      dateVal, teamId, teamName, cacheLen: source.length, found: filtered.length
+    });
+
+    return { ok: true, records: filtered, dateVal, teamId, teamName };
+  }
+
+  // --- Substitua o listener do shareBtn pelo listener abaixo ---
+  shareBtn.addEventListener('click', async function () {
+    try {
+      const dateValNow = (dateEl && dateEl.value) || null;
+      if (!dateValNow) {
+        showToast('Selecione data e equipe antes de compartilhar.');
+        return;
+      }
+
+      // garante que o cache para essa data foi carregado (evita filtro em cache vazio)
+      if (cachedDateKey !== dateValNow) {
+        // força busca no servidor para a data atual
+        await applyFilters({ force: true });
+      }
+
+      const info = getFilteredAppropriationRecords();
+      if (!info.ok) {
+        // mostra mensagem mais específica conforme razão
+        if (info.reason === 'missing_date' || info.reason === 'missing_team') {
+          showToast('Selecione data e equipe antes de compartilhar.');
+        } else {
+          showToast('Selecione data e equipe válidas antes de compartilhar.');
+        }
+        return;
+      }
+
+      if (!info.records || info.records.length === 0) {
+        showToast('Nenhum registro encontrado para a equipe/data selecionada.');
+        return;
+      }
+
+      // gera pdf e compartilha
+      const { doc, exportedAt } = await buildAppropriationPdf(info.records, info.teamName, info.dateVal);
+      await sharePdfBlob(doc, exportedAt, info.teamName, info.dateVal);
+    } catch (err) {
+      console.error('[share] erro ao gerar o PDF de apropriação', err);
+      showToast('Erro ao gerar o PDF de apropriação.');
+    }
+  });
+
+  // função principal: gera o doc (jsPDF) com o modelo "Apropriação"
+  async function buildAppropriationPdf(records, teamName, dateVal) {
+    // obtém jsPDF constructor (compat com UMD / global)
+    const JsPDF = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
+    if (!JsPDF) throw new Error('jsPDF não encontrado. Certifique-se de incluir o script do jsPDF.');
+
+    const doc = new JsPDF({ unit: 'pt', format: 'a4' });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 40;
+    const maxWidth = pageWidth - margin * 2;
+    const lineHeight = 14;
+
+    // Cabeçalho
+    const exportedAt = new Date();
+    const exportedAtStr = exportedAt.toLocaleString('pt-BR');
+    const logoY = 36;
+    const logoYOffset = 14;
+    const titleY = 88;
+    const separatorY = 104;
+    let y = separatorY + 28;
+
+    // header: logo (tenta reaproveitar sua função se existir)
+        // header: logo (usa getProjectLogoDataUrl com fallback textual)
+    try {
+      const logoDataUrl = (typeof getProjectLogoDataUrl === 'function') ? await getProjectLogoDataUrl().catch(()=>null) : null;
+      if (logoDataUrl) {
+        // Carrega a imagem em um objeto Image para obter dimensões reais e preservar proporção
+        try {
+          const img = new Image();
+          // alguns browsers requerem atribuir crossOrigin se imagem externa — mas o getProjectLogoDataUrl idealmente retorna dataURL
+          img.src = logoDataUrl;
+          await new Promise((res) => {
+            if (img.complete) return res();
+            img.onload = () => res();
+            img.onerror = () => res();
+          });
+
+          const origW = img.naturalWidth || img.width || 200;
+          const origH = img.naturalHeight || img.height || 72;
+          const ratio = origW / origH;
+
+          // Ajuste máximo desejado: aumentei o limite de largura para 140 (pode ajustar)
+          const maxLogoW = 120;   // <-- aumente se quiser logo ainda mais larga
+          const maxLogoH = 48;    // altura máxima para evitar muito alto
+
+          let logoW = origW;
+          let logoH = origH;
+
+          // escalar proporcionalmente para caber nos limites
+          if (logoW > maxLogoW) {
+            logoW = maxLogoW;
+            logoH = Math.round(logoW / ratio);
+          }
+          if (logoH > maxLogoH) {
+            logoH = maxLogoH;
+            logoW = Math.round(logoH * ratio);
+          }
+
+          // centraliza verticalmente no headerY aproximado
+         const logoX = margin;
+const logoYAdjusted = (logoY - (logoH / 2)) + logoYOffset;
+doc.addImage(logoDataUrl, 'PNG', logoX, logoYAdjusted, logoW, logoH);
+
+
+          // adiciona imagem ao PDF
+          try {
+            doc.addImage(logoDataUrl, 'PNG', logoX, logoYAdjusted, logoW, logoH);
+          } catch (errImg) {
+            console.warn('addImage falhou, fallback texto', errImg);
+            doc.setFontSize(11); doc.setTextColor(100); doc.text('Estrutura', margin, logoY + 18);
+          }
+        } catch (eImg) {
+          console.warn('logo load/scale error', eImg);
+          doc.setFontSize(11); doc.setTextColor(100); doc.text('Estrutura', margin, logoY + 18);
+        }
+      } else {
+        doc.setFontSize(11); doc.setTextColor(100); doc.text('Estrutura', margin, logoY + 18);
+      }
+    } catch (e) {
+      console.warn('logo failed', e);
+      doc.setFontSize(11);
+      doc.setTextColor(100);
+      doc.text('Estrutura', margin, logoY + 18);
+    }
+
+
+    // título central (Apropriação)
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(18);
+    const title = `Estrutura | Apropriação`;
+    doc.setTextColor(20);
+    const titleWidth = doc.getTextWidth(title);
+    doc.text(title, (pageWidth - titleWidth) / 2, titleY);
+
+    // meta top-right
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(100);
+    const exportedLabel = `Exportado: ${exportedAtStr}`;
+    doc.text(exportedLabel, pageWidth - margin - doc.getTextWidth(exportedLabel), logoY + 18);
+
+    // separador
+    doc.setDrawColor(190); doc.setLineWidth(0.9);
+    doc.line(margin, separatorY, pageWidth - margin, separatorY);
+
+    // informações da apropriação (equipe + data)
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(11);
+    doc.setTextColor(60);
+    const infoLine = `Equipe: ${teamName || '-'}    |    Data: ${dateIsoToReadable(dateVal)}`;
+    doc.text(infoLine, margin, y); y += (lineHeight + 6);
+
+    // se nenhum registro
+    if (!records || records.length === 0) {
+      const empty = 'Nenhum registro de apropriação encontrado para esta equipe/data.';
+      const linesEmpty = doc.splitTextToSize(empty, maxWidth);
+      doc.text(linesEmpty, margin, y);
+      y += linesEmpty.length * lineHeight;
+      if (typeof addFooter === 'function') addFooter(doc, exportedAtStr); // usa rodapé existente se houver. :contentReference[oaicite:2]{index=2}
+      return { doc, exportedAt };
+    }
+
+    /* ===== Helpers: logo + footer ===== */
+
+async function getProjectLogoDataUrl() {
+  // 1) permite sobrescrever via JS: window.PROJECT_LOGO_DATAURL = 'data:image/...'
+  if (window.PROJECT_LOGO_DATAURL) return window.PROJECT_LOGO_DATAURL;
+
+  // 2) tenta pegar uma imagem no DOM: <img id="companyLogo"> ou .brand-logo img ou img.logo
+  const selectors = ['#companyLogo', '.brand-logo img', 'img.logo', 'header img.logo'];
+  const imgEl = selectors.map(s => document.querySelector(s)).find(x => !!x);
+
+  if (!imgEl) return null;
+
+  // Se a imagem ainda não carregou, aguarda carregamento
+  if (!imgEl.complete) {
+    await new Promise((res) => { imgEl.onload = res; imgEl.onerror = res; });
+  }
+
+  // Tenta converter para dataURL via canvas (pode falhar por CORS)
+  try {
+    const canvas = document.createElement('canvas');
+    canvas.width = imgEl.naturalWidth || imgEl.width || 200;
+    canvas.height = imgEl.naturalHeight || imgEl.height || 72;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(imgEl, 0, 0, canvas.width, canvas.height);
+    // prefer PNG
+    return canvas.toDataURL('../favicon/detroit-brasil.png');
+  } catch (err) {
+    console.warn('getProjectLogoDataUrl: conversão falhou (CORS ou outro):', err);
+    return null;
+  }
+}
+
+// desenha rodapé simples na página corrente (left text). Chamado durante o fluxo.
+function addFooter(doc, exportedAtStr) {
+  try {
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 40;
+    const footerY = pageHeight - 28;
+
+    // define itálico para o texto esquerdo
+    try {
+      doc.setFont('helvetica', 'italic'); // jsPDF: define fonte + estilo
+    } catch (e) {
+      // fallback se setFont falhar em sua versão do jsPDF
+      try { doc.setFontStyle && doc.setFontStyle('italic'); } catch(e2){/*silent*/ }
+    }
+    doc.setFontSize(9);
+    doc.setTextColor(100);
+    const leftText = 'Desenvolvido por: Gustavo Carvalho | Estrutura';
+    doc.text(leftText, margin, footerY);
+
+    // volta para fonte normal (importante para não afetar outros textos)
+    try {
+      doc.setFont('helvetica', 'normal');
+    } catch (e) {
+      try { doc.setFontStyle && doc.setFontStyle('normal'); } catch(e2){/*silent*/ }
+    }
+  } catch (e) {
+    console.warn('addFooter error', e);
+  }
+}
+
+
+// adiciona números de página em todas as páginas e garante o texto esquerdo em cada página.
+// Chamar APÓS terminar de desenhar todo o conteúdo (antes de salvar/exportar).
+function finalizeFooter(doc, exportedAtStr) {
+  try {
+    const total = (typeof doc.getNumberOfPages === 'function') ? doc.getNumberOfPages() : doc.internal.getNumberOfPages();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 40;
+    const footerY = pageHeight - 28;
+
+    for (let i = 1; i <= total; i++) {
+      doc.setPage(i);
+
+      // texto esquerdo em itálico
+      try { doc.setFont('helvetica', 'italic'); } catch(e){ try{ doc.setFontStyle && doc.setFontStyle('italic'); }catch(_){} }
+      doc.setFontSize(9);
+      doc.setTextColor(100);
+      const leftText = 'Desenvolvido por: Gustavo Carvalho | Estrutura';
+      doc.text(leftText, margin, footerY);
+
+      // número da página em itálico (direita)
+      const pageText = `Página ${i} de ${total}`;
+      const w = doc.getTextWidth(pageText);
+      // mantém itálico para a página também
+      doc.text(pageText, pageWidth - margin - w, footerY);
+
+      // volta para normal após escrever
+      try { doc.setFont('helvetica', 'normal'); } catch(e){ try{ doc.setFontStyle && doc.setFontStyle('normal'); }catch(_){} }
+    }
+    // volta para última página como padrão
+    doc.setPage(total);
+  } catch (e) {
+    console.warn('finalizeFooter error', e);
+  }
+}
+
+
+    // Para cada registro: nome, matrícula, turno, bloco, embarcação, local, observações
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(11);
+    doc.setTextColor(40);
+
+    for (let i = 0; i < records.length; i++) {
+      const r = records[i];
+      // título do colaborador (nome + matrícula)
+      const personTitle = `${r.name || '-'}  (${r.memberMatricula || '-'})`;
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(12); doc.text(personTitle, margin, y);
+      y += lineHeight;
+
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(10);
+      const lines = [
+        `Turno: ${r.shift || '–'}`,
+        `Bloco: ${r.blockShift || '–'}`,
+        `Embarcação: ${r.vesselShift || '–'}`,
+        `Local: ${r.local || '–'}`
+      ];
+
+      // exibe em duas colunas por linha quando couber
+      const colGap = 12;
+      const colWidth = (maxWidth - colGap) / 2;
+      for (let ci = 0; ci < lines.length; ci += 2) {
+        const left = lines[ci];
+        const right = lines[ci+1] || '';
+        const leftLines = doc.splitTextToSize(left, colWidth);
+        const rightLines = right ? doc.splitTextToSize(right, colWidth) : [];
+
+        // calcula o maior número de linhas entre as duas colunas
+        const maxLines = Math.max(leftLines.length, rightLines.length);
+
+        for (let ln = 0; ln < maxLines; ln++) {
+          if (y + lineHeight + 120 > doc.internal.pageSize.getHeight()) {
+            if (typeof addFooter === 'function') addFooter(doc, exportedAtStr);
+            doc.addPage();
+            y = 72;
+          }
+          const leftText = leftLines[ln] || '';
+          const rightText = rightLines[ln] || '';
+          doc.text(leftText, margin, y);
+          if (rightText) doc.text(rightText, margin + colWidth + colGap, y);
+          y += lineHeight;
+        }
+      }
+
+      // observações (se houver)
+      const obs = r.observations || r.obs || '';
+      if (obs) {
+        y += 6;
+        const obsLines = doc.splitTextToSize(`Obs: ${obs}`, maxWidth);
+        for (let ol = 0; ol < obsLines.length; ol++) {
+          if (y + lineHeight + 120 > doc.internal.pageSize.getHeight()) {
+            if (typeof addFooter === 'function') addFooter(doc, exportedAtStr);
+            doc.addPage();
+            y = 72;
+          }
+          doc.text(obsLines[ol], margin, y);
+          y += lineHeight;
+        }
+      }
+
+      // separador entre registros
+      y += 8;
+      doc.setDrawColor(210);
+      doc.setLineWidth(0.4);
+      doc.line(margin, y, pageWidth - margin, y);
+      y += 14;
+    }
+
+    if (typeof addFooter === 'function') addFooter(doc, exportedAtStr);
+// garante numeração e footer em todas as páginas
+if (typeof finalizeFooter === 'function') finalizeFooter(doc, exportedAtStr);
+return { doc, exportedAt };
+
+  }
+
+  // tenta compartilhar usando Web Share API com arquivo; fallback para URL ou download
+  let _sharingInProgress = false;
+
+function isMobileDevice() {
+  // combinação de userAgent + capacidade de toque (mais robusto que só UA)
+  const ua = navigator.userAgent || navigator.vendor || window.opera || '';
+  const mobileUa = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i.test(ua);
+  const hasTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
+  return mobileUa || hasTouch;
+}
+
+async function sharePdfBlob(doc, exportedAt, teamName, dateVal) {
+  if (_sharingInProgress) {
+    console.warn('[share] tentativa concorrente evitada');
+    showToast && showToast('Aguarde: compartilhamento em andamento.');
+    return;
+  }
+  _sharingInProgress = true;
+  const btn = document.getElementById('shareBtn');
+  if (btn) { btn.disabled = true; btn.classList && btn.classList.add('disabled'); }
+
+  const SAFETY_TIMEOUT_MS = 9000; // reabilita após X ms caso o share() nunca resolva
+  let safetyTimer = setTimeout(() => {
+    console.warn('[share] safety timeout — reabilitando botão');
+    _sharingInProgress = false;
+    if (btn) { btn.disabled = false; btn.classList.remove('disabled'); }
+    showToast && showToast('Tempo excedido. Tente compartilhar novamente.');
+  }, SAFETY_TIMEOUT_MS);
+
+  try {
+    // gerar blob do jsPDF
+    const blob = (typeof doc.output === 'function') ? doc.output('blob') : null;
+    const filename = `apropriacao_${(teamName || 'sem_equipe').replace(/\s+/g,'_')}_${exportedAt.toISOString().slice(0,10)}.pdf`;
+
+    // Se for desktop ou navegador sem suporte a share, forçar download
+    const mobile = isMobileDevice();
+    const supportFilesShare = !!(navigator.canShare && blob && typeof File === 'function');
+    const supportShare = !!navigator.share;
+
+    // Caso desktop OR nenhum suporte a share => baixar
+    if (!mobile || (!supportShare && !supportFilesShare)) {
+      // fallback: salvar localmente
+      if (!blob) {
+        doc.save(filename);
+      } else {
+        // usa jsPDF save para melhor compatibilidade
+        doc.save(filename);
+      }
+      showToast && showToast('PDF baixado no dispositivo.');
+      return;
+    }
+
+    // A partir daqui: ambiente móvel (mobile === true) e tentamos abrir o menu nativo
+    if (!blob) {
+      // se não conseguimos criar blob, salvamos (apenas fallback)
+      doc.save(filename);
+      showToast && showToast('PDF gerado (download).');
+      return;
+    }
+
+    const file = new File([blob], filename, { type: 'application/pdf' });
+
+    // 1) tenta compartilhar arquivo (melhor experiência)
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({
+          files: [file],
+          title: `Apropriação — ${teamName || ''}`,
+          text: `Apropriação ${teamName || ''} — ${dateIsoToReadable ? dateIsoToReadable(dateVal) : dateVal}`
+        });
+        showToast && showToast('Compartilhamento concluído.');
+        return;
+      } catch (err) {
+        console.warn('[share] share(files) cancel/err', err);
+        if (err && err.name === 'InvalidStateError') {
+          showToast && showToast('Aguardando finalização de compartilhamento anterior. Tente novamente.');
+          return;
+        }
+        // se usuário cancelou ou outro erro, informar e tentar fallback abaixo
+        if (err && (err.name === 'AbortError' || err.name === 'NotAllowedError')) {
+          showToast && showToast('Compartilhamento cancelado.');
+          return;
+        }
+        // segue para tentativa com url ou download
+      }
+    }
+
+    // 2) tenta compartilhar uma URL blob (alguns WebViews/Safari aceitam)
+    if (navigator.share) {
+      const blobUrl = URL.createObjectURL(blob);
+      try {
+        await navigator.share({
+          title: `Apropriação — ${teamName || ''}`,
+          text: `Apropriação ${teamName || ''} — ${dateIsoToReadable ? dateIsoToReadable(dateVal) : dateVal}`,
+          url: blobUrl
+        });
+        showToast && showToast('Compartilhamento concluído.');
+        URL.revokeObjectURL(blobUrl);
+        return;
+      } catch (err2) {
+        console.warn('[share] share(url) err', err2);
+        URL.revokeObjectURL(blobUrl);
+        if (err2 && err2.name === 'InvalidStateError') {
+          showToast && showToast('Aguardando finalização de compartilhamento anterior. Tente novamente.');
+          return;
+        }
+        // se falhar, prosseguir para fallback (download)
+      }
+    }
+
+    // 3) fallback final: baixar (se nenhum método de share funcionou)
+    doc.save(filename);
+    showToast && showToast('Não foi possível abrir o compartilhamento nativo — PDF baixado.');
+  } catch (err) {
+    console.error('[share] Erro ao gerar/compartilhar PDF', err);
+    showToast && showToast('Falha ao gerar/compartilhar PDF.');
+  } finally {
+    clearTimeout(safetyTimer);
+    _sharingInProgress = false;
+    if (btn) { btn.disabled = false; btn.classList.remove('disabled'); }
+  }
+}
+
+  // listener do botão
+  shareBtn.addEventListener('click', async function () {
+    try {
+      const info = getFilteredAppropriationRecords();
+      if (!info.ok) {
+        showToast('Selecione data e equipe antes de compartilhar.');
+        return;
+      }
+
+      // se não há registros para essa equipe/data
+      if (!info.records || info.records.length === 0) {
+        showToast('Nenhum registro encontrado para a equipe/data selecionada.');
+        return;
+      }
+
+      // gera pdf e compartilha
+      const { doc, exportedAt } = await buildAppropriationPdf(info.records, info.teamName, info.dateVal);
+      await sharePdfBlob(doc, exportedAt, info.teamName, info.dateVal);
+    } catch (err) {
+      console.error(err);
+      showToast('Erro ao gerar o PDF de apropriação.');
+    }
+  });
+
+})();
   </script>
 </body>
 </html>
