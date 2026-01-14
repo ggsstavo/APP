@@ -1264,7 +1264,7 @@ nav ul li a:focus {
   right: 12px;
   bottom: 8px;
   font-size: 11px;
-  color: rgba(225,239,230,0.30);
+  color: rgba(225,239,230,0.45);
   letter-spacing: 0.2px;
   user-select: none;
   pointer-events: none;
@@ -1315,6 +1315,37 @@ nav ul li a:focus {
   }
 
 }
+
+/* assinatura para cards de gráfico */
+.chart-container .card {
+  position: relative; /* já tinha, assegura posicionamento absoluto interno */
+  padding-bottom: 30px; /* <--- ajuste esse valor se precisar mais/menos espaço */
+  box-sizing: border-box;
+}
+
+.chart-container .card .chart-signature {
+  position: absolute;
+  right: 12px;
+  bottom: 8px;
+  font-size: 10px;
+  color: var(--muted);
+  opacity: 0.85;
+  border-radius: 8px;
+  pointer-events: none;
+  user-select: none;
+  white-space: nowrap;
+  z-index: 5;
+}
+
+/* classe para ocultar assinatura durante impressão / quando quiser esconder */
+.chart-container .card .chart-signature.hidden { display: none !important; }
+
+/* responsividade: reduzir fonte em telas pequenas */
+@media (max-width:700px) {
+  .chart-container .card .chart-signature { font-size: 10px; padding:5px 7px; right:8px; bottom:8px; }
+  .chart-container .card { padding-bottom: 35px; } /* aumenta um pouco em mobile */
+}
+
 
   </style>
 </head>
@@ -2284,9 +2315,177 @@ function gerarGraficos(colaboradores){
 
 /* ================= export helpers (simples) ================= */
 function downloadDataUrl(dataUrl, filename){ const a=document.createElement('a'); a.href=dataUrl; a.download=filename; document.body.appendChild(a); a.click(); a.remove(); }
-function buildLegendEntries(chart){ if (!chart) return []; const type = chart.config.type; const out = []; if (type === 'doughnut' || type === 'pie'){ const labels = chart.data.labels || []; const colors = chart.data.datasets && chart.data.datasets[0] && chart.data.datasets[0].backgroundColor || []; for(let i=0;i<labels.length;i++) out.push({label:labels[i]||'', color: Array.isArray(colors)?colors[i]:colors}); return out; } chart.data.datasets.forEach(ds=> out.push({label: ds.label || 'Série', color: Array.isArray(ds.backgroundColor)? ds.backgroundColor[0] : ds.backgroundColor})); return out; }
-async function exportChartWithTitleLegend(chartCanvas, titleText, filename){ const chart = Chart.getChart(chartCanvas); if (!chart){ try{ downloadDataUrl(chartCanvas.toDataURL('image/png'), filename); }catch(e){ alert('erro export'); } return; } const dpr = window.devicePixelRatio || 1; const sourceW = chartCanvas.width, sourceH = chartCanvas.height; const titleH = Math.round(56*dpr), legendRowH = Math.round(28*dpr); const legend = buildLegendEntries(chart); const cols = Math.max(1, Math.min(legend.length,4)); const rows = Math.ceil(legend.length/cols); const legendH = rows*legendRowH + Math.round(12*dpr); const outW = sourceW, outH = titleH + legendH + sourceH + Math.round(24*dpr); const c = document.createElement('canvas'); c.width = outW; c.height = outH; const ctx = c.getContext('2d'); ctx.fillStyle = '#0b0c0f'; ctx.fillRect(0,0,outW,outH); ctx.font = `700 ${Math.round(18*dpr)}px Inter, Arial`; ctx.fillStyle = '#fff'; ctx.fillText(titleText||'', Math.round(20*dpr), Math.round(titleH/2)); const legendStartY = titleH + Math.round(10*dpr); const boxSize = Math.round(12*dpr); const gapX = Math.round(16*dpr); const startX = Math.round(20*dpr); ctx.font = `${Math.round(12*dpr)}px Inter, Arial`; const colWidths = []; for(let i=0;i<cols;i++) colWidths[i]=0; legend.forEach((le, idx)=>{ const col = idx%cols; const metrics = ctx.measureText(le.label||''); const w = metrics.width + boxSize + Math.round(8*dpr); if (w > (colWidths[col] || 0)) colWidths[col] = w; }); const colX = []; colX[0] = startX; for(let ci=1; ci<cols; ci++) colX[ci] = colX[ci-1] + (colWidths[ci-1] || 120) + gapX; legend.forEach((le, idx)=>{ const ci = idx % cols; const ri = Math.floor(idx / cols); const lx = colX[ci]; const ly = legendStartY + ri * legendRowH + Math.round(legendRowH/2); ctx.fillStyle = le.color || '#999'; ctx.fillRect(lx, ly - Math.round(boxSize/2), boxSize, boxSize); ctx.fillStyle = '#e6f2ea'; ctx.fillText(le.label || '', lx + boxSize + Math.round(8*dpr), ly); }); const img = new Image(); img.onload = ()=>{ ctx.drawImage(img, 0, titleH + legendH + Math.round(12*dpr), sourceW, sourceH); try{ downloadDataUrl(c.toDataURL('image/png'), filename); }catch(e){ console.error(e); } }; img.src = chartCanvas.toDataURL('image/png'); }
-function bindExportButtons(){ document.querySelectorAll('.export-btn').forEach(btn=>{ if (btn._bound) return; btn._bound = true; btn.addEventListener('click', ()=>{ const target = btn.getAttribute('data-target'); const card = btn.closest('.card'); const title = card ? (card.querySelector('h3') ? card.querySelector('h3').innerText.trim() : target) : target; exportChartWithTitleLegend(document.getElementById(target), title, `${title.replace(/\s+/g,'_')}.png`); }); }); }
+function buildLegendEntries(chart){
+  if (!chart) return [];
+  const type = chart.config.type;
+  const out = [];
+  if (type === 'doughnut' || type === 'pie'){
+    const labels = chart.data.labels || [];
+    const colors = (chart.data.datasets && chart.data.datasets[0] && chart.data.datasets[0].backgroundColor) || [];
+    for (let i = 0; i < labels.length; i++) {
+      out.push({ label: labels[i] || '', color: Array.isArray(colors) ? colors[i] : colors });
+    }
+    return out;
+  }
+  chart.data.datasets.forEach(ds =>
+    out.push({
+      label: ds.label || 'Série',
+      color: Array.isArray(ds.backgroundColor) ? ds.backgroundColor[0] : ds.backgroundColor
+    })
+  );
+  return out;
+}
+
+/* ----------------------------------------------------
+   Helper: desenha uma assinatura discreta no canto
+   inferior direito do canvas final (exportado)
+   opts: { opacity, fontSize, fontWeight, margin }
+   ---------------------------------------------------- */
+function drawDiscreteSignature(ctx, canvasWidth, canvasHeight, signatureText, opts = {}) {
+  const dpr = window.devicePixelRatio || 1;
+  const opacity = (typeof opts.opacity === 'number') ? opts.opacity : 0.28; // 0..1
+  const fontSize = Math.round((opts.fontSize || 10) * dpr); // px * dpr
+  const fontWeight = opts.fontWeight || 600;
+  const margin = Math.round((opts.margin || 12) * dpr);
+  const text = signatureText || CHART_SIGN_TEXT;
+
+  ctx.save();
+
+  // configurações de texto
+  ctx.globalAlpha = opacity;
+  ctx.font = `${fontWeight} ${fontSize}px Inter, Arial`;
+  ctx.textBaseline = 'bottom';
+
+  // medir largura para posicionar corretamente
+  const metrics = ctx.measureText(text);
+  const textW = metrics.width;
+  const x = Math.max(margin, canvasWidth - margin - textW);
+  const y = canvasHeight - margin;
+
+  // sombra sutil para legibilidade (opcional e leve)
+  ctx.shadowColor = 'rgba(0,0,0,0.45)';
+  ctx.shadowBlur = Math.max(0, Math.round(1 * dpr));
+  ctx.fillStyle = '#d7efe4'; // off-white próximo da paleta
+  ctx.fillText(text, x, y - Math.round(2 * dpr));
+
+  ctx.restore();
+}
+
+/* ----------------------------------------------------
+   Substitui a sua função de export — agora com opção
+   includeSignature (true por padrão). Se false, não
+   desenha assinatura no arquivo exportado.
+   ---------------------------------------------------- */
+async function exportChartWithTitleLegend(chartCanvas, titleText, filename, includeSignature = true) {
+  const chart = Chart.getChart(chartCanvas);
+  if (!chart) {
+    try {
+      downloadDataUrl(chartCanvas.toDataURL('image/png'), filename);
+    } catch (e) {
+      alert('erro export');
+    }
+    return;
+  }
+
+  const dpr = window.devicePixelRatio || 1;
+  const sourceW = chartCanvas.width, sourceH = chartCanvas.height;
+  const titleH = Math.round(56 * dpr), legendRowH = Math.round(28 * dpr);
+
+  const legend = buildLegendEntries(chart);
+  const cols = Math.max(1, Math.min(legend.length, 4));
+  const rows = Math.ceil(legend.length / cols);
+  const legendH = rows * legendRowH + Math.round(12 * dpr);
+
+  const outW = sourceW;
+  const outH = titleH + legendH + sourceH + Math.round(24 * dpr);
+
+  const c = document.createElement('canvas');
+  c.width = outW;
+  c.height = outH;
+  const ctx = c.getContext('2d');
+
+  // fundo (mesma aparência que você já usava)
+  ctx.fillStyle = '#0b0c0f';
+  ctx.fillRect(0, 0, outW, outH);
+
+  // título
+  ctx.font = `700 ${Math.round(18 * dpr)}px Inter, Arial`;
+  ctx.fillStyle = '#fff';
+  ctx.fillText(titleText || '', Math.round(20 * dpr), Math.round(titleH / 2));
+
+  // legenda
+  const legendStartY = titleH + Math.round(10 * dpr);
+  const boxSize = Math.round(12 * dpr);
+  const gapX = Math.round(16 * dpr);
+  const startX = Math.round(20 * dpr);
+  ctx.font = `${Math.round(12 * dpr)}px Inter, Arial`;
+
+  // largura das colunas da legenda
+  const colWidths = [];
+  for (let i = 0; i < cols; i++) colWidths[i] = 0;
+  legend.forEach((le, idx) => {
+    const col = idx % cols;
+    const metrics = ctx.measureText(le.label || '');
+    const w = metrics.width + boxSize + Math.round(8 * dpr);
+    if (w > (colWidths[col] || 0)) colWidths[col] = w;
+  });
+  const colX = [];
+  colX[0] = startX;
+  for (let ci = 1; ci < cols; ci++) colX[ci] = colX[ci - 1] + (colWidths[ci - 1] || 120) + gapX;
+
+  legend.forEach((le, idx) => {
+    const ci = idx % cols;
+    const ri = Math.floor(idx / cols);
+    const lx = colX[ci];
+    const ly = legendStartY + ri * legendRowH + Math.round(legendRowH / 2);
+    ctx.fillStyle = le.color || '#999';
+    ctx.fillRect(lx, ly - Math.round(boxSize / 2), boxSize, boxSize);
+    ctx.fillStyle = '#e6f2ea';
+    ctx.fillText(le.label || '', lx + boxSize + Math.round(8 * dpr), ly);
+  });
+
+  // rasteriza o canvas do chart no combinado final
+  const img = new Image();
+  img.onload = () => {
+    ctx.drawImage(img, 0, titleH + legendH + Math.round(12 * dpr), sourceW, sourceH);
+
+    // Desenha a assinatura discreta **somente se includeSignature for true**
+    if (includeSignature) {
+      drawDiscreteSignature(ctx, c.width, c.height, CHART_SIGN_TEXT, {
+        opacity: 0.22,   // muito discreto; ajuste entre 0.12 e 0.40 conforme desejar
+        fontSize: 10,    // base em px (será multiplicado por devicePixelRatio)
+        fontWeight: 600,
+        margin: 5
+      });
+    }
+
+    try {
+      downloadDataUrl(c.toDataURL('image/png'), filename);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+  img.src = chartCanvas.toDataURL('image/png');
+}
+
+/* ----------------------------------------------------
+   Bind nos botões de export — lê data-signature="hide"
+   se presente no botão para pular a assinatura.
+   ---------------------------------------------------- */
+function bindExportButtons(){
+  document.querySelectorAll('.export-btn').forEach(btn=>{
+    if (btn._bound) return;
+    btn._bound = true;
+    btn.addEventListener('click', ()=>{
+      const target = btn.getAttribute('data-target');
+      const card = btn.closest('.card');
+      const title = card ? (card.querySelector('h3') ? card.querySelector('h3').innerText.trim() : target) : target;
+      // se o botão tiver data-signature="hide", passamos includeSignature = false
+      const hideSignature = (btn.getAttribute('data-signature') || '').toLowerCase() === 'hide';
+      exportChartWithTitleLegend(document.getElementById(target), title, `${title.replace(/\s+/g,'_')}.png`, !hideSignature);
+    });
+  });
+}
 
 /* ================= main loader ================= */
 async function carregarETDistribuir(){
@@ -3720,6 +3919,65 @@ if (!pdfExporter) {
   });
   containerObserver.observe(document.body, { childList: true, subtree: true });
 })();
+
+const CHART_SIGN_TEXT = 'Desenvolvido por Gustavo Carvalho | Setor Estrutura';
+
+/**
+ * Garante a presença da assinatura em cada card dentro de .chart-container
+ */
+function ensureChartSignatures() {
+  const container = document.querySelector('.chart-container');
+  if (!container) return;
+  container.querySelectorAll('.card').forEach(card => {
+    // evita duplicar
+    if (card.querySelector('.chart-signature')) return;
+    const el = document.createElement('div');
+    el.className = 'chart-signature';
+    el.textContent = CHART_SIGN_TEXT;
+    card.appendChild(el);
+  });
+}
+
+/**
+ * Se quiser incluir a assinatura na imagem final quando exportar o chart,
+ * adicione este trecho dentro de exportChartWithTitleLegend (após ctx.drawImage(...))
+ *
+ * Exemplo de patch (localize a linha que chama downloadDataUrl(c.toDataURL(...)) e
+ * antes dela adicione o código abaixo, ou adapte conforme a sua rotina):
+ */
+function drawSignatureOnCanvas(ctx, canvasWidth, canvasHeight, signatureText) {
+  const padding = 16;
+  const fontSize = Math.round(10 * (window.devicePixelRatio || 1));
+  ctx.save();
+  ctx.font = `600 ${fontSize}px Inter, Arial`;
+  ctx.textBaseline = 'bottom';
+  // medir largura e desenhar um pequeno background para legibilidade
+  const metrics = ctx.measureText(signatureText || CHART_SIGN_TEXT);
+  const textW = metrics.width;
+  const x = canvasWidth - padding - textW;
+  const y = canvasHeight - padding;
+  // fundo leve
+  const bgH = fontSize + 8;
+  ctx.fillStyle = 'rgba(11,12,15,0.6)';
+  ctx.fillRect(x - 8, y - bgH, textW + 16, bgH);
+  // borda sutil
+  ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(x - 8, y - bgH, textW + 16, bgH);
+  // texto
+  ctx.fillStyle = '#d7efe4'; // cor próxima à sua --text
+  ctx.fillText(signatureText || CHART_SIGN_TEXT, x, y - 6);
+  ctx.restore();
+}
+
+/* ===== Inicialização ===== */
+document.addEventListener('DOMContentLoaded', () => {
+  // garante assinatura nos cards assim que a página carrega
+  ensureChartSignatures();
+
+  // se você gera os charts dinamicamente depois de carregar, chame ensureChartSignatures()
+  // novamente após gerar os charts (e.g. dentro de gerarGraficos ou após carregar dados).
+});
 
 
 </script>
