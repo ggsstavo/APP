@@ -240,6 +240,65 @@
       display:grid; grid-template-columns: 1fr 360px; gap:18px; align-items:start;
     }
 
+    /* garante que elementos posicionados absolutamente se posicionem dentro do panel */
+/* garante pos. relativa e reserva área inferior para o crédito */
+.panel.card-glow{
+  position: relative;            /* necessário para o absolute do credit */
+}
+
+/* aplica um pequeno espaço no topo do conteúdo do painel (não altera headers internos) */
+.panel.card-glow > *:first-child {
+  padding-top: 10px; /* ajuste se quiser mais/menos espaço no topo */
+}
+
+/* estilo e posicionamento do crédito no canto inferior direito */
+.panel-credit{
+  position: absolute;
+  right: 2px;
+  bottom: 0px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  line-height: 1;
+  color: var(--muted, rgba(255,255,255,0.45));
+  padding: 2px 7px;
+  border-radius: 8px;
+  pointer-events: none;          /* evita bloquear cliques em botões abaixo */
+  white-space: nowrap;
+  z-index: 4;
+  opacity: 0.85;
+}
+
+/* se houver botões no rodapé do painel e você quiser garantir que fiquem "acima" visualmente,
+   aumente o z-index do botão ou, preferível, mantenha o padding-bottom (já aplicado) para evitar sobreposição. */
+
+/* --- Responsividade: telas pequenas --- */
+@media (max-width: 520px) {
+  /* em telas pequenas movemos o crédito para o fluxo normal (não posicionado sobreposto),
+     assim não encobre conteúdo e ocupa sua própria linha no final do painel */
+  .panel.card-glow{
+    padding-bottom: 12px; /* reduz espaço reservado pois o credit ficará no fluxo */
+  }
+  .panel.card-glow > *:first-child { padding-top: 8px; }
+
+  .panel-credit{
+    position: static;
+    display: block;
+    margin-top: 10px;
+    height: auto;
+    pointer-events: auto;    /* se quiser links clicáveis no crédito em mobile, permita eventos */
+    text-align: right;
+    color: var(--muted, rgba(255,255,255,0.85));
+    width: 100%;
+    padding: 6px 0 0 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
+
+
+
     /* left column form area */
 
     .form-area{
@@ -1064,6 +1123,10 @@ select:-moz-focusring { color: transparent; text-shadow: 0 0 0 var(--text); }
               <button id="bulkSend" class="btn-neumo ghost"><i class="fa-solid fa-upload"></i> Enviar lotes</button>
               <button id="openPreviewBtn" class="btn-neumo ghost" style="margin-left:auto">Atualizar pré-visualização</button>
             </div>
+
+            <div class="panel-credit" aria-hidden="true">
+  Desenvolvido por <strong>Gustavo Carvalho</strong> | Setor: <strong>Estrutura</strong>
+</div>
 
             <div id="notification" class="notification" style="display:none;"><i class="fas fa-exclamation-circle"></i> Nenhuma equipe selecionada. Por favor, selecione uma para baixar o diário de obra.</div>
           </div>
