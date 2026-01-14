@@ -253,7 +253,7 @@
     .note-card{
       background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
       border-radius:12px;
-      padding:14px;
+      padding: 14px;
       border:1px solid rgba(255,255,255,0.02);
       box-shadow: 0 8px 26px rgba(0,0,0,0.55);
       position:relative;
@@ -272,9 +272,34 @@
       font-size:16px; font-weight:700; margin-bottom:8px;
       background: var(--text-grad); background-clip:text; -webkit-background-clip:text; color:transparent;
     }
-    .note-content{ color:var(--muted); white-space:pre-wrap; line-height:1.5; }
+    .note-content{ color:var(--muted); white-space:pre-wrap; overflow-wrap: anywhere;
+  word-break: break-word;
+  line-height: 1.5;
+  margin-bottom: 8px; 
+margin-top: 18px;}
 
     .note-meta{ margin-top:10px; color:var(--muted-2); font-size:13px; display:flex; gap:8px; align-items:center; }
+
+    .note-signature{
+      position:absolute; bottom:10px; right:12px;
+      font-size:9px; color:var(--muted-2); opacity:0.55;
+      font-style:italic; font-weight:400;
+      transition: opacity .2s ease;
+      pointer-events:none;
+      user-select:none;
+    }
+
+    @media (max-width: 415px) {
+      .note-signature{
+        bottom: 5px;
+      }
+    }
+
+    /* TODO: fazer com que a assinatura e a data nao se sobreponham em telas menores e fazer com que o texto quebre antes dos icones e nao no limite do card */
+    
+    .note-card:hover .note-signature{
+      opacity:0.75;
+    }
 
     .note-actions{
       position:absolute; top:12px; right:12px; display:flex; gap:8px;
@@ -732,7 +757,6 @@ nav ul li a:focus {
       }
     }
 
-    /* Simplifique o dialog para mobile */
 @media (max-width: 768px) {
   dialog {
     background: rgba(11,12,15,0.95); /* Fundo sólido em vez de gradiente */
@@ -1459,6 +1483,7 @@ function renderNotes() {
         <div class="note-content">${escapeHtml(n.content)}</div>
         <div class="note-meta">${new Date(n.updatedAt || n.createdAt).toLocaleString()}</div>
       </div>
+      <div class="note-signature">Desenvolvido por Gustavo Carvalho | Setor Estrutura</div>
     `;
     const [shareBtn, editBtn, delBtn] = card.querySelectorAll('.icon-btn');
     shareBtn.addEventListener('click', ()=> {
