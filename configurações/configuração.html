@@ -9,7 +9,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.2/dist/gsap.min.js"></script>
   <link rel="icon" type="image/png" href="../favicon/favicon-96x96.png" sizes="96x96" />
   <link rel="icon" type="image/svg+xml" href="../favicon/favicon.svg" />
   <link rel="shortcut icon" href="../favicon/favicon.ico" />
@@ -1426,13 +1425,14 @@ nav ul li a:focus {
     /* theme toggle */
     .theme-toggle {
       display:flex; gap:10px; align-items:center;
-      background: linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.01));
-      padding:8px;border-radius:999px;border:1px solid rgba(255,255,255,0.03);box-shadow: var(--neumo-shadow);
+      background: var(--glass);
+      padding:1px;border-radius:999px;border:1px solid rgba(255,255,255,0.03);
+      width: 95px;
     }
     .theme-option{
       display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;cursor:pointer;color:var(--muted);font-weight:600;
       transition: all .18s var(--hover-ease);
-      user-select:none;
+      user-select:none; cursor: not-allowed;
     }
     .theme-option input { display:none; }
 
@@ -1452,7 +1452,6 @@ nav ul li a:focus {
       background: linear-gradient(135deg,var(--accent),var(--secondary));
       box-shadow: 0 6px 18px rgba(0,0,0,0.45);
     }
-    .theme-option:hover{ transform:translateY(-3px); color:var(--text); }
 
     /* Settings group styling */
     .setting-group {
@@ -1595,9 +1594,6 @@ nav ul li a:focus {
         transform: translateY(0);
       }
     }
-
-    .reveal{ opacity:0; transform: translateY(8px); filter: blur(6px); transition: all 600ms cubic-bezier(.2,.9,.25,1); will-change: opacity, transform;}
-    .reveal.in-view{ opacity:1; transform:none; filter:none; }
 
     /* Autofill dark */
     input:-webkit-autofill,
@@ -1811,7 +1807,7 @@ nav ul li a:focus {
   <div class="page"ria-label="Configurações de usuário">
 
     <section class="main">
-      <header class="page-header reveal">
+      <header class="page-header">
         <div>
           <div class="title">Configurações do Usuário</div>
           <div class="subtitle">Gerencie seu perfil, segurança, preferências e conta.</div>
@@ -1885,10 +1881,6 @@ nav ul li a:focus {
               <label>Tema da interface</label>
               <div class="theme-toggle" role="radiogroup">
                 <label class="theme-option">
-                  <input type="radio" name="theme" value="light" />
-                  <span class="label"><span class="dot"></span><span>Claro</span></span>
-                </label>
-                <label class="theme-option">
                   <input type="radio" name="theme" value="dark" checked />
                   <span class="label"><span class="dot"></span><span>Escuro</span></span>
                 </label>
@@ -1915,7 +1907,7 @@ nav ul li a:focus {
       </div>
 
       <!-- PREFERENCES CARD -->
-      <div class="card reveal">
+      <div class="card">
         <h4 style="margin:0 0 8px 0"><i class="fa-solid fa-sliders" style="margin-right: 8px;"></i>Preferências</h4>
         <p style="margin:0 0 20px 0;color:var(--muted)">Configure o comportamento do aplicativo.</p>
 
@@ -1956,7 +1948,7 @@ nav ul li a:focus {
       </div>
 
       <!-- SECURITY CARD -->
-      <div class="card reveal">
+      <div class="card">
         <h4 style="margin:0 0 8px 0"><i class="fa-solid fa-shield-halved" style="margin-right: 8px;"></i>Segurança & Conta</h4>
         <p style="margin:0 0 20px 0;color:var(--muted)">Gerencie autenticação, sessões e segurança.</p>
 
@@ -2002,13 +1994,13 @@ nav ul li a:focus {
 
     <!-- ASIDE: version + quick actions -->
     <aside class="aside">
-      <div class="card version-card reveal">
+      <div class="card version-card">
         <h4>Sistema Estrutura</h4>
-        <p style="margin:8px 0 0 0; font-weight:800; font-size:18px">v2.0</p>
-        <div class="muted" style="margin-top:8px">Atualizado: 06 Out 2025</div>
+        <p style="margin:8px 0 0 0; font-weight:800; font-size:18px">v2.1</p>
+        <div class="muted" style="margin-top:8px">Atualizado: 17 Jan 2026</div>
       </div>
 
-      <div class="card reveal">
+      <!-- <div class="card">
         <h4 style="margin:0 0 16px 0">Estatísticas da conta</h4>
         <div class="stats-card">
           <div class="stat-item">
@@ -2028,9 +2020,9 @@ nav ul li a:focus {
             <p style="color:var(--success)">Ativo</p>
           </div>
         </div>
-      </div>
+      </div> -->
 
-      <div class="card reveal">
+      <!-- <div class="card">
         <h4 style="margin:0 0 8px 0">Ações rápidas</h4>
         <div style="display:flex;flex-direction:column;gap:10px;">
           <button class="btn ghost"><i class="fa-solid fa-bell"></i> Central de notificações</button>
@@ -2038,9 +2030,9 @@ nav ul li a:focus {
           <button class="btn ghost"><i class="fa-solid fa-palette"></i> Personalizar tema</button>
           <button class="btn ghost"><i class="fa-solid fa-keyboard"></i> Atalhos de teclado</button>
         </div>
-      </div>
+      </div> -->
 
-      <div class="card reveal" style="text-align:center">
+      <!-- <div class="card" style="text-align:center">
         <div class="muted" style="margin-bottom:10px">Precisa de ajuda?</div>
         <a href="#" class="btn" style="width:100%;justify-content:center">
           <i class="fa-solid fa-headset"></i> Suporte técnico
@@ -2048,9 +2040,9 @@ nav ul li a:focus {
         <div style="margin-top:12px;font-size:12px;color:var(--muted)">
           Segunda à sexta, 8h às 17h
         </div>
-      </div>
+      </div> -->
 
-      <div class="dev-note reveal">
+      <div class="dev-note">
         <div>Sistema desenvolvido por <strong>Gustavo Carvalho</strong></div>
         <div>Setor de <strong>Estrutura</strong></div>
         <span class="meta">Agilidade, confiabilidade e design de excelência — pensado para líderes de obra que buscam precisão e confiança • © 2025</span>
@@ -2058,38 +2050,5 @@ nav ul li a:focus {
     </aside>
   </div>
 
-  <script>
-    // Initialize animations when DOM is ready
-    document.addEventListener('DOMContentLoaded', () => {
-      // Initialize GSAP animations
-      if (window.gsap) {
-        gsap.utils.toArray('.reveal').forEach((el, i) => {
-          gsap.fromTo(el, 
-            { opacity: 0, y: 12, filter: 'blur(6px)' },
-            { 
-              opacity: 1, 
-              y: 0, 
-              filter: 'blur(0px)', 
-              delay: 0.06 * i, 
-              duration: 0.7, 
-              ease: 'power3.out' 
-            }
-          );
-        });
-      }
-
-      // Intersection Observer for scroll reveals
-      const io = new IntersectionObserver((entries) => {
-        entries.forEach(e => {
-          if (e.isIntersecting) {
-            e.target.classList.add('in-view');
-            io.unobserve(e.target);
-          }
-        });
-      }, { threshold: 0.12 });
-
-      document.querySelectorAll('.reveal').forEach(el => io.observe(el));
-    });
-  </script>
 </body>
 </html>
