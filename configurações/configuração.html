@@ -66,7 +66,6 @@
     // Configurações padrão
     function getDefaultSettings() {
       return {
-        theme: 'dark',
         notifications: true,
         language: 'pt-BR',
         autoSave: true,
@@ -128,13 +127,7 @@
         document.getElementById('telefone').value = userSettings.phoneNumber || '';
         document.getElementById('setor').value = 'Estrutura'; // Fixo como Estrutura
         document.getElementById('cargo').value = userSettings.role || 'Supervisor';
-        
-        // Configurar tema
-        const themeInput = document.querySelector(`input[name="theme"][value="${userSettings.theme}"]`);
-        if (themeInput) {
-          themeInput.checked = true;
-          applyTheme(userSettings.theme);
-        }
+      
         
         // Configurar toggles (notificações e sessão sempre ativadas)
         document.getElementById('notificationsToggle').checked = true;
@@ -468,19 +461,6 @@
       });
     }
     
-    // Aplicar tema
-    function applyTheme(theme) {
-      document.documentElement.setAttribute('data-theme', theme);
-      if (userSettings) {
-        userSettings.theme = theme;
-        hasUnsavedChanges = true;
-        updateSaveButtonState();
-        if (userSettings.autoSave) {
-          setTimeout(() => saveUserSettings(), 500);
-        }
-      }
-    }
-    
     // Atualizar informações da sessão
     function updateSessionInfo() {
       const lastLogin = new Date().toLocaleString('pt-BR');
@@ -581,15 +561,6 @@
             }
           });
         }
-      });
-      
-      // Theme change listener
-      document.querySelectorAll('input[name="theme"]').forEach(input => {
-        input.addEventListener('change', () => {
-          if (input.checked) {
-            applyTheme(input.value);
-          }
-        });
       });
       
       // Toggle listeners (apenas autoSave pode ser alterado)
